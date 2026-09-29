@@ -5,7 +5,7 @@ An open-source energy system capacity expansion model built using **PyPSA** (Pyt
 ## Academic Credential & Course Context
 This repository serves as the practical engineering implementation for the official microcredential:
 * **Course & Badge Title:** Modelling the Energy Transition: the revolution of open-source software
-* **Issuing Institution:** Politecnico di Milano (Polimi Open Knowledge - POK)
+* **Issuing Institution:** Politecnico di Milano 
 * **Qualification Level:** EQF Level 7
 
 ## Technical Overview
