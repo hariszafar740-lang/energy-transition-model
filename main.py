@@ -1,50 +1,55 @@
-import pypsa
-import pandas as pd
+"""Command-line entry point: solve the shipped representative-day scenario.
 
-# 1. Initialize Power Network & Time Snapshots (24 Hours)
-network = pypsa.Network()
-hours = pd.date_range("2026-01-01 00:00", "2026-01-01 23:00", freq="h")
-network.set_snapshots(hours)
+Usage:
+    python3 main.py [--profiles PATH] [--days-per-year N]
 
-# 2. Add Electrical Bus & System Demand
-network.add("Bus", "Regional_Grid")
-network.add("Load", "System_Demand", bus="Regional_Grid", p_set=150.0)
+Exits with status 1 and an ERROR message on stderr if the input is invalid or the
+optimisation is not solved to optimality, so a solver failure is never reported
+as a dispatch.
+"""
 
-# 3. Add Candidate Technologies (Extendable Capacities for Optimization)
-network.add(
-    "Generator", 
-    "Solar_PV", 
-    bus="Regional_Grid", 
-    p_nom_extendable=True, 
-    capital_cost=45000,
-    marginal_cost=0
+from __future__ import annotations
+
+import argparse
+import sys
+
+from energy_model import (
+    DAYS_PER_YEAR,
+    DEFAULT_PROFILE_PATH,
+    SolverError,
+    format_report,
+    load_profiles,
+    run_scenario,
 )
 
-network.add(
-    "Generator", 
-    "Wind_Turbine", 
-    bus="Regional_Grid", 
-    p_nom_extendable=True, 
-    capital_cost=70000, 
-    marginal_cost=0
-)
 
-network.add(
-    "Generator", 
-    "Gas_Peaker", 
-    bus="Regional_Grid", 
-    p_nom_extendable=True, 
-    capital_cost=20000, 
-    marginal_cost=65
-)
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "--profiles",
+        default=str(DEFAULT_PROFILE_PATH),
+        help="hourly profile CSV (default: shipped synthetic 24 h profiles)",
+    )
+    parser.add_argument(
+        "--days-per-year",
+        type=int,
+        default=DAYS_PER_YEAR,
+        help="number of days per year the representative day stands for",
+    )
+    args = parser.parse_args(argv)
 
-# 4. Run Optimization Solver (HiGHS)
-print("--- Solving Capacity Expansion Linear Program (HiGHS) ---")
-network.optimize(solver_name="highs")
+    try:
+        profiles = load_profiles(args.profiles)
+        result = run_scenario(profiles=profiles, days_per_year=args.days_per_year)
+    except (ValueError, FileNotFoundError, SolverError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
-# 5. Extract Results
-print("\n=== OPTIMAL INSTALLED CAPACITY (MW) ===")
-print(network.generators.p_nom_opt)
+    print("--- Energy transition model: representative-day capacity expansion ---")
+    print(f"Profiles: {args.profiles}")
+    print(format_report(result))
+    return 0
 
-print("\n=== TOTAL GENERATION DISPATCH (MWh) ===")
-print(network.generators_t.p.sum())
+
+if __name__ == "__main__":
+    sys.exit(main())
