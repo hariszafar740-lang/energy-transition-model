@@ -1,32 +1,60 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "energy-transition-model"
-version = "0.2.0"
-description = "Single-bus representative-day capacity expansion and dispatch model (PyPSA + HiGHS)"
+version = "0.3.0"
+description = "Open-source capacity-expansion, dispatch, WACC/LCOE economics, and KKT nodal duality model (PyPSA + HiGHS)"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.11"
+authors = [
+    { name = "Haris Zafar" },
+]
+keywords = [
+    "energy-transition",
+    "capacity-expansion",
+    "pypsa",
+    "highs",
+    "linear-programming",
+    "lcoe",
+    "locational-marginal-price",
+    "power-systems",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
 dependencies = [
     "pypsa>=1.4,<2",
     "highspy>=1.15",
     "pandas>=2.2",
+    "scipy>=1.11,<2",
+    "matplotlib>=3.8,<4",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
     "ruff>=0.6",
-    "scipy>=1.11",
     "build>=1.2",
 ]
 
+[project.urls]
+Repository = "https://github.com/hariszafar740-lang/energy-transition-model"
+Issues = "https://github.com/hariszafar740-lang/energy-transition-model/issues"
+
 [tool.setuptools]
-packages = ["energy_model"]
+packages = ["energy_model", "energy_model.data"]
 
 [tool.setuptools.package-data]
-energy_model = ["data/*.csv"]
+energy_model = ["data/*.csv", "py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

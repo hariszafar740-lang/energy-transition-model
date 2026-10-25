@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: "Energy Transition Optimization Model: Capacity Expansion, Dispatch & Nodal KKT Duality"
+message: "If you use this software in academic or engineering research, please cite it as below."
+type: software
+authors:
+  - family-names: Zafar
+    given-names: Haris
+    alias: hariszafar740-lang
+repository-code: "https://github.com/hariszafar740-lang/energy-transition-model"
+url: "https://github.com/hariszafar740-lang/energy-transition-model"
+license: MIT
+version: 0.3.0
+date-released: "2026-10-25"
+keywords:
+  - energy-transition
+  - capacity-expansion
+  - economic-dispatch
+  - pypsa
+  - linear-programming
+  - locational-marginal-pricing
+  - levelized-cost-of-electricity
+  - power-systems-economics

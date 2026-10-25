@@ -4,7 +4,7 @@ Formulation (as solved by PyPSA/linopy with HiGHS):
 
     minimise   sum_g capital_cost_g * p_nom_g                       (annual)
              + DAYS_PER_YEAR * sum_{g,t} marginal_cost_g * p_{g,t} * dt
-    subject to sum_g p_{g,t} = load_t                  for every hour t
+    subject to sum_g p_{g,t} = load_t    [dual: w_t * lambda_t]   for every hour t
                0 <= p_{g,t} <= p_max_pu_{g,t} * p_nom_g
                p_nom_g fixed or 0 <= p_nom_g (extendable)
 
@@ -13,16 +13,17 @@ Units and definitions
 * Power ``p`` and capacity ``p_nom`` are in MW. Energy is MWh.
 * Every snapshot is one hour (``dt = 1 h``).
 * ``capital_cost`` is a cost per MW of installed capacity **per year**. The
-  values in ``DEFAULT_TECHNOLOGIES`` are carried over from the original
-  ``main.py``; they are assumed to be annualised and are not verified against a
+  values in ``DEFAULT_TECHNOLOGIES`` are carried over from the original file
+  (``main.py``); they are assumed to be annualised and are not verified against a
   cost source. The currency is not specified in the original model.
 * The input horizon is one *representative day* (the profile file). The model
   assumes that day repeats ``DAYS_PER_YEAR`` times per year. Operating costs
   and energy are therefore scaled by ``DAYS_PER_YEAR``; capital costs are
   already annual and are not scaled. Seasonality, leap years and
-  multi-day storage are not represented.
-* There is no discounting: the objective is an annual system cost, not a net
-  present cost.
+  multi-day storage are not represented in this single-day baseline.
+* ``lmp_per_mwh`` records the hourly nodal shadow price ``lambda_t``
+  (currency / MWh) extracted from the KKT power-balance dual multiplier on bus
+  name ``Regional_Grid``.
 """
 
 from __future__ import annotations
@@ -36,6 +37,9 @@ import pandas as pd
 import pypsa
 
 from .profiles import CAPACITY_FACTOR_COLUMNS, SNAPSHOT_HOURS, validate_profiles
+
+if hasattr(pypsa, "options") and hasattr(pypsa.options, "api"):
+    pypsa.options.api.legacy_string_dtype = True
 
 BUS_NAME = "Regional_Grid"
 LOAD_NAME = "System_Demand"
@@ -100,6 +104,7 @@ class ScenarioResult:
     total_cost_per_year: float
     objective_reported: float
     objective_difference: float  # objective_reported - total_cost_per_year
+    lmp_per_mwh: pd.Series = field(default_factory=lambda: pd.Series(dtype=float))
     notes: list[str] = field(default_factory=list)
 
 
@@ -118,8 +123,8 @@ def build_network(
 ) -> pypsa.Network:
     """Create a PyPSA network whose time series come from ``profiles``.
 
-    ``profiles`` must already be validated (see :func:`validate_profiles`); it is
-    validated again here so that callers cannot bypass the checks.
+    Input ``profiles`` is validated here (see :func:`validate_profiles`) so that
+    callers cannot bypass the time-series integrity checks.
     """
     profiles = validate_profiles(profiles)
     if isinstance(days_per_year, bool) or not isinstance(days_per_year, int) or days_per_year < 1:
@@ -225,6 +230,12 @@ def extract_results(
     opex = opex_per_day * days_per_year
     total = capex + opex
 
+    if BUS_NAME in network.buses_t.marginal_price.columns:
+        raw_lmp = network.buses_t.marginal_price[BUS_NAME].astype(float).copy()
+        lmp = raw_lmp.where(raw_lmp.abs() > 1e-12, 0.0)
+    else:
+        lmp = pd.Series(math.nan, index=p.index, dtype=float)
+
     notes: list[str] = []
     if (headroom[renewable] < -1e-6).any().any():
         notes.append("renewable dispatch exceeds available output")
@@ -251,6 +262,7 @@ def extract_results(
         total_cost_per_year=total,
         objective_reported=float(network.objective),
         objective_difference=float(network.objective) - total,
+        lmp_per_mwh=lmp,
         notes=notes,
     )
 
