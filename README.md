@@ -15,7 +15,7 @@ This repository serves as the practical engineering implementation for the offic
 * **Issuing Institution:** Politecnico di Milano
 * **Qualification Level:** EQF Level 7
 
-## Architecture & Module Capabilities (`v0.6.0`)
+## Architecture & Module Capabilities (`v0.7.0`)
 
 * **Single-bus LP baseline (`energy_model/model.py`):** Representative-day capacity expansion (`Regional_Grid`, `System_Demand`, `Solar_PV`, `Wind_Turbine`, `Gas_Peaker`) with strict hourly time-series validation (`energy_model/profiles.py`).
 * **Discounted cash-flow & KKT nodal price duality (`energy_model/economics.py`):**
@@ -106,6 +106,34 @@ Module 4 (`energy_model/flexibility.py`) introduces intertemporal thermal ramp-r
 
 # Evaluate explicit thermal ramp, must-run & spinning-reserve constraints on baseline 24 h profiles
 .venv/bin/python main.py --ramp-limit 0.35 --must-run 0.25 --reserve-margin 0.08
+```
+
+## 4-Zone Meshed DC-OPF, KVL Loop Flows & Transmission Expansion (v0.7.0)
+
+Module 5 (`energy_model/transmission.py`) models a 4-zone, 5-corridor 380 kV meshed AC transmission grid (`North_Wind`, `West_Solar`, `South_Hub`, `East_Metro` with two fundamental Kirchhoff Voltage Law cycles), analytical `PTDF` matrices, ISO Merchandising Surplus (congestion rent), co-optimized Transmission Expansion Planning (`AC-TEP`), and an independent sparse `scipy.optimize.linprog` (`HiGHS`) nodal phase-angle $B\theta$ cross-check:
+
+1. **Cycle-Basis `KVL` vs. Nodal Voltage-Angle $B\theta$ / `PTDF` Duality:** Passive AC flows satisfy $f_{\ell,t} = b_\ell(\theta_{i,t} - \theta_{j,t}) = [\mathbf{\Phi}(\mathbf{g}_t - \mathbf{d}_t)]_\ell$ and nodal `LMP` decomposition $\boldsymbol{\lambda}_t = \lambda_{\text{ref},t}\mathbf{1} - \mathbf{\Phi}^\top(\boldsymbol{\mu}^+_t - \boldsymbol{\mu}^-_t)$ to $\le 1.5 \times 10^{-13}$.
+2. **Triple Merchandising Surplus & Joskow–Tirole Cost Recovery:** ISO congestion rent satisfies $\sum_z \lambda_{z,t}(d_{z,t} - g_{z,t}) = \sum_{\ell=(i\to j)}(\lambda_{j,t} - \lambda_{i,t})f_{\ell,t} = \sum_\ell F^*_\ell(\mu^+_{\ell,t} + \mu^-_{\ell,t}) \ge 0$ at every hour, and recovers `100.00%` of optimal `AC-TEP` annualised line `CapEx` (`7,088,134` currency/yr, gap `0.00e+00`).
+3. **Wheatstone-Bridge Braess's Paradox in Passive AC `DC-OPF`:** Adding a zero-cost `500 MW` passive AC bridge across a symmetric congested network reduces cheap power transfer (`120.0 -> 82.5 MW`) and raises dispatch cost by **`+62.50%`** (`4,800 -> 7,800` currency/h) via `KVL` loop binding, whereas a controllable `HVDC` link unlocks `160.0 MW` and cuts cost by **`-66.67%`** (`1,600` currency/h).
+
+![4-Zone Meshed DC-OPF, Congestion Rent & Co-Optimized TEP](results/zonal_dcopf_congestion_and_tep.png)
+
+### Verified 4-Zone 380 kV Transmission & `AC-TEP` Regimes (48 h Annualised)
+
+| Regime | System `LCOE` (`/MWh`) | Mean `LMP` Spread (`/MWh`) | `North_Wind` (`MW`) | `East_OCGT` (`MW`) | Total Grid (`MW`) | Congestion Rent (`/yr`) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| `1_CopperPlate_SingleBus` | `19.88` | `0.00` | `836.91` | `0.00` | `0.0` | `0` |
+| `2_Congested_AC_KVL_FixedGrid` | `30.74` | `52.90` | `385.51` | `154.47` | `400.0` | `67,585,265` |
+| `3_Controllable_HVDC_Transport` | `28.44` | `50.90` | `489.75` | `131.40` | `400.0` | `81,148,386` |
+| `4_CoOptimized_AC_TEP` | `21.59` | `2.70` | `835.53` | `7.98` | `737.1` | `7,088,134` |
+
+```bash
+# Run 4-zone DC-OPF, HVDC & co-optimized AC-TEP comparison + 4-panel figure
+.venv/bin/python main.py --transmission-report --save-transmission-plot results/zonal_dcopf_congestion_and_tep.png
+
+# Evaluate co-optimized 4-zone AC transmission expansion or corridor scaling
+.venv/bin/python main.py --cooptimize-tep
+.venv/bin/python main.py --grid-scale 1.5
 ```
 
 ## Inputs, Assumptions & Provenance
