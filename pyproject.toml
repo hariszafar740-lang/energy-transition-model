@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "energy-transition-model"
-version = "0.5.0"
-description = "Open-source capacity-expansion, multi-duration storage, CO2 cap-tax duality & MACC model (PyPSA + HiGHS)"
+version = "0.6.0"
+description = "Open-source capacity-expansion, storage, CO2 MACC, ramping & spinning-reserve model (PyPSA + HiGHS)"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
@@ -21,6 +21,9 @@ keywords = [
     "green-hydrogen",
     "dunkelflaute",
     "locational-marginal-price",
+    "duck-curve",
+    "spinning-reserve",
+    "unit-commitment",
     "lagrangian-duality",
     "marginal-abatement-cost",
     "carbon-pricing",

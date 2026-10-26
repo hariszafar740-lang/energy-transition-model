@@ -19,19 +19,26 @@ from energy_model import (
     DAYS_PER_YEAR,
     DEFAULT_PROFILE_PATH,
     SolverError,
+    SpinningReservePolicy,
     analyze_market_duality_and_lcoe,
     baseline_emission_specs,
+    baseline_flexibility_specs,
+    compare_flexibility_regimes,
     format_duality_report,
     format_emissions_report,
+    format_flexibility_report,
     format_macc_report,
     format_report,
+    format_single_flexibility_report,
     format_storage_report,
     generate_dunkelflaute_profiles,
     load_profiles,
     plot_baseline_dispatch_and_lmp_duality,
     plot_co2_pareto_frontier_and_macc,
+    plot_duck_curve_ramping_and_reserves,
     plot_multiduration_storage_dunkelflaute,
     run_emissions_scenario,
+    run_flexibility_scenario,
     run_scenario,
     run_storage_scenario,
     sweep_co2_pareto_and_macc,
@@ -92,6 +99,34 @@ def main(argv: list[str] | None = None) -> int:
         "--save-macc-plot",
         default=None,
         help="optional PNG path to render the 4-panel CO2 Pareto & MACC figure",
+    )
+    parser.add_argument(
+        "--ramp-limit",
+        type=float,
+        default=None,
+        help="optional thermal hourly ramp limit in (0, 1] on loaded profiles",
+    )
+    parser.add_argument(
+        "--must-run",
+        type=float,
+        default=None,
+        help="optional thermal minimum stable output p_min_pu in [0, 1] on loaded profiles",
+    )
+    parser.add_argument(
+        "--reserve-margin",
+        type=float,
+        default=None,
+        help="optional load-proportional upward spinning reserve fraction in [0, 1]",
+    )
+    parser.add_argument(
+        "--flexibility-report",
+        action="store_true",
+        help="append 4-regime Duck-Curve ramping, must-run & spinning-reserve comparison",
+    )
+    parser.add_argument(
+        "--save-flexibility-plot",
+        default=None,
+        help="optional PNG path to render the 4-panel Duck-Curve ramping & reserve figure",
     )
     args = parser.parse_args(argv)
 
@@ -168,6 +203,52 @@ def main(argv: list[str] | None = None) -> int:
             macc_df=macc_df,
         )
         print(f"\nSaved MACC figure: {saved_macc}")
+
+    if args.ramp_limit is not None or args.must_run is not None or args.reserve_margin is not None:
+        try:
+            r_lim = 0.40 if args.ramp_limit is None else args.ramp_limit
+            m_run = 0.00 if args.must_run is None else args.must_run
+            r_pol = SpinningReservePolicy(
+                enabled=args.reserve_margin is not None and args.reserve_margin > 0.0,
+                load_reserve_fraction=0.0 if args.reserve_margin is None else args.reserve_margin,
+                vre_reserve_fraction=0.0,
+            )
+            flx_res = run_flexibility_scenario(
+                profiles=profiles,
+                specs=baseline_flexibility_specs(
+                    thermal_p_min_pu=m_run,
+                    thermal_ramp_limit_pu=r_lim,
+                ),
+                enforce_ramping=args.ramp_limit is not None,
+                enforce_must_run=args.must_run is not None,
+                include_bess=False,
+                reserve_policy=r_pol,
+                annual_hours=float(args.days_per_year) * float(len(profiles)),
+            )
+        except (ValueError, SolverError) as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        print("")
+        print(format_single_flexibility_report(flx_res))
+
+    flex_df = None
+    if args.flexibility_report or args.save_flexibility_plot:
+        try:
+            flex_df = compare_flexibility_regimes()
+        except (ValueError, SolverError) as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+
+    if args.flexibility_report and flex_df is not None:
+        print("")
+        print(format_flexibility_report(flex_df))
+
+    if args.save_flexibility_plot and flex_df is not None:
+        saved_flex = plot_duck_curve_ramping_and_reserves(
+            output_path=args.save_flexibility_plot,
+            regime_df=flex_df,
+        )
+        print(f"\nSaved flexibility figure: {saved_flex}")
 
     return 0
 
