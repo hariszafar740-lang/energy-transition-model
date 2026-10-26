@@ -15,7 +15,7 @@ This repository serves as the practical engineering implementation for the offic
 * **Issuing Institution:** Politecnico di Milano
 * **Qualification Level:** EQF Level 7
 
-## Architecture & Module Capabilities (`v0.4.0`)
+## Architecture & Module Capabilities (`v0.5.0`)
 
 * **Single-bus LP baseline (`energy_model/model.py`):** Representative-day capacity expansion (`Regional_Grid`, `System_Demand`, `Solar_PV`, `Wind_Turbine`, `Gas_Peaker`) with strict hourly time-series validation (`energy_model/profiles.py`).
 * **Discounted cash-flow & KKT nodal price duality (`energy_model/economics.py`):**
@@ -51,6 +51,35 @@ $$e_{\text{H2},t} = (1 - \sigma_{\text{H2}}) e_{\text{H2},(t-1)\bmod T} + \eta_{
 | **5. Hybrid + Uncapped Gas Ref.** | `72.2 MW` | `375.8 MW` | `58.5 MW` (`234 MWh`) | `5.1` / `1.5 MW_e` | `215 MWh_H2` | `43.49` / MWh |
 
 * **Efficiency vs. Energy-CapEx Crossover (`~6.9 h`):** For short lulls (`0–6 h`), `Li-Ion BESS` (`90.25%` RTE) achieves lower zero-fossil `LCOE` than `Green H2` (`24.01` vs. `26.53` / MWh at `0 h`). Beyond `~6.9 h` (`12–72 h` `Dunkelflaute`), decoupled `H2` cavern storage (`350` / MWh$_{\text{H2}}$ / yr) decisively beats `4 h` battery packs (`66.76` vs. `85.31` / MWh at `72 h`), while the **Hybrid `BESS + H2` portfolio forms the Pareto-optimal lower envelope across every duration**.
+
+## CO2 Cap-Tax Lagrangian Duality & Marginal Abatement Cost Curve (v0.5.0)
+
+Module 3 (`energy_model/emissions.py`) extends the single-bus capacity-expansion engine with primary-to-electric multi-fuel emissions accounting ($e_g = \text{EF}_{\text{th},c(g)} / \eta_g$), PyPSA `GlobalConstraint` annual $\text{CO}_2$ caps ($\bar{E}_{\text{CO2}}$), Pigouvian carbon taxes ($\tau$), and an independent sparse `scipy.optimize.linprog` (`HiGHS`) primal/dual cross-check:
+
+1. **Lagrangian Cap-Tax Saddle-Point Equivalence:** Relaxing $\sum_{g,t} w_t e_g p_{g,t} \Delta t \le \bar{E}$ with KKT shadow carbon price $\mu_{\text{CO2}}^* = -\partial J_{\text{cap}}^*(\bar{E})/\partial \bar{E} \ge 0$ yields the exact Pigouvian carbon-tax objective identity across every point on the convex Pareto frontier:
+   $$J_{\text{tax}}^*(\mu_{\text{CO2}}^*) = J_{\text{cap}}^*(\bar{E}) + \mu_{\text{CO2}}^* \cdot \bar{E}$$
+   verified numerically to relative saddle-point residual $\le 1.6 \times 10^{-15}$.
+2. **Net-Zero Boundary Subdifferential Regularisation ($\bar{E} = 0$):** Because the dual objective $\max b^\top y - \bar{E}\mu$ assigns zero weight to $\mu$ at $\bar{E} = 0$, the subdifferential $-\partial J_{\text{cap}}^*(0)$ is the half-ray $[\tau_{\min}^{\text{net-zero}}, +\infty)$. Evaluating the right-hand limit $\lim_{\epsilon \downarrow 0^+} \mu^*(\epsilon)$ uniquely extracts the minimum Net-Zero carbon price (`418.25` currency / $\text{tCO}_2$).
+
+![CO2 Pareto Frontier, MACC & Fuel Switching](results/co2_pareto_frontier_and_macc.png)
+
+### Verified Multi-Fuel Decarbonization Milestones (`168 h` Representative Week, Annualised)
+
+| Abatement Target | Realised $\text{CO}_2$ (`tCO2/yr`) | Shadow Price $\mu_{\text{CO2}}^*$ (`/tCO2`) | Average Cost (`/tCO2`) | Resource `LCOE` (`/MWh`) | Dominant Portfolio Regime |
+| :---: | :---: | :---: | :---: | :---: | :--- |
+| `0%` (BAU) | `1,206,958` | `0.00` | `0.00` | `24.34` | `Coal_Steam` (`181.8 MW`) + `CCGT_Gas` (`7.5 MW`) |
+| `45%` Cap | `663,827` | `6.99` | `6.15` | `26.69` | Stage I: `Wind_Turbine` (`220.0 MW`) + `OCGT` |
+| `75%` Cap | `301,740` | `18.61` | `8.30` | `29.61` | Stage II: `Coal -> CCGT` (`36.2 MW`) + `Solar_PV` (`61.6 MW`) |
+| `96%` Cap | `48,278` | `52.77` | `12.84` | `34.79` | Stage III: `90% Gas_CCS` (`14.5 MW`) + `LiIon_BESS` (`40.5 MWh`) |
+| `100%` Net-Zero | `0` | `418.25` | `15.89` | `37.81` | Stage IV: `Solar` + `Wind` + `Green H2` (`3,851.9 MWh_H2`) |
+
+```bash
+# Run multi-fuel CO2 Pareto frontier & MACC report + 4-panel figure
+.venv/bin/python main.py --macc-report --save-macc-plot results/co2_pareto_frontier_and_macc.png
+
+# Apply an explicit Pigouvian carbon tax or annual CO2 cap on the baseline 24 h scenario
+.venv/bin/python main.py --co2-price 50 --co2-cap 20000
+```
 
 ## Inputs, Assumptions & Provenance
 

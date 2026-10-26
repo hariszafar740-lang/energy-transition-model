@@ -20,15 +20,21 @@ from energy_model import (
     DEFAULT_PROFILE_PATH,
     SolverError,
     analyze_market_duality_and_lcoe,
+    baseline_emission_specs,
     format_duality_report,
+    format_emissions_report,
+    format_macc_report,
     format_report,
     format_storage_report,
     generate_dunkelflaute_profiles,
     load_profiles,
     plot_baseline_dispatch_and_lmp_duality,
+    plot_co2_pareto_frontier_and_macc,
     plot_multiduration_storage_dunkelflaute,
+    run_emissions_scenario,
     run_scenario,
     run_storage_scenario,
+    sweep_co2_pareto_and_macc,
 )
 
 
@@ -64,6 +70,28 @@ def main(argv: list[str] | None = None) -> int:
         "--save-storage-plot",
         default=None,
         help="optional PNG path to render the 4-panel Dunkelflaute multi-duration storage figure",
+    )
+    parser.add_argument(
+        "--co2-cap",
+        type=float,
+        default=None,
+        help="optional annual CO2 emissions cap in tCO2/yr on loaded profiles",
+    )
+    parser.add_argument(
+        "--co2-price",
+        type=float,
+        default=None,
+        help="optional Pigouvian carbon tax in currency/tCO2 on loaded profiles",
+    )
+    parser.add_argument(
+        "--macc-report",
+        action="store_true",
+        help="append multi-fuel CO2 Pareto frontier & Marginal Abatement Cost Curve table",
+    )
+    parser.add_argument(
+        "--save-macc-plot",
+        default=None,
+        help="optional PNG path to render the 4-panel CO2 Pareto & MACC figure",
     )
     args = parser.parse_args(argv)
 
@@ -105,6 +133,41 @@ def main(argv: list[str] | None = None) -> int:
                 hybrid_result=storage_res,
             )
             print(f"\nSaved storage figure: {saved_st}")
+
+    if args.co2_cap is not None or args.co2_price is not None:
+        try:
+            em_res = run_emissions_scenario(
+                profiles=profiles,
+                specs=baseline_emission_specs(),
+                co2_cap_tco2_per_year=args.co2_cap,
+                co2_price_per_tco2=0.0 if args.co2_price is None else args.co2_price,
+                include_storage=False,
+                annual_hours=float(args.days_per_year) * float(len(profiles)),
+            )
+        except (ValueError, SolverError) as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        print("")
+        print(format_emissions_report(em_res))
+
+    macc_df = None
+    if args.macc_report or args.save_macc_plot:
+        try:
+            macc_df = sweep_co2_pareto_and_macc()
+        except (ValueError, SolverError) as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+
+    if args.macc_report and macc_df is not None:
+        print("")
+        print(format_macc_report(macc_df))
+
+    if args.save_macc_plot and macc_df is not None:
+        saved_macc = plot_co2_pareto_frontier_and_macc(
+            output_path=args.save_macc_plot,
+            macc_df=macc_df,
+        )
+        print(f"\nSaved MACC figure: {saved_macc}")
 
     return 0
 

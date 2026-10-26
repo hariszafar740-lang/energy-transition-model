@@ -1,4 +1,4 @@
-"""Energy transition capacity-expansion, dispatch, WACC/LCOE, KKT & storage model."""
+"""Energy transition capacity-expansion, storage, CO2 cap-tax duality & MACC model."""
 
 from .economics import (
     DEFAULT_WACC_SWEEP,
@@ -15,6 +15,29 @@ from .economics import (
     solve_primal_dual_linprog_crosscheck,
     sweep_wacc_lcoe_and_mix,
 )
+from .emissions import (
+    ANNUAL_HOURS_PER_YEAR,
+    CO2_CONSTRAINT_NAME,
+    DEFAULT_ABATEMENT_FRACTIONS,
+    DEFAULT_CARBON_TAX_SWEEP,
+    DEFAULT_CARRIER_CO2_INTENSITY_T_PER_MWH_TH,
+    CapTaxDualityComparison,
+    EmissionsLinprogCrossCheck,
+    EmissionsScenarioResult,
+    FuelTechEmissionSpec,
+    analytical_fuel_switching_carbon_price,
+    baseline_emission_specs,
+    build_emissions_network,
+    default_multifuel_specs,
+    format_emissions_report,
+    format_macc_report,
+    make_emissions_week_profiles,
+    run_emissions_scenario,
+    solve_emissions_linprog_crosscheck,
+    sweep_carbon_tax_equivalents,
+    sweep_co2_pareto_and_macc,
+    verify_cap_tax_lagrangian_duality,
+)
 from .model import (
     DAYS_PER_YEAR,
     DEFAULT_PROFILE_PATH,
@@ -29,9 +52,13 @@ from .model import (
 )
 from .plotting import (
     plot_baseline_dispatch_and_lmp_duality,
+    plot_co2_pareto_frontier_and_macc,
     plot_multiduration_storage_dunkelflaute,
 )
-from .profiles import load_profiles, validate_profiles
+from .profiles import (
+    load_profiles,
+    validate_profiles,
+)
 from .storage import (
     DEFAULT_LULL_DURATION_SWEEP,
     HOURS_PER_YEAR,
@@ -48,15 +75,24 @@ from .storage import (
     sweep_dunkelflaute_duration,
 )
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 __all__ = [
+    "ANNUAL_HOURS_PER_YEAR",
     "BatteryStorageSpec",
+    "CO2_CONSTRAINT_NAME",
+    "CapTaxDualityComparison",
     "DAYS_PER_YEAR",
+    "DEFAULT_ABATEMENT_FRACTIONS",
+    "DEFAULT_CARBON_TAX_SWEEP",
+    "DEFAULT_CARRIER_CO2_INTENSITY_T_PER_MWH_TH",
     "DEFAULT_LULL_DURATION_SWEEP",
     "DEFAULT_PROFILE_PATH",
     "DEFAULT_TECHNOLOGIES",
     "DEFAULT_WACC_SWEEP",
+    "EmissionsLinprogCrossCheck",
+    "EmissionsScenarioResult",
+    "FuelTechEmissionSpec",
     "HOURS_PER_YEAR",
     "HydrogenP2XSpec",
     "MarketDualitySummary",
@@ -68,28 +104,41 @@ __all__ = [
     "StorageScenarioResult",
     "TechnologyFinancialSpec",
     "__version__",
+    "analytical_fuel_switching_carbon_price",
     "analyze_market_duality_and_lcoe",
     "annualize_overnight_capex",
+    "baseline_emission_specs",
+    "build_emissions_network",
     "build_network",
     "build_storage_network",
     "build_wacc_technologies",
     "capital_recovery_factor",
     "compare_storage_adequacy_regimes",
     "default_financial_specs",
+    "default_multifuel_specs",
     "extract_results",
     "format_duality_report",
+    "format_emissions_report",
+    "format_macc_report",
     "format_report",
     "format_storage_report",
     "generate_dunkelflaute_profiles",
     "load_profiles",
+    "make_emissions_week_profiles",
     "plot_baseline_dispatch_and_lmp_duality",
+    "plot_co2_pareto_frontier_and_macc",
     "plot_multiduration_storage_dunkelflaute",
+    "run_emissions_scenario",
     "run_scenario",
     "run_storage_scenario",
     "solve",
+    "solve_emissions_linprog_crosscheck",
     "solve_primal_dual_linprog_crosscheck",
     "solve_storage_linprog_crosscheck",
+    "sweep_carbon_tax_equivalents",
+    "sweep_co2_pareto_and_macc",
     "sweep_dunkelflaute_duration",
     "sweep_wacc_lcoe_and_mix",
     "validate_profiles",
+    "verify_cap_tax_lagrangian_duality",
 ]
