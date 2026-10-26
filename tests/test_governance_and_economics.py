@@ -1,10 +1,11 @@
-"""Governance, packaging, WACC/CRF cash-flow, and KKT nodal LMP duality tests (v0.3.0)."""
+"""Governance, packaging, WACC/CRF cash-flow, and KKT nodal LMP duality tests."""
 
 from __future__ import annotations
 
 import shutil
 import subprocess
 import sys
+import tomllib
 import zipfile
 from pathlib import Path
 
@@ -47,18 +48,22 @@ class TestGovernanceAndPackaging:
             assert path.is_file(), f"Missing {rel}"
             assert path.stat().st_size > 20
 
-        assert energy_model.__version__ == "0.3.0"
+        pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+        expected_version = pyproject["project"]["version"]
+        assert energy_model.__version__ == expected_version
         cff = (REPO_ROOT / "CITATION.cff").read_text(encoding="utf-8")
-        assert "version: 0.3.0" in cff
+        assert f"version: {expected_version}" in cff
 
     def test_readme_honest_scope_and_figure_reference(self):
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         lower = readme.lower()
         assert "results/baseline_dispatch_and_lmp_duality.png" in readme
+        assert "results/multiduration_storage_dunkelflaute_dispatch.png" in readme
         assert (REPO_ROOT / "results" / "baseline_dispatch_and_lmp_duality.png").is_file()
+        assert (REPO_ROOT / "results" / "multiduration_storage_dunkelflaute_dispatch.png").is_file()
         assert "politecnico di milano" in lower
         assert "synthetic" in lower
-        assert "not engineering certification" in lower or "engineering certification" in lower
+        assert "engineering certification" in lower
         assert readme.count(chr(96) * 3) % 2 == 0
 
     def test_built_wheel_contains_py_typed_and_packaged_csv(self, tmp_path):
@@ -79,7 +84,8 @@ class TestGovernanceAndPackaging:
                 timeout=120,
             )
             assert proc.returncode == 0, proc.stderr
-            wheels = list(tmp_path.glob("energy_transition_model-0.3.0-*.whl"))
+            ver = energy_model.__version__
+            wheels = list(tmp_path.glob(f"energy_transition_model-{ver}-*.whl"))
             assert len(wheels) == 1
             with zipfile.ZipFile(wheels[0]) as zf:
                 names = set(zf.namelist())
@@ -153,12 +159,9 @@ class TestDiscountedCashFlowAndWACC:
             shipped_profiles,
             wacc_values=(0.00, 0.04, 0.07, 0.10, 0.15),
         )
-        # System LCOE strictly increases with cost of capital
         assert np.all(np.diff(df["system_lcoe_per_mwh"].to_numpy()) > 0.0)
-        # Capital-intensive wind capacity & VRE energy share decline monotonically
         assert np.all(np.diff(df["wind_mw"].to_numpy()) <= 1e-6)
         assert np.all(np.diff(df["vre_share_pct"].to_numpy()) <= 1e-6)
-        # Low-CapEx gas peaker capacity is monotonically non-decreasing
         assert np.all(np.diff(df["gas_mw"].to_numpy()) >= -1e-6)
 
 
