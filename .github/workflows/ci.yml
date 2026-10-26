@@ -47,7 +47,8 @@ jobs:
         run: |
           python main.py
           python main.py --duality-report --save-plot /tmp/etm_ci_smoke.png
-          rm -f /tmp/etm_ci_smoke.png
+          python main.py --dunkelflaute-report --save-storage-plot /tmp/etm_ci_storage.png
+          rm -f /tmp/etm_ci_smoke.png /tmp/etm_ci_storage.png
 
       - name: Build sdist and wheel
         run: |

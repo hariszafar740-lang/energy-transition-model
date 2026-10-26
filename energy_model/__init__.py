@@ -1,4 +1,4 @@
-"""Energy transition capacity-expansion, dispatch, WACC/LCOE & KKT duality model."""
+"""Energy transition capacity-expansion, dispatch, WACC/LCOE, KKT & storage model."""
 
 from .economics import (
     DEFAULT_WACC_SWEEP,
@@ -27,37 +27,69 @@ from .model import (
     run_scenario,
     solve,
 )
-from .plotting import plot_baseline_dispatch_and_lmp_duality
+from .plotting import (
+    plot_baseline_dispatch_and_lmp_duality,
+    plot_multiduration_storage_dunkelflaute,
+)
 from .profiles import load_profiles, validate_profiles
+from .storage import (
+    DEFAULT_LULL_DURATION_SWEEP,
+    HOURS_PER_YEAR,
+    BatteryStorageSpec,
+    HydrogenP2XSpec,
+    StorageLinprogCrossCheck,
+    StorageScenarioResult,
+    build_storage_network,
+    compare_storage_adequacy_regimes,
+    format_storage_report,
+    generate_dunkelflaute_profiles,
+    run_storage_scenario,
+    solve_storage_linprog_crosscheck,
+    sweep_dunkelflaute_duration,
+)
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
+    "BatteryStorageSpec",
     "DAYS_PER_YEAR",
+    "DEFAULT_LULL_DURATION_SWEEP",
     "DEFAULT_PROFILE_PATH",
     "DEFAULT_TECHNOLOGIES",
     "DEFAULT_WACC_SWEEP",
+    "HOURS_PER_YEAR",
+    "HydrogenP2XSpec",
     "MarketDualitySummary",
     "PrimalDualCrossCheck",
     "REFERENCE_WACC",
     "ScenarioResult",
     "SolverError",
+    "StorageLinprogCrossCheck",
+    "StorageScenarioResult",
     "TechnologyFinancialSpec",
     "__version__",
     "analyze_market_duality_and_lcoe",
     "annualize_overnight_capex",
     "build_network",
+    "build_storage_network",
     "build_wacc_technologies",
     "capital_recovery_factor",
+    "compare_storage_adequacy_regimes",
     "default_financial_specs",
     "extract_results",
     "format_duality_report",
     "format_report",
+    "format_storage_report",
+    "generate_dunkelflaute_profiles",
     "load_profiles",
     "plot_baseline_dispatch_and_lmp_duality",
+    "plot_multiduration_storage_dunkelflaute",
     "run_scenario",
+    "run_storage_scenario",
     "solve",
     "solve_primal_dual_linprog_crosscheck",
+    "solve_storage_linprog_crosscheck",
+    "sweep_dunkelflaute_duration",
     "sweep_wacc_lcoe_and_mix",
     "validate_profiles",
 ]
