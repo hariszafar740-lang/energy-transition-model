@@ -31,6 +31,11 @@ from .storage import (
     run_storage_scenario,
     sweep_dunkelflaute_duration,
 )
+from .transmission import (
+    compare_transmission_regimes,
+    make_four_zone_profiles,
+    run_transmission_scenario,
+)
 
 
 def _apply_plot_style() -> None:
@@ -1204,6 +1209,315 @@ def plot_duck_curve_ramping_and_reserves(
         l3_l + l3_r,
         loc="upper right",
         fontsize=7.2,
+        ncol=2,
+        framealpha=0.92,
+    )
+
+    fig.tight_layout(rect=(0.0, 0.0, 1.0, 0.955))
+    fig.savefig(out, dpi=180)
+    plt.close(fig)
+    return out
+
+
+def plot_zonal_dcopf_congestion_and_tep(
+    output_path: str | Path = "results/zonal_dcopf_congestion_and_tep.png",
+    profiles: pd.DataFrame | None = None,
+    regime_df: pd.DataFrame | None = None,
+) -> Path:
+    """Render 4-panel 4-zone DC-OPF LMP divergence, TEP upgrades, congestion rent & regimes."""
+    prof = make_four_zone_profiles() if profiles is None else profiles.copy()
+    regimes = compare_transmission_regimes(prof) if regime_df is None else regime_df.copy()
+
+    fixed_ac = run_transmission_scenario(prof, mode="ac_kvl", extendable_lines=False)
+    tep_ac = run_transmission_scenario(prof, mode="ac_kvl", extendable_lines=True)
+
+    out = Path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    plt.rcParams.update(
+        {
+            "font.size": 9.2,
+            "axes.titlesize": 10.3,
+            "axes.labelsize": 9.2,
+            "figure.facecolor": "white",
+            "axes.facecolor": "#f8fafc",
+            "axes.edgecolor": "#cbd5e1",
+            "axes.grid": True,
+            "grid.color": "#e2e8f0",
+            "grid.linewidth": 0.7,
+        }
+    )
+
+    fig, axes = plt.subplots(2, 2, figsize=(14.4, 9.4), dpi=180)
+    fig.suptitle(
+        (
+            "4-Zone Meshed 380 kV DC-OPF: KVL Loop Flows, Congestion Rent & "
+            "Co-Optimized Transmission Expansion (48 h)"
+        ),
+        fontsize=12.1,
+        fontweight="bold",
+        y=0.98,
+    )
+
+    hrs = np.arange(len(prof.index), dtype=float)
+
+    # --- Panel (a): 4-Zone Spatial LMP Divergence (Fixed AC vs Co-Optimized TEP) ---
+    ax0 = axes[0, 0]
+    lmp_fix = fixed_ac.zonal_lmp_per_mwh
+    lmp_tep = tep_ac.zonal_lmp_per_mwh
+
+    l_east = lmp_fix["East_Metro"].to_numpy(dtype=float)
+    l_south = lmp_fix["South_Hub"].to_numpy(dtype=float)
+    l_west = lmp_fix["West_Solar"].to_numpy(dtype=float)
+    l_north = lmp_fix["North_Wind"].to_numpy(dtype=float)
+    l_tep_e = lmp_tep["East_Metro"].to_numpy(dtype=float)
+
+    ax0.fill_between(
+        hrs,
+        np.minimum.reduce([l_east, l_south, l_west, l_north]),
+        np.maximum.reduce([l_east, l_south, l_west, l_north]),
+        color="#fecdd3",
+        alpha=0.45,
+        label=f"Fixed-Grid LMP Spread (Mean {fixed_ac.mean_spatial_lmp_spread_per_mwh:.1f})",
+    )
+    ax0.plot(hrs, l_east, color="#dc2626", lw=2.0, label="East Metro LMP (Fixed AC)")
+    ax0.plot(hrs, l_south, color="#f97316", lw=1.5, ls="--", label="South Hub LMP (Fixed AC)")
+    ax0.plot(hrs, l_west, color="#eab308", lw=1.5, ls="-.", label="West Solar LMP (Fixed AC)")
+    ax0.plot(hrs, l_north, color="#0284c7", lw=1.8, label="North Wind LMP (Fixed AC)")
+    ax0.plot(
+        hrs,
+        l_tep_e,
+        color="#7e22ce",
+        lw=2.1,
+        ls=":",
+        label=f"East Metro Post-TEP (Spread {tep_ac.mean_spatial_lmp_spread_per_mwh:.1f})",
+    )
+
+    ax0.set_xlim(0.0, float(len(hrs) - 1))
+    ax0.set_ylim(-6.0, float(max(l_east.max(), l_tep_e.max())) * 1.34)
+    ax0.set_title("(a) Spatial Nodal LMP Separation & Post-TEP Convergence")
+    ax0.set_xlabel("Chronological Snapshot Hour (h)")
+    ax0.set_ylabel("Nodal Energy Shadow Price (currency / MWh)")
+    ax0.legend(loc="upper left", fontsize=7.0, ncol=2, framealpha=0.92)
+
+    # --- Panel (b): 5-Corridor Thermal Ratings (Brownfield vs Co-Opt TEP) & Congestion Hours ---
+    ax1 = axes[0, 1]
+    l_names = list(fixed_ac.line_s_nom_init_mw.index)
+    short_l = [ln.replace("_", "\n", 1).replace("_", "-") for ln in l_names]
+    y_pos = np.arange(len(l_names), dtype=float)
+    s_init = fixed_ac.line_s_nom_init_mw.to_numpy(dtype=float)
+    s_tep = tep_ac.line_s_nom_opt_mw.to_numpy(dtype=float)
+    cong_fix = fixed_ac.congested_corridor_hours.to_numpy(dtype=float)
+    cong_tep = tep_ac.congested_corridor_hours.to_numpy(dtype=float)
+
+    w_b = 0.34
+    ax1.bar(
+        y_pos - w_b / 2.0,
+        s_init,
+        width=w_b,
+        color="#64748b",
+        label="Existing Rating (MW)",
+    )
+    ax1.bar(
+        y_pos + w_b / 2.0,
+        s_tep,
+        width=w_b,
+        color="#0ea5e9",
+        label="Co-Optimized TEP Rating (MW)",
+    )
+    for i_l in range(len(l_names)):
+        added = s_tep[i_l] - s_init[i_l]
+        ax1.annotate(
+            f"+{added:.0f} MW",
+            xy=(float(y_pos[i_l] + w_b / 2.0), float(s_tep[i_l])),
+            xytext=(0.0, 6.0),
+            textcoords="offset points",
+            ha="center",
+            fontsize=7.5,
+            fontweight="bold",
+            color="#0369a1",
+            bbox={"boxstyle": "round,pad=0.14", "fc": "white", "ec": "#bae6fd", "alpha": 0.92},
+        )
+
+    ax1.set_xticks(y_pos)
+    ax1.set_xticklabels(short_l, fontsize=8.0)
+    ax1.set_ylim(0.0, float(s_tep.max()) * 1.36)
+    ax1.set_ylabel("Corridor Thermal Rating $F_\\ell$ (MW)")
+    ax1.set_title("(b) 380 kV Corridor Expansion & Binding Congestion Hours")
+
+    ax1_r = ax1.twinx()
+    ax1_r.grid(False)
+    ax1_r.plot(
+        y_pos,
+        cong_fix,
+        color="#dc2626",
+        lw=1.9,
+        marker="o",
+        ms=5.5,
+        label="Congested Hours (Fixed AC)",
+    )
+    ax1_r.plot(
+        y_pos,
+        cong_tep,
+        color="#15803d",
+        lw=1.8,
+        ls="--",
+        marker="s",
+        ms=5.0,
+        label="Congested Hours (Post-TEP)",
+    )
+    ax1_r.set_ylabel("Binding Thermal Limit Hours (out of 48 h)", color="#b91c1c")
+    ax1_r.set_ylim(-2.0, 62.0)
+
+    h1_l, l1_l = ax1.get_legend_handles_labels()
+    h1_r, l1_r = ax1_r.get_legend_handles_labels()
+    ax1.legend(
+        h1_l + h1_r,
+        l1_l + l1_r,
+        loc="upper right",
+        fontsize=7.1,
+        ncol=2,
+        framealpha=0.92,
+    )
+
+    # --- Panel (c): ISO Merchandising Surplus (Congestion Rent) & KVL Adverse Loop Flow ---
+    ax2 = axes[1, 0]
+    cr_fix_k = fixed_ac.hourly_congestion_rent.to_numpy(dtype=float) / 1000.0
+    cr_tep_k = tep_ac.hourly_congestion_rent.to_numpy(dtype=float) / 1000.0
+    min_corridor_rent_k = (
+        fixed_ac.corridor_merchandising_rent_per_h.min(axis=1).to_numpy(dtype=float) / 1000.0
+    )
+
+    ax2.fill_between(
+        hrs,
+        0.0,
+        cr_fix_k,
+        color="#f97316",
+        alpha=0.30,
+        label="ISO Congestion Rent (Fixed AC)",
+    )
+    ax2.plot(hrs, cr_fix_k, color="#ea580c", lw=1.9)
+    ax2.plot(
+        hrs,
+        cr_tep_k,
+        color="#0d9488",
+        lw=2.0,
+        label="Post-TEP Rent (= 100% Line CapEx)",
+    )
+    ax2.plot(
+        hrs,
+        min_corridor_rent_k,
+        color="#be123c",
+        lw=1.5,
+        ls="--",
+        label="Min Single-Line Rent (KVL Loop < 0)",
+    )
+    ax2.axhline(0.0, color="#475569", lw=0.8)
+
+    tep_pk = int(np.argmax(cr_tep_k))
+    rent_ymax = float(max(cr_fix_k.max(), cr_tep_k.max()))
+    ax2.annotate(
+        (
+            "Joskow-Tirole Equilibrium:\n"
+            f"Rent = Line CapEx ({tep_ac.annual_line_capex_cost / 1e6:.2f}M/yr)"
+        ),
+        xy=(float(hrs[tep_pk]), float(cr_tep_k[tep_pk])),
+        xytext=(float(hrs[tep_pk]) + 3.5, rent_ymax * 0.84),
+        fontsize=7.6,
+        bbox={"boxstyle": "round,pad=0.25", "fc": "#f0fdfa", "ec": "#5eead4"},
+        arrowprops={"arrowstyle": "->", "color": "#0f766e", "lw": 1.0},
+    )
+    ax2.set_xlim(0.0, float(len(hrs) - 1))
+    ax2.set_ylim(min(-1.8, float(min_corridor_rent_k.min()) * 2.8), rent_ymax * 1.28)
+    ax2.set_title("(c) Hourly ISO Congestion Rent & KVL Counter-Price Loop Flow")
+    ax2.set_xlabel("Chronological Snapshot Hour (h)")
+    ax2.set_ylabel("Merchandising Surplus (k-currency / h)")
+    ax2.legend(loc="upper left", fontsize=7.1, framealpha=0.92)
+
+    # --- Panel (d): 4-Regime Spatial Fleet Relocation & System LCOE Hierarchy ---
+    ax3 = axes[1, 1]
+    x_pos = np.arange(len(regimes), dtype=float)
+    x_labels = [
+        "1. Copper-Plate\n(Single Bus)",
+        "2. Congested AC\n(KVL Fixed)",
+        "3. Controllable\nHVDC Transport",
+        "4. Co-Optimized\nAC-TEP (KVL)",
+    ]
+
+    nw_mw = regimes["north_wind_mw"].to_numpy(dtype=float)
+    ws_mw = regimes["west_solar_mw"].to_numpy(dtype=float)
+    eo_mw = regimes["east_ocgt_mw"].to_numpy(dtype=float)
+
+    wb = 0.48
+    ax3.bar(x_pos, nw_mw, width=wb, color="#0284c7", label="North Offshore Wind (MW)")
+    ax3.bar(
+        x_pos,
+        ws_mw,
+        width=wb,
+        bottom=nw_mw,
+        color="#facc15",
+        label="West Utility Solar (MW)",
+    )
+    ax3.bar(
+        x_pos,
+        eo_mw,
+        width=wb,
+        bottom=nw_mw + ws_mw,
+        color="#ef4444",
+        label="East Metro OCGT (MW)",
+    )
+
+    tot_bars = nw_mw + ws_mw + eo_mw
+    ax3.set_xticks(x_pos)
+    ax3.set_xticklabels(x_labels, fontsize=8.2)
+    ax3.set_ylabel("Key Zonal Installed Capacity (MW)")
+    ax3.set_ylim(0.0, float(tot_bars.max()) * 1.36)
+    ax3.set_title("(d) Spatial VRE Unlocking, KVL Penalty & System LCOE")
+
+    ax3_r = ax3.twinx()
+    ax3_r.grid(False)
+    lcoes = regimes["system_lcoe_per_mwh"].to_numpy(dtype=float)
+    ax3_r.plot(
+        x_pos,
+        lcoes,
+        color="#7e22ce",
+        lw=2.3,
+        marker="D",
+        ms=6.0,
+        label="System LCOE (/MWh)",
+    )
+    for idx_i, val in enumerate(lcoes):
+        ax3_r.annotate(
+            f"{val:.2f}",
+            xy=(float(x_pos[idx_i]), float(val)),
+            xytext=(0.0, 9.0),
+            textcoords="offset points",
+            ha="center",
+            fontsize=7.9,
+            fontweight="bold",
+            color="#581c87",
+            bbox={"boxstyle": "round,pad=0.16", "fc": "white", "ec": "#e9d5ff", "alpha": 0.92},
+        )
+
+    kvl_pen = float(lcoes[1] - lcoes[2])
+    ax3_r.annotate(
+        f"KVL Loop-Flow\nPenalty +{kvl_pen:.2f} /MWh",
+        xy=(1.0, float(lcoes[1])),
+        xytext=(1.55, float(lcoes[1]) + 0.6),
+        fontsize=7.5,
+        bbox={"boxstyle": "round,pad=0.22", "fc": "#fff1f2", "ec": "#fda4af"},
+        arrowprops={"arrowstyle": "->", "color": "#be123c", "lw": 1.0},
+    )
+    ax3_r.set_ylabel("System LCOE (currency / MWh)", color="#581c87")
+    ax3_r.set_ylim(float(lcoes.min()) - 2.2, float(lcoes.max()) + 4.2)
+
+    h3_l, l3_l = ax3.get_legend_handles_labels()
+    h3_r, l3_r = ax3_r.get_legend_handles_labels()
+    ax3.legend(
+        h3_l + h3_r,
+        l3_l + l3_r,
+        loc="upper right",
+        fontsize=7.1,
         ncol=2,
         framealpha=0.92,
     )

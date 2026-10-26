@@ -24,23 +24,28 @@ from energy_model import (
     baseline_emission_specs,
     baseline_flexibility_specs,
     compare_flexibility_regimes,
+    compare_transmission_regimes,
     format_duality_report,
     format_emissions_report,
     format_flexibility_report,
     format_macc_report,
     format_report,
     format_single_flexibility_report,
+    format_single_transmission_report,
     format_storage_report,
+    format_transmission_report,
     generate_dunkelflaute_profiles,
     load_profiles,
     plot_baseline_dispatch_and_lmp_duality,
     plot_co2_pareto_frontier_and_macc,
     plot_duck_curve_ramping_and_reserves,
     plot_multiduration_storage_dunkelflaute,
+    plot_zonal_dcopf_congestion_and_tep,
     run_emissions_scenario,
     run_flexibility_scenario,
     run_scenario,
     run_storage_scenario,
+    run_transmission_scenario,
     sweep_co2_pareto_and_macc,
 )
 
@@ -127,6 +132,27 @@ def main(argv: list[str] | None = None) -> int:
         "--save-flexibility-plot",
         default=None,
         help="optional PNG path to render the 4-panel Duck-Curve ramping & reserve figure",
+    )
+    parser.add_argument(
+        "--grid-scale",
+        type=float,
+        default=None,
+        help="optional 4-zone 380 kV AC corridor capacity scale factor (> 0)",
+    )
+    parser.add_argument(
+        "--cooptimize-tep",
+        action="store_true",
+        help="solve co-optimized 4-zone generation + AC transmission expansion planning",
+    )
+    parser.add_argument(
+        "--transmission-report",
+        action="store_true",
+        help="append 4-regime 4-zone DC-OPF, HVDC & AC-TEP comparison table",
+    )
+    parser.add_argument(
+        "--save-transmission-plot",
+        default=None,
+        help="optional PNG path to render the 4-panel 4-zone DC-OPF & TEP figure",
     )
     args = parser.parse_args(argv)
 
@@ -249,6 +275,39 @@ def main(argv: list[str] | None = None) -> int:
             regime_df=flex_df,
         )
         print(f"\nSaved flexibility figure: {saved_flex}")
+
+    if args.grid_scale is not None or args.cooptimize_tep:
+        try:
+            g_scale = 1.0 if args.grid_scale is None else args.grid_scale
+            tr_res = run_transmission_scenario(
+                mode="ac_kvl",
+                extendable_lines=bool(args.cooptimize_tep),
+                capacity_scale=g_scale,
+            )
+        except (ValueError, SolverError) as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        print("")
+        print(format_single_transmission_report(tr_res))
+
+    trans_df = None
+    if args.transmission_report or args.save_transmission_plot:
+        try:
+            trans_df = compare_transmission_regimes()
+        except (ValueError, SolverError) as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+
+    if args.transmission_report and trans_df is not None:
+        print("")
+        print(format_transmission_report(trans_df))
+
+    if args.save_transmission_plot and trans_df is not None:
+        saved_tr = plot_zonal_dcopf_congestion_and_tep(
+            output_path=args.save_transmission_plot,
+            regime_df=trans_df,
+        )
+        print(f"\nSaved transmission figure: {saved_tr}")
 
     return 0
 
