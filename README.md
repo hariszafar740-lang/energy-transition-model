@@ -15,7 +15,7 @@ This repository serves as the practical engineering implementation for the offic
 * **Issuing Institution:** Politecnico di Milano
 * **Qualification Level:** EQF Level 7
 
-## Architecture & Module Capabilities (`v0.5.0`)
+## Architecture & Module Capabilities (`v0.6.0`)
 
 * **Single-bus LP baseline (`energy_model/model.py`):** Representative-day capacity expansion (`Regional_Grid`, `System_Demand`, `Solar_PV`, `Wind_Turbine`, `Gas_Peaker`) with strict hourly time-series validation (`energy_model/profiles.py`).
 * **Discounted cash-flow & KKT nodal price duality (`energy_model/economics.py`):**
@@ -79,6 +79,33 @@ Module 3 (`energy_model/emissions.py`) extends the single-bus capacity-expansion
 
 # Apply an explicit Pigouvian carbon tax or annual CO2 cap on the baseline 24 h scenario
 .venv/bin/python main.py --co2-price 50 --co2-cap 20000
+```
+
+## Thermal Ramp-Rate Envelopes, Must-Run Floors & Spinning Reserves (v0.6.0)
+
+Module 4 (`energy_model/flexibility.py`) introduces intertemporal thermal ramp-rate envelopes ($-r^{\text{dn}}_g K_g \le p_{g,t} - p_{g,t-1} \le r^{\text{up}}_g K_g$), minimum stable `must-run` loading ($p_{g,t} \ge p^{\min,\text{pu}}_g K_g$), co-optimized upward spinning operating reserves ($R^{\text{req}}_t = \alpha_{\text{load}} L_t + \alpha_{\text{vre}} P_{\text{VRE},t}$) coupled to battery state-of-charge (`SoC`) sustainment, and a direct sparse `scipy.optimize.linprog` (`HiGHS`) primal/dual cross-check:
+
+1. **Co-Optimized Energy + Ancillary-Services Revenue Adequacy (Strong LP Duality):** Across all greenfield regimes with homogeneous operational, ramping, must-run, and cyclic `SoC` constraints, total annualised capital + fuel cost equals nodal energy market revenue plus exogenous load-reserve market revenue to machine precision ($\le 7.5 \times 10^{-9}$):
+   $$\text{LCOE}_{\text{sys}} = \overline{\lambda}_{\text{load-wtd}} + \alpha_{\text{load}} \cdot \overline{\mu}^{\text{res}}_{\text{load-wtd}}$$
+2. **Intertemporal Ramp-Induced Negative Nodal `LMP` Theorem (Zero Subsidies):** Even when every generator has strictly non-negative fuel cost ($c_g \ge 0$), binding downward and upward ramp limits across a deep midday net-load trough telescope multi-period fuel substitutions into an exact negative nodal shadow price ($\lambda_{t_0} = -138.00$ currency/MWh at $\min_g c_g = 0$).
+
+![Duck-Curve Ramping, Must-Run Floors & Spinning Reserves](results/duck_curve_ramping_and_reserves.png)
+
+### Verified 48 h Duck-Curve Operational Flexibility Regimes (Annualised)
+
+| Regime | System `LCOE` (`/MWh`) | Peak `LMP` (`/MWh`) | Peak Reserve Price (`/MW-h`) | `VRE` Capacity (`MW`) | `OCGT` Peaker (`MW`) | `LiIon_BESS` (`MWh`) | Strong Duality Gap |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `1_Relaxed_NoReserves` | `31.56` | `187.59` | `0.00` | `298.58` | `17.05` | `0.0` | `0.00e+00` |
+| `2_MustRun_And_Ramping` | `33.61` | `187.59` | `0.00` | `67.32` | `24.96` | `0.0` | `0.00e+00` |
+| `3_Inflexible_With_Reserves` | `33.80` | `187.59` | `109.59` | `59.70` | `36.46` | `0.0` | `7.45e-09` |
+| `4_Flexible_BESS_CoOptimized` | `32.96` | `122.87` | `46.52` | `188.92` | `5.87` | `254.3` | `7.45e-09` |
+
+```bash
+# Run 48 h Duck-Curve flexibility & spinning-reserve comparison + 4-panel figure
+.venv/bin/python main.py --flexibility-report --save-flexibility-plot results/duck_curve_ramping_and_reserves.png
+
+# Evaluate explicit thermal ramp, must-run & spinning-reserve constraints on baseline 24 h profiles
+.venv/bin/python main.py --ramp-limit 0.35 --must-run 0.25 --reserve-margin 0.08
 ```
 
 ## Inputs, Assumptions & Provenance

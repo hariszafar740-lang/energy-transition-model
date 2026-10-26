@@ -16,6 +16,12 @@ from .emissions import (
     sweep_carbon_tax_equivalents,
     sweep_co2_pareto_and_macc,
 )
+from .flexibility import (
+    SpinningReservePolicy,
+    compare_flexibility_regimes,
+    make_duck_curve_profiles,
+    run_flexibility_scenario,
+)
 from .model import DEFAULT_PROFILE_PATH, DEFAULT_TECHNOLOGIES, ScenarioResult, run_scenario
 from .profiles import load_profiles, validate_profiles
 from .storage import (
@@ -837,6 +843,369 @@ def plot_co2_pareto_frontier_and_macc(
         fontsize=7.2,
         ncol=2,
         framealpha=0.93,
+    )
+
+    fig.tight_layout(rect=(0.0, 0.0, 1.0, 0.955))
+    fig.savefig(out, dpi=180)
+    plt.close(fig)
+    return out
+
+
+def plot_duck_curve_ramping_and_reserves(
+    output_path: str | Path = "results/duck_curve_ramping_and_reserves.png",
+    profiles: pd.DataFrame | None = None,
+    regime_df: pd.DataFrame | None = None,
+) -> Path:
+    """Render 4-panel Duck-Curve dispatch, ramp envelopes, spinning reserves & regime LCOE."""
+    prof = make_duck_curve_profiles() if profiles is None else profiles.copy()
+    regimes = compare_flexibility_regimes(prof) if regime_df is None else regime_df.copy()
+
+    inflex_res = run_flexibility_scenario(
+        prof,
+        enforce_ramping=True,
+        enforce_must_run=True,
+        include_bess=False,
+        reserve_policy=SpinningReservePolicy(),
+    )
+    flex_bess = run_flexibility_scenario(
+        prof,
+        enforce_ramping=True,
+        enforce_must_run=True,
+        include_bess=True,
+        reserve_policy=SpinningReservePolicy(),
+    )
+
+    out = Path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    plt.rcParams.update(
+        {
+            "font.size": 9.2,
+            "axes.titlesize": 10.3,
+            "axes.labelsize": 9.2,
+            "figure.facecolor": "white",
+            "axes.facecolor": "#f8fafc",
+            "axes.edgecolor": "#cbd5e1",
+            "axes.grid": True,
+            "grid.color": "#e2e8f0",
+            "grid.linewidth": 0.7,
+        }
+    )
+
+    fig, axes = plt.subplots(2, 2, figsize=(14.4, 9.4), dpi=180)
+    fig.suptitle(
+        (
+            "Thermal Ramp-Rate Envelopes, Must-Run Floors & Co-Optimized Spinning Reserves "
+            "(48 h Duck-Curve Benchmark)"
+        ),
+        fontsize=12.2,
+        fontweight="bold",
+        y=0.98,
+    )
+
+    hrs = np.arange(len(prof.index), dtype=float)
+    load_mw = prof["load_mw"].to_numpy(dtype=float)
+
+    # --- Panel (a): 48 h Duck-Curve Dispatch, BESS Belly Charging & Net Load ---
+    ax0 = axes[0, 0]
+    p_df = flex_bess.dispatch_mw
+    base_p = p_df["Baseload_Thermal"].to_numpy(dtype=float)
+    ccgt_p = p_df["CCGT_MidMerit"].to_numpy(dtype=float)
+    ocgt_p = p_df["OCGT_FastPeaker"].to_numpy(dtype=float)
+    wind_p = p_df["Wind_Turbine"].to_numpy(dtype=float)
+    sol_p = p_df["Solar_PV"].to_numpy(dtype=float)
+    b_dis = flex_bess.bess_discharge_mw.to_numpy(dtype=float)
+    b_chg = flex_bess.bess_charge_mw.to_numpy(dtype=float)
+    net_l = flex_bess.net_load_mw.to_numpy(dtype=float)
+
+    ax0.stackplot(
+        hrs,
+        base_p,
+        ccgt_p,
+        ocgt_p,
+        wind_p,
+        sol_p,
+        b_dis,
+        labels=[
+            "Baseload (60% Must-Run)",
+            "CCGT Mid-Merit",
+            "OCGT Fast Peaker",
+            "Wind Turbine",
+            "Solar PV",
+            "BESS Discharge",
+        ],
+        colors=["#475569", "#f97316", "#ef4444", "#0ea5e9", "#facc15", "#10b981"],
+        alpha=0.86,
+    )
+    ax0.fill_between(
+        hrs,
+        0.0,
+        -b_chg,
+        color="#059669",
+        alpha=0.38,
+        step="mid",
+        label="BESS Charge (-MW)",
+    )
+    ax0.plot(hrs, load_mw, color="#0f172a", lw=2.1, label="Gross Demand (MW)")
+    ax0.plot(
+        hrs,
+        net_l,
+        color="#be123c",
+        lw=1.8,
+        ls="--",
+        label="Net Load (Demand - VRE)",
+    )
+    ax0.axhline(0.0, color="#64748b", lw=0.8)
+
+    belly_idx = int(np.argmin(net_l[:24]))
+    ax0.annotate(
+        f"Duck Belly ({net_l[belly_idx]:.0f} MW)\nBESS Absorbs Solar",
+        xy=(float(hrs[belly_idx]), float(net_l[belly_idx])),
+        xytext=(3.0, -72.0),
+        fontsize=7.6,
+        bbox={"boxstyle": "round,pad=0.25", "fc": "#f0fdf4", "ec": "#86efac"},
+        arrowprops={"arrowstyle": "->", "color": "#15803d", "lw": 1.0},
+    )
+    pos_stack_max = float((base_p + ccgt_p + ocgt_p + wind_p + sol_p + b_dis).max())
+    ax0.set_xlim(0.0, float(len(hrs) - 1))
+    ax0.set_ylim(-95.0, float(max(pos_stack_max, load_mw.max())) * 1.30)
+    ax0.set_title("(a) 48 h Duck-Curve Dispatch & BESS Ramp-Shaving")
+    ax0.set_xlabel("Chronological Snapshot Hour (h)")
+    ax0.set_ylabel("Active Power (MW)")
+    ax0.legend(loc="upper left", fontsize=7.0, ncol=3, framealpha=0.92)
+
+    # --- Panel (b): Thermal Hourly Ramp Utilization (%/h) & Nodal LMP Relief ---
+    ax1 = axes[0, 1]
+    k_base = max(1e-6, float(flex_bess.p_nom_mw["Baseload_Thermal"]))
+    k_ccgt = max(1e-6, float(flex_bess.p_nom_mw["CCGT_MidMerit"]))
+    dp_base_pct = 100.0 * np.concatenate([[base_p[0] - base_p[-1]], np.diff(base_p)]) / k_base
+    dp_ccgt_pct = 100.0 * np.concatenate([[ccgt_p[0] - ccgt_p[-1]], np.diff(ccgt_p)]) / k_ccgt
+
+    ax1.plot(
+        hrs,
+        dp_ccgt_pct,
+        color="#f97316",
+        lw=1.7,
+        alpha=0.9,
+        label="CCGT Ramp (%/h, +-45% lim)",
+    )
+    ax1.plot(
+        hrs,
+        dp_base_pct,
+        color="#1e293b",
+        lw=2.1,
+        label="Baseload Ramp (%/h, +-10% lim)",
+    )
+    ax1.axhline(10.0, color="#1e293b", lw=1.1, ls=":", label="Baseload +-10%/h Envelope")
+    ax1.axhline(-10.0, color="#1e293b", lw=1.1, ls=":")
+    ax1.axhline(0.0, color="#94a3b8", lw=0.7)
+    ax1.set_xlim(0.0, float(len(hrs) - 1))
+    ax1.set_ylim(-58.0, 68.0)
+    ax1.set_title("(b) Thermal Ramp Trajectories & Sunset LMP Scarcity Relief")
+    ax1.set_xlabel("Chronological Snapshot Hour (h)")
+    ax1.set_ylabel("Hourly Thermal Ramp Rate (% of $K_g$ / h)")
+
+    ax1_r = ax1.twinx()
+    ax1_r.grid(False)
+    lmp_no_bess = inflex_res.lmp_per_mwh.to_numpy(dtype=float)
+    lmp_bess = flex_bess.lmp_per_mwh.to_numpy(dtype=float)
+    ax1_r.plot(
+        hrs,
+        lmp_no_bess,
+        color="#dc2626",
+        lw=1.6,
+        ls="--",
+        alpha=0.85,
+        label=f"LMP No BESS (Peak {lmp_no_bess.max():.0f} /MWh)",
+    )
+    ax1_r.plot(
+        hrs,
+        lmp_bess,
+        color="#7e22ce",
+        lw=1.9,
+        label=f"LMP With BESS (Peak {lmp_bess.max():.0f} /MWh)",
+    )
+    ax1_r.set_ylabel("Nodal Energy LMP (currency / MWh)", color="#6b21a8")
+    ax1_r.set_ylim(-15.0, float(max(lmp_no_bess.max(), lmp_bess.max())) * 1.34)
+
+    h1_l, l1_l = ax1.get_legend_handles_labels()
+    h1_r, l1_r = ax1_r.get_legend_handles_labels()
+    ax1.legend(
+        h1_l + h1_r,
+        l1_l + l1_r,
+        loc="upper left",
+        fontsize=7.1,
+        ncol=2,
+        framealpha=0.92,
+    )
+
+    # --- Panel (c): Upward Spinning Reserve Provision & KKT Reserve Shadow Price ---
+    ax2 = axes[1, 0]
+    r_base = flex_bess.reserve_by_unit_mw["Baseload_Thermal"].to_numpy(dtype=float)
+    r_ccgt = flex_bess.reserve_by_unit_mw["CCGT_MidMerit"].to_numpy(dtype=float)
+    r_ocgt = flex_bess.reserve_by_unit_mw["OCGT_FastPeaker"].to_numpy(dtype=float)
+    r_bess = flex_bess.bess_reserve_mw.to_numpy(dtype=float)
+    r_req = flex_bess.reserve_requirement_mw.to_numpy(dtype=float)
+
+    ax2.stackplot(
+        hrs,
+        r_base,
+        r_ccgt,
+        r_ocgt,
+        r_bess,
+        labels=[
+            "Baseload Headroom (5%)",
+            "CCGT Headroom (25%)",
+            "OCGT Fast Reserve (55%)",
+            "BESS SoC-Backed Reserve",
+        ],
+        colors=["#64748b", "#fb923c", "#f43f5e", "#14b8a6"],
+        alpha=0.86,
+    )
+    ax2.plot(
+        hrs,
+        r_req,
+        color="#0f172a",
+        lw=2.0,
+        ls="--",
+        label="Dynamic Req (6% Load + 12% VRE)",
+    )
+    res_stack_max = float((r_base + r_ccgt + r_ocgt + r_bess).max())
+    ax2.set_xlim(0.0, float(len(hrs) - 1))
+    ax2.set_ylim(0.0, float(max(res_stack_max, r_req.max())) * 1.38)
+    ax2.set_title("(c) Co-Optimized Spinning Reserve Stack & Shadow Price")
+    ax2.set_xlabel("Chronological Snapshot Hour (h)")
+    ax2.set_ylabel("Upward Spinning Reserve (MW)")
+
+    ax2_r = ax2.twinx()
+    ax2_r.grid(False)
+    rp_no_bess = inflex_res.reserve_price_per_mw_h.to_numpy(dtype=float)
+    rp_bess = flex_bess.reserve_price_per_mw_h.to_numpy(dtype=float)
+    ax2_r.plot(
+        hrs,
+        rp_no_bess,
+        color="#b91c1c",
+        lw=1.6,
+        ls=":",
+        label=f"Res Price No BESS (Max {rp_no_bess.max():.0f})",
+    )
+    ax2_r.plot(
+        hrs,
+        rp_bess,
+        color="#0369a1",
+        lw=1.9,
+        label=f"Res Price With BESS (Max {rp_bess.max():.0f})",
+    )
+    ax2_r.set_ylabel("Spinning Reserve Price (currency / MW-h)", color="#0369a1")
+    ax2_r.set_ylim(0.0, float(max(rp_no_bess.max(), rp_bess.max(), 10.0)) * 1.36)
+
+    h2_l, l2_l = ax2.get_legend_handles_labels()
+    h2_r, l2_r = ax2_r.get_legend_handles_labels()
+    ax2.legend(
+        h2_l + h2_r,
+        l2_l + l2_r,
+        loc="upper left",
+        fontsize=7.0,
+        ncol=2,
+        framealpha=0.92,
+    )
+
+    # --- Panel (d): 4-Regime Portfolio Shift, VRE Hosting & System LCOE ---
+    ax3 = axes[1, 1]
+    x_pos = np.arange(len(regimes), dtype=float)
+    x_labels = [
+        "1. Relaxed\n(No Ramp/Res)",
+        "2. Must-Run\n+ Ramping",
+        "3. Inflexible\n+ Reserves",
+        "4. Flexible\n+ BESS Co-Opt",
+    ]
+
+    b_mw = regimes["baseload_mw"].to_numpy(dtype=float)
+    c_mw = regimes["ccgt_mw"].to_numpy(dtype=float)
+    o_mw = regimes["ocgt_mw"].to_numpy(dtype=float)
+    s_mw = regimes["solar_mw"].to_numpy(dtype=float)
+    w_mw = regimes["wind_mw"].to_numpy(dtype=float)
+
+    w_bar = 0.50
+    ax3.bar(x_pos, b_mw, width=w_bar, color="#475569", label="Baseload (MW)")
+    ax3.bar(x_pos, c_mw, width=w_bar, bottom=b_mw, color="#f97316", label="CCGT (MW)")
+    ax3.bar(
+        x_pos,
+        o_mw,
+        width=w_bar,
+        bottom=b_mw + c_mw,
+        color="#ef4444",
+        label="OCGT Peaker (MW)",
+    )
+    ax3.bar(
+        x_pos,
+        s_mw,
+        width=w_bar,
+        bottom=b_mw + c_mw + o_mw,
+        color="#facc15",
+        label="Solar PV (MW)",
+    )
+    ax3.bar(
+        x_pos,
+        w_mw,
+        width=w_bar,
+        bottom=b_mw + c_mw + o_mw + s_mw,
+        color="#0ea5e9",
+        label="Wind (MW)",
+    )
+
+    totals = b_mw + c_mw + o_mw + s_mw + w_mw
+    ax3.set_xticks(x_pos)
+    ax3.set_xticklabels(x_labels, fontsize=8.3)
+    ax3.set_ylabel("Optimal Installed Generation Capacity (MW)")
+    ax3.set_ylim(0.0, float(totals.max()) * 1.34)
+    ax3.set_title("(d) Portfolio Hosting Capacity & System LCOE Across Regimes")
+
+    ax3_r = ax3.twinx()
+    ax3_r.grid(False)
+    lcoe_vals = regimes["system_lcoe_per_mwh"].to_numpy(dtype=float)
+    ax3_r.plot(
+        x_pos,
+        lcoe_vals,
+        color="#7e22ce",
+        lw=2.3,
+        marker="D",
+        ms=6.0,
+        label="System LCOE (/MWh)",
+    )
+    for idx_i, val in enumerate(lcoe_vals):
+        ax3_r.annotate(
+            f"{val:.2f}",
+            xy=(float(x_pos[idx_i]), float(val)),
+            xytext=(0.0, 9.0),
+            textcoords="offset points",
+            ha="center",
+            fontsize=7.9,
+            fontweight="bold",
+            color="#581c87",
+            bbox={"boxstyle": "round,pad=0.16", "fc": "white", "ec": "#e9d5ff", "alpha": 0.92},
+        )
+    bess_mwh_last = float(regimes["bess_e_nom_mwh"].iloc[-1])
+    ax3.annotate(
+        f"+{bess_mwh_last:.0f} MWh BESS\n3.2x VRE vs Reg. 3",
+        xy=(float(x_pos[-1]), float(totals[-1])),
+        xytext=(float(x_pos[-1]) - 0.85, float(totals.max()) * 1.03),
+        fontsize=7.7,
+        bbox={"boxstyle": "round,pad=0.25", "fc": "#f0fdf4", "ec": "#86efac"},
+        arrowprops={"arrowstyle": "->", "color": "#15803d", "lw": 1.0},
+    )
+    ax3_r.set_ylabel("System LCOE (currency / MWh)", color="#581c87")
+    ax3_r.set_ylim(float(lcoe_vals.min()) - 1.2, float(lcoe_vals.max()) + 1.65)
+
+    h3_l, l3_l = ax3.get_legend_handles_labels()
+    h3_r, l3_r = ax3_r.get_legend_handles_labels()
+    ax3.legend(
+        h3_l + h3_r,
+        l3_l + l3_r,
+        loc="upper right",
+        fontsize=7.2,
+        ncol=2,
+        framealpha=0.92,
     )
 
     fig.tight_layout(rect=(0.0, 0.0, 1.0, 0.955))
