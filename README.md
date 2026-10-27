@@ -15,7 +15,7 @@ This repository serves as the practical engineering implementation for the offic
 * **Issuing Institution:** Politecnico di Milano
 * **Qualification Level:** EQF Level 7
 
-## Architecture & Module Capabilities (`v0.7.0`)
+## Architecture & Module Capabilities (`v0.8.0`)
 
 * **Single-bus LP baseline (`energy_model/model.py`):** Representative-day capacity expansion (`Regional_Grid`, `System_Demand`, `Solar_PV`, `Wind_Turbine`, `Gas_Peaker`) with strict hourly time-series validation (`energy_model/profiles.py`).
 * **Discounted cash-flow & KKT nodal price duality (`energy_model/economics.py`):**
@@ -134,6 +134,35 @@ Module 5 (`energy_model/transmission.py`) models a 4-zone, 5-corridor 380 kV mes
 # Evaluate co-optimized 4-zone AC transmission expansion or corridor scaling
 .venv/bin/python main.py --cooptimize-tep
 .venv/bin/python main.py --grid-scale 1.5
+```
+
+## 2D WACC x CapEx Sensitivity Surface & Weather CVaR_95 Adequacy (v0.8.0)
+
+Module 6 (`energy_model/risk_sensitivity.py` + `energy_model/cli.py`) unifies parametric 2D financing/learning-curve sensitivity analysis with two-stage multi-weather-year Rockafellar-Uryasev `CVaR_95` stochastic resource adequacy and ships the packaged `etm-sim` console entry point:
+
+1. **Hotelling-Shephard Envelope Theorem & Global Cost Concavity:** Across real discount rates $r \in [1\%, 15\%]$ and VRE overnight `CapEx` multipliers $\kappa \in [0.55\times, 1.75\times]$, optimal greenfield cost $J^*(r, \kappa)$ is globally concave in annualised capital costs (midpoint concavity surplus `+5.82M` currency/yr; portfolio substitution dividend up to **`+22.02%`** vs. a frozen reference mix) and satisfies exact analytical partial derivatives $\partial J^*/\partial r = \sum_g K_g^* \kappa_g I_{0,g} \text{CRF}'(r, N_g)$ to $\le 5.4 \times 10^{-10}$.
+2. **Rockafellar-Uryasev Two-Stage Stochastic `Mean-CVaR_95` & Risk-Adjusted Complete-Market Duality:** Across an 8-regime meteorological ensemble (`WY1_Windy_Equinox` $\to$ `WY8_Severe_Dunkelflaute`, $V_{\text{VoLL}} = 1{,}800$ /MWh), KKT epigraph multipliers $\rho_\omega^*$ induce an exact risk-adjusted probability measure $q_\omega^* = (1-\beta)\pi_\omega + \rho_\omega^*$ ($\sum_\omega q_\omega^* = 1$, amplifying tail `Dunkelflaute` weights by **`7.65x`** at $\beta = 0.35$) under which Strong LP Duality and 4-technology zero-profit revenue adequacy hold to $\le 1.5 \times 10^{-8}$, cross-checked against an independent sparse `scipy.optimize.linprog` (`HiGHS`) matrix to $\le 1.5 \times 10^{-15}$.
+3. **Birge-Louveaux Stochastic Value Sandwich & Tail Blackout Elimination:** Deterministic mean-weather planning suffers **`194,479.6 MWh/yr`** out-of-sample `EENS` (`EEV = 385.13M` /yr vs. `RP = 49.37M` /yr, `VSS = 335.76M` /yr; `WS = 39.21M` /yr, `EVPI = 10.16M` /yr). Risk-neutral `RP` ($\beta = 0$) leaves `29.3 MWh/yr` residual Stoft scarcity shedding in `WY8`, whereas modest `CVaR_95` hedging ($\beta = 0.15$) eliminates **`100%` of load shedding (`0.0 MWh/yr`)** for **`+0.09%`** expected `LCOE` (`36.39 -> 36.42` /MWh).
+
+![2D WACC x CapEx Sensitivity Surface & Weather CVaR_95 Adequacy](results/wacc_capex_surface_and_cvar_adequacy.png)
+
+### Verified Multi-Year Weather `Mean-CVaR_95` Risk Frontier (`VoLL = 1,800` /MWh)
+
+| Risk Weight $\beta$ | Expected Cost `E[Z]` (`/yr`) | Tail `CVaR_95` (`/yr`) | `E[LCOE]` (`/MWh`) | `EENS` (`MWh/yr`) | `Solar_PV` (`MW`) | `Wind` (`MW`) | `Li_Ion_BESS` (`MW`) | `Gas_Peaker` (`MW`) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `0.00` (`RP`) | `49,367,339` | `123,698,409` | `36.39` | `29.3` | `144.9` | `320.9` | `75.8` | `184.4` |
+| `0.15` | `49,409,902` | `122,790,530` | `36.42` | `0.0` | `149.4` | `318.9` | `81.1` | `184.5` |
+| `0.35` (Hedged) | `49,452,092` | `122,643,766` | `36.45` | `0.0` | `159.5` | `313.1` | `81.6` | `184.1` |
+| `0.60` | `49,925,568` | `122,289,968` | `36.80` | `0.0` | `192.5` | `299.8` | `81.9` | `184.1` |
+| `1.00` (`CVaR`) | `83,937,794` | `113,396,667` | `61.87` | `0.0` | `491.7` | `0.0` | `0.0` | `273.0` |
+
+```bash
+# Run packaged etm-sim CLI: 2D WACC x CapEx surface + CVaR_95 frontier + 4-panel figure
+.venv/bin/etm-sim --sensitivity-report --cvar-report \
+  --save-risk-plot results/wacc_capex_surface_and_cvar_adequacy.png
+
+# Evaluate custom financing/CapEx scenario + stochastic CVaR run + JSON telemetry export
+.venv/bin/etm-sim --wacc 0.04 --vre-capex-scale 0.75 --cvar-beta 0.35 --json-summary /tmp/etm_summary.json
 ```
 
 ## Inputs, Assumptions & Provenance
