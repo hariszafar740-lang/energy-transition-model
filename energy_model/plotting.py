@@ -10,6 +10,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.patches import Rectangle
 
 from .economics import analyze_market_duality_and_lcoe, sweep_wacc_lcoe_and_mix
 from .emissions import (
@@ -24,6 +25,17 @@ from .flexibility import (
 )
 from .model import DEFAULT_PROFILE_PATH, DEFAULT_TECHNOLOGIES, ScenarioResult, run_scenario
 from .profiles import load_profiles, validate_profiles
+from .risk_sensitivity import (
+    EnvelopeConcavityVerification,
+    SensitivitySurfaceResult,
+    StochasticCVaRResult,
+    StochasticValueMetrics,
+    evaluate_stochastic_value_metrics,
+    run_stochastic_cvar_scenario,
+    sweep_cvar_risk_frontier,
+    sweep_wacc_capex_surface,
+    verify_envelope_and_concavity_theorems,
+)
 from .storage import (
     StorageScenarioResult,
     compare_storage_adequacy_regimes,
@@ -1518,6 +1530,360 @@ def plot_zonal_dcopf_congestion_and_tep(
         l3_l + l3_r,
         loc="upper right",
         fontsize=7.1,
+        ncol=2,
+        framealpha=0.92,
+    )
+
+    fig.tight_layout(rect=(0.0, 0.0, 1.0, 0.955))
+    fig.savefig(out, dpi=180)
+    plt.close(fig)
+    return out
+
+
+def plot_wacc_capex_and_cvar_adequacy(
+    output_path: str | Path,
+    *,
+    surface: SensitivitySurfaceResult | None = None,
+    env_check: EnvelopeConcavityVerification | None = None,
+    frontier_df: pd.DataFrame | None = None,
+    value_metrics: StochasticValueMetrics | None = None,
+    hedged_result: StochasticCVaRResult | None = None,
+    hedged_beta: float = 0.35,
+) -> Path:
+    """Render 4-panel WACCxCapEx sensitivity surface & weather CVaR_95 adequacy figure."""
+    _apply_plot_style()
+    out = Path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    surf = sweep_wacc_capex_surface() if surface is None else surface
+    env_chk = verify_envelope_and_concavity_theorems() if env_check is None else env_check
+    front = sweep_cvar_risk_frontier() if frontier_df is None else frontier_df
+    val_m = (
+        evaluate_stochastic_value_metrics(hedged_beta=hedged_beta)
+        if value_metrics is None
+        else value_metrics
+    )
+    hedged_res = (
+        run_stochastic_cvar_scenario(risk_aversion_beta=hedged_beta)
+        if hedged_result is None
+        else hedged_result
+    )
+
+    fig, axes = plt.subplots(2, 2, figsize=(15.5, 11.2))
+    fig.suptitle(
+        "2D WACC x CapEx Sensitivity Surface, Envelope Concavity & "
+        "Multi-Year Weather CVaR_95 Adequacy",
+        fontsize=13.2,
+        fontweight="bold",
+        y=0.982,
+    )
+
+    # --- Panel (a): 2D WACC x VRE CapEx System LCOE Heatmap ---
+    ax0 = axes[0, 0]
+    ax0.grid(False)
+    lcoe_mat = surf.lcoe_surface_df.to_numpy(dtype=float)
+    im = ax0.imshow(
+        lcoe_mat,
+        origin="lower",
+        aspect="auto",
+        cmap="YlGnBu",
+        vmin=float(np.min(lcoe_mat)) * 0.95,
+        vmax=float(np.max(lcoe_mat)) * 1.03,
+    )
+    cbar = fig.colorbar(im, ax=ax0, fraction=0.046, pad=0.03)
+    cbar.set_label("System LCOE (currency / MWh)", fontsize=8.8)
+
+    n_w, n_k = lcoe_mat.shape
+    ax0.set_xticks(np.arange(n_k))
+    ax0.set_xticklabels([f"{k:.2f}x" for k in surf.vre_capex_scale_grid], fontsize=8.5)
+    ax0.set_yticks(np.arange(n_w))
+    ax0.set_yticklabels([f"{100.0 * r:.0f}%" for r in surf.wacc_grid], fontsize=8.5)
+    ax0.set_xlabel("VRE Overnight CapEx Multiplier (Solar PV & Wind)")
+    ax0.set_ylabel("Real Financing Cost (WACC)")
+    ax0.set_title("(a) 2D WACC x VRE CapEx System LCOE Surface (/MWh)")
+
+    mid_thresh = 0.49 * (float(np.min(lcoe_mat)) + float(np.max(lcoe_mat)))
+    for i in range(n_w):
+        for j in range(n_k):
+            val = float(lcoe_mat[i, j])
+            txt_col = "white" if val >= mid_thresh else "#0f172a"
+            is_ref = (
+                abs(surf.wacc_grid[i] - surf.reference_wacc) < 1e-6
+                and abs(surf.vre_capex_scale_grid[j] - surf.reference_vre_scale) < 1e-6
+            )
+            label_txt = f"{val:.2f}\n(Ref)" if is_ref else f"{val:.2f}"
+            ax0.text(
+                j,
+                i,
+                label_txt,
+                ha="center",
+                va="center",
+                fontsize=8.2 if is_ref else 8.4,
+                fontweight="bold",
+                color=txt_col,
+            )
+            if is_ref:
+                rect = Rectangle(
+                    (j - 0.48, i - 0.48),
+                    0.96,
+                    0.96,
+                    fill=False,
+                    edgecolor="#dc2626",
+                    lw=2.2,
+                    ls="--",
+                )
+                ax0.add_patch(rect)
+
+    # --- Panel (b): VRE Share Phase Transition & Substitution Dividend ---
+    ax1 = axes[0, 1]
+    k_arr = np.array(surf.vre_capex_scale_grid, dtype=float)
+    w_low = surf.wacc_grid[0]
+    w_mid = surf.wacc_grid[len(surf.wacc_grid) // 2]
+    w_high = surf.wacc_grid[-1]
+
+    palette_w = [
+        (w_low, "#0284c7", "o", f"VRE Share @ WACC={100 * w_low:.0f}%"),
+        (w_mid, "#0f766e", "s", f"VRE Share @ WACC={100 * w_mid:.0f}% (Ref)"),
+        (w_high, "#dc2626", "^", f"VRE Share @ WACC={100 * w_high:.0f}%"),
+    ]
+    for w_val, col, mk, lbl in palette_w:
+        vre_y = surf.vre_share_surface_df.loc[w_val].to_numpy(dtype=float)
+        ax1.plot(k_arr, vre_y, color=col, lw=2.2, marker=mk, ms=5.8, label=lbl)
+
+    ax1.set_xlabel("VRE Overnight CapEx Multiplier")
+    ax1.set_ylabel("Optimal VRE Generation Share (%)")
+    ax1.set_ylim(-5.0, 110.0)
+    ax1.set_xlim(float(k_arr.min()) - 0.06, float(k_arr.max()) + 0.06)
+    ax1.set_title("(b) VRE Share Regime Transition & Substitution Dividend")
+
+    ax1_r = ax1.twinx()
+    ax1_r.grid(False)
+    sub_low = surf.substitution_dividend_surface_df.loc[w_low].to_numpy(dtype=float)
+    sub_high = surf.substitution_dividend_surface_df.loc[w_high].to_numpy(dtype=float)
+    ax1_r.plot(
+        k_arr,
+        sub_low,
+        color="#7e22ce",
+        lw=1.9,
+        ls="--",
+        marker="D",
+        ms=4.8,
+        label=f"Subst. Dividend @ {100 * w_low:.0f}% WACC (%)",
+    )
+    ax1_r.plot(
+        k_arr,
+        sub_high,
+        color="#d97706",
+        lw=1.9,
+        ls=":",
+        marker="P",
+        ms=5.5,
+        label=f"Subst. Dividend @ {100 * w_high:.0f}% WACC (%)",
+    )
+    ax1_r.set_ylabel("Substitution Dividend vs Frozen Mix (%)", color="#6b21a8")
+    ax1_r.set_ylim(-1.25, max(28.0, float(surf.max_substitution_dividend_pct) * 1.28))
+
+    ax1.text(
+        0.03,
+        0.37,
+        (
+            "Shephard-Hotelling Envelope:\n"
+            f"  dJ*/dr err = {env_chk.rel_error_dcost_dwacc:.1e}\n"
+            f"  dJ*/dk err = {env_chk.rel_error_dcost_dvre_scale:.1e}\n"
+            f"  Concavity = +{env_chk.concavity_midpoint_surplus / 1e6:.2f}M/yr"
+        ),
+        transform=ax1.transAxes,
+        ha="left",
+        va="top",
+        fontsize=7.2,
+        bbox={
+            "boxstyle": "round,pad=0.26",
+            "fc": "#f8fafc",
+            "ec": "#94a3b8",
+            "alpha": 0.95,
+        },
+    )
+
+    h1_l, l1_l = ax1.get_legend_handles_labels()
+    h1_r, l1_r = ax1_r.get_legend_handles_labels()
+    ax1.legend(
+        h1_l + h1_r,
+        l1_l + l1_r,
+        loc="upper left",
+        bbox_to_anchor=(0.27, 0.77),
+        fontsize=6.9,
+        framealpha=0.94,
+    )
+
+    # --- Panel (c): Mean-CVaR_95 Pareto Risk Frontier ---
+    ax2 = axes[1, 0]
+    ez_m = front["expected_cost_per_year"].to_numpy(dtype=float) / 1e6
+    cv_m = front["cvar_cost_per_year"].to_numpy(dtype=float) / 1e6
+    betas = front["beta"].to_numpy(dtype=float)
+    eens_arr = front["eens_mwh_per_year"].to_numpy(dtype=float)
+
+    ax2.plot(
+        ez_m,
+        cv_m,
+        color="#1d4ed8",
+        lw=2.4,
+        marker="o",
+        ms=6.5,
+        zorder=3,
+        label="Mean-CVaR_95 Efficient Frontier",
+    )
+    ax2.scatter(
+        [ez_m[0]],
+        [cv_m[0]],
+        color="#ef4444",
+        s=78,
+        zorder=5,
+        label=f"Risk-Neutral RP (beta=0, EENS={eens_arr[0]:.1f} MWh/yr)",
+    )
+    if len(ez_m) > 2:
+        ax2.scatter(
+            [ez_m[2]],
+            [cv_m[2]],
+            color="#10b981",
+            s=82,
+            marker="D",
+            zorder=5,
+            label=f"CVaR-Hedged (beta={betas[2]:.2f}, EENS=0.0 MWh/yr)",
+        )
+
+    offsets = [
+        (10.0, 6.0),
+        (46.0, 9.0),
+        (50.0, -3.0),
+        (38.0, -16.0),
+        (-28.0, -14.0),
+        (-36.0, 7.0),
+    ]
+    for idx_b, (xv, yv, bv) in enumerate(zip(ez_m, cv_m, betas, strict=True)):
+        dx, dy = offsets[idx_b] if idx_b < len(offsets) else (6.0, 4.0)
+        use_leader = idx_b in (1, 2, 3)
+        ax2.annotate(
+            f"b={bv:.2f}",
+            xy=(float(xv), float(yv)),
+            xytext=(dx, dy),
+            textcoords="offset points",
+            fontsize=7.6,
+            fontweight="bold",
+            color="#1e3a8a",
+            arrowprops=(
+                {"arrowstyle": "-", "color": "#94a3b8", "lw": 0.75} if use_leader else None
+            ),
+        )
+
+    ax2.text(
+        0.97,
+        0.84,
+        (
+            "Birge-Louveaux Stochastic Value:\n"
+            f"  WS  = {val_m.wait_and_see_cost_per_year / 1e6:6.2f}M / yr\n"
+            f"  RP  = {val_m.recourse_problem_cost_per_year / 1e6:6.2f}M / yr\n"
+            f"  EEV = {val_m.expected_value_plan_eev_cost_per_year / 1e6:6.2f}M / yr\n"
+            f"  EVPI = {val_m.evpi_per_year / 1e6:.2f}M | "
+            f"VSS = {val_m.vss_per_year / 1e6:.1f}M/yr\n"
+            f"  Det. EENS: {val_m.mean_weather_eens_mwh_per_year:,.0f} -> 0.0 MWh/yr"
+        ),
+        transform=ax2.transAxes,
+        ha="right",
+        va="top",
+        fontsize=7.5,
+        family="monospace",
+        bbox={"boxstyle": "round,pad=0.32", "fc": "#eff6ff", "ec": "#93c5fd"},
+    )
+
+    x_span = max(1.0, float(ez_m.max() - ez_m.min()))
+    y_span = max(1.0, float(cv_m.max() - cv_m.min()))
+    ax2.set_xlim(float(ez_m.min()) - 0.08 * x_span, float(ez_m.max()) + 0.16 * x_span)
+    ax2.set_ylim(float(cv_m.min()) - 0.28 * y_span, float(cv_m.max()) + 0.16 * y_span)
+    ax2.set_xlabel("Expected Annual System Cost E[Z] (M-currency / yr)")
+    ax2.set_ylabel("Tail Adequacy Cost CVaR_95(Z) (M-currency / yr)")
+    ax2.set_title("(c) Mean-CVaR_95 Pareto Frontier & Blackout Elimination")
+    ax2.legend(loc="lower left", fontsize=7.2, framealpha=0.94)
+
+    # --- Panel (d): Physical vs Risk-Adjusted Kernel (q*) & Scenario Tail Cost ---
+    ax3 = axes[1, 1]
+    sc_tbl = hedged_res.scenario_table
+    x_idx = np.arange(len(sc_tbl), dtype=float)
+    short_labels = [
+        "WY1\nWindy",
+        "WY2\nSunny",
+        "WY3\nNormal",
+        "WY4\nCloudy",
+        "WY5\nHeat",
+        "WY6*\nTrough",
+        "WY7\nFreeze",
+        "WY8\nDunkel.",
+    ]
+    if len(short_labels) != len(sc_tbl):
+        short_labels = [s.split("_")[0] for s in sc_tbl.index]
+
+    pi_pct = 100.0 * sc_tbl["probability"].to_numpy(dtype=float)
+    q_pct = 100.0 * sc_tbl["risk_adjusted_prob"].to_numpy(dtype=float)
+    z_scen_m = sc_tbl["total_cost_per_year"].to_numpy(dtype=float) / 1e6
+
+    bw = 0.36
+    ax3.bar(
+        x_idx - bw / 2.0,
+        pi_pct,
+        width=bw,
+        color="#64748b",
+        label="Physical Weather Prob pi_w (%)",
+    )
+    ax3.bar(
+        x_idx + bw / 2.0,
+        q_pct,
+        width=bw,
+        color="#ea580c",
+        label=f"CVaR_95 Dual Kernel q*_w (b={hedged_beta:.2f}) (%)",
+    )
+    ax3.set_xticks(x_idx)
+    ax3.set_xticklabels(short_labels, fontsize=8.0)
+    ax3.set_ylabel("Scenario Probability Weight (%)")
+    ax3.set_ylim(0.0, max(float(pi_pct.max()), float(q_pct.max())) * 1.38)
+    ax3.set_title("(d) Physical vs CVaR_95 Dual Measure (q*) & Scenario Cost")
+
+    ax3_r = ax3.twinx()
+    ax3_r.grid(False)
+    ax3_r.plot(
+        x_idx,
+        z_scen_m,
+        color="#7e22ce",
+        lw=2.2,
+        marker="D",
+        ms=5.5,
+        label="Scenario Cost Z_w (M/yr)",
+    )
+    var_m = hedged_res.var_total_cost_per_year / 1e6
+    ax3_r.axhline(
+        var_m,
+        color="#be123c",
+        ls="--",
+        lw=1.3,
+        label=f"VaR_95 Threshold ({var_m:.1f}M/yr)",
+    )
+    ax3_r.set_ylabel("Scenario Total Cost Z(K*, w) (M-currency / yr)", color="#581c87")
+    ax3_r.set_ylim(float(z_scen_m.min()) * 0.78, float(z_scen_m.max()) * 1.24)
+
+    ax3.annotate(
+        "7.65x Tail Weight\nAmplification (WY7-WY8)",
+        xy=(6.0 + bw / 2.0, float(q_pct[6])),
+        xytext=(3.4, float(max(pi_pct.max(), q_pct.max())) * 1.12),
+        fontsize=7.6,
+        bbox={"boxstyle": "round,pad=0.22", "fc": "#fff7ed", "ec": "#fdba74"},
+        arrowprops={"arrowstyle": "->", "color": "#c2410c", "lw": 1.0},
+    )
+
+    h3_l, l3_l = ax3.get_legend_handles_labels()
+    h3_r, l3_r = ax3_r.get_legend_handles_labels()
+    ax3.legend(
+        h3_l + h3_r,
+        l3_l + l3_r,
+        loc="upper left",
+        fontsize=6.9,
         ncol=2,
         framealpha=0.92,
     )
