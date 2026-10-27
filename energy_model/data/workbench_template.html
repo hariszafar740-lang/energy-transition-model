@@ -1,0 +1,1393 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="Offline, zero-dependency interactive workbench for the energy-transition-model: capacity expansion, storage, CO2 MACC, flexibility, meshed DC-OPF and mean-CVaR risk.">
+<meta name="etm-data-digest" content="__ETM_WORKBENCH_DATA_SHA__">
+<meta name="generator" content="etm-workbench (energy-transition-model v1.0.0)">
+<title>Energy Transition Workbench · capacity, storage, carbon, grids &amp; risk</title>
+<style>
+:root{
+  --bg:#080b12; --bg2:#0d1220; --panel:#111827; --panel2:#151d2e; --line:#1f2a40;
+  --text:#e8eef9; --muted:#93a2ba; --dim:#6b7a93;
+  --green:#4ade80; --cyan:#38bdf8; --amber:#fbbf24; --red:#f87171; --violet:#a78bfa; --slate:#64748b;
+  --shadow:0 18px 46px -24px rgba(0,0,0,.85);
+  --r:14px; --maxw:1420px;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+html[data-theme="light"]{
+  --bg:#f4f6fb; --bg2:#eef1f8; --panel:#ffffff; --panel2:#f7f9fd; --line:#dde4f0;
+  --text:#101828; --muted:#54637a; --dim:#7a8699;
+  --green:#15803d; --cyan:#0369a1; --amber:#b45309; --red:#b91c1c; --violet:#6d28d9; --slate:#64748b;
+  --shadow:0 16px 40px -28px rgba(16,24,40,.45);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:radial-gradient(1200px 600px at 78% -10%,color-mix(in srgb,var(--cyan) 9%,transparent),transparent 60%),
+             radial-gradient(900px 500px at 0% 0%,color-mix(in srgb,var(--green) 8%,transparent),transparent 55%),var(--bg);
+  color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3,h4{margin:0;line-height:1.2;letter-spacing:-.02em;font-weight:650}
+p{margin:0}
+.skip{position:absolute;left:-9999px;top:0;background:var(--panel);color:var(--text);padding:10px 14px;border-radius:8px;z-index:99}
+.skip:focus{left:12px;top:12px}
+.shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:18px;
+  padding:20px 16px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--bg2) 82%,transparent);backdrop-filter:blur(8px)}
+.brand{display:flex;gap:11px;align-items:center}
+.mark{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(150deg,color-mix(in srgb,var(--green) 30%,transparent),color-mix(in srgb,var(--cyan) 26%,transparent));
+  border:1px solid color-mix(in srgb,var(--green) 40%,var(--line))}
+.mark svg{width:19px;height:19px}
+.brand b{display:block;font-size:14px;letter-spacing:-.01em}
+.brand span{display:block;font-size:11px;color:var(--muted);font-family:var(--mono)}
+nav{margin-top:4px;display:flex;flex-direction:column;gap:2px}
+nav .grp{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:12px 8px 6px}
+.navlink{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:var(--muted);
+  font-size:13.5px;border:1px solid transparent;cursor:pointer;background:none;text-align:left;width:100%;font-family:inherit}
+.navlink:hover{background:var(--panel);color:var(--text);text-decoration:none}
+.navlink .n{font-family:var(--mono);font-size:10.5px;color:var(--dim);width:18px;flex:none}
+.navlink[aria-current="page"]{background:color-mix(in srgb,var(--green) 12%,var(--panel));color:var(--text);
+  border-color:color-mix(in srgb,var(--green) 34%,var(--line))}
+.navlink[aria-current="page"] .n{color:var(--green)}
+.sidefoot{margin-top:auto;font-size:11px;color:var(--dim);display:grid;gap:6px;font-family:var(--mono)}
+.sidefoot .ok{color:var(--green)}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:14px 26px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px)}
+.topbar .titles{min-width:0}
+.topbar h1{font-size:17px}
+.topbar .sub{font-size:12.5px;color:var(--muted)}
+.spacer{flex:1}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button,.btn{font-family:inherit;font-size:12.5px;color:var(--text);background:var(--panel);border:1px solid var(--line);
+  padding:7px 11px;border-radius:9px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+button:hover,.btn:hover{border-color:color-mix(in srgb,var(--cyan) 45%,var(--line));text-decoration:none}
+button[aria-pressed="true"]{background:color-mix(in srgb,var(--green) 16%,var(--panel));border-color:var(--green)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+main{padding:22px 26px 8px;max-width:var(--maxw);width:100%;margin:0 auto}
+section[data-view]{display:none;animation:fade .26s ease}
+section[data-view].on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--green)}
+.lede{color:var(--muted);font-size:14px;max-width:92ch;margin-top:6px}
+.head{margin-bottom:16px}
+.head h2{font-size:clamp(21px,2.4vw,29px);margin-top:6px}
+.grid{display:grid;gap:14px}
+.k4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.k3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.split{grid-template-columns:minmax(0,1.5fr) minmax(280px,.72fr)}
+.split2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.mt{margin-top:14px}
+.card{background:linear-gradient(180deg,var(--panel),color-mix(in srgb,var(--panel) 88%,var(--bg)));border:1px solid var(--line);
+  border-radius:var(--r);padding:16px;box-shadow:var(--shadow);min-width:0}
+.card h3{font-size:13px;letter-spacing:.02em;color:var(--text)}
+.card .hint{font-size:12px;color:var(--muted);margin-top:3px}
+.kpi{display:flex;flex-direction:column;gap:6px}
+.kpi .lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-family:var(--mono)}
+.kpi .val{font-size:clamp(21px,2.2vw,27px);font-weight:650;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.kpi .val small{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:0}
+.kpi .meta{font-size:12px;color:var(--muted)}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted)}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:middle}
+.legend .ln{width:14px;height:2px;border-radius:2px}
+.ctl{display:grid;gap:14px}
+.field{display:grid;gap:6px}
+.field .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.field label{font-size:12.5px;color:var(--text);font-weight:550}
+.field .out{font-family:var(--mono);font-size:12.5px;color:var(--green)}
+input[type=range]{width:100%;accent-color:var(--green);height:22px;background:transparent}
+select{font-family:inherit;font-size:12.5px;background:var(--panel2);color:var(--text);border:1px solid var(--line);
+  border-radius:9px;padding:8px 10px;width:100%}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:6px 10px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600}
+th:first-child,td:first-child{text-align:left}
+tbody tr:hover{background:color-mix(in srgb,var(--cyan) 6%,transparent)}
+td.mono,th.mono{font-family:var(--mono)}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-family:var(--mono);padding:3px 8px;border-radius:999px;
+  border:1px solid var(--line);color:var(--muted);background:var(--panel2)}
+.tag.ok{color:var(--green);border-color:color-mix(in srgb,var(--green) 42%,var(--line))}
+.tag.warn{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 42%,var(--line))}
+.note{font-size:12.5px;color:var(--muted);border-left:2px solid var(--line);padding-left:12px}
+.callout{border:1px solid color-mix(in srgb,var(--violet) 34%,var(--line));background:color-mix(in srgb,var(--violet) 8%,var(--panel));border-radius:12px;padding:12px 14px;font-size:13px}
+.callout b{color:var(--text)}
+.tip{position:fixed;z-index:60;pointer-events:none;opacity:0;transition:opacity .12s ease;background:var(--panel2);
+  border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;box-shadow:var(--shadow);max-width:260px}
+.tip.on{opacity:1}
+.tip .k{color:var(--muted);font-size:11px}
+.mono{font-family:var(--mono)}
+.small{font-size:11.5px;color:var(--muted)}
+.rule{height:1px;background:var(--line);margin:14px 0}
+footer{padding:18px 26px 30px;color:var(--dim);font-size:12px;max-width:var(--maxw);margin:0 auto;width:100%}
+footer .row{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+ol.steps{margin:8px 0 0;padding-left:20px;color:var(--muted);font-size:13px}
+ol.steps li{margin:4px 0}
+code{font-family:var(--mono);font-size:12px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:1px 5px}
+pre{font-family:var(--mono);font-size:12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;margin:8px 0 0}
+.bars{display:grid;gap:8px;margin-top:10px}
+.bars .b{display:grid;grid-template-columns:96px minmax(0,1fr) 74px;gap:10px;align-items:center;font-size:12px}
+.bars .track{height:9px;border-radius:5px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
+.bars .fill{height:100%;border-radius:5px;transition:width .3s ease}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12.5px;margin-top:10px}
+.dl dt{color:var(--dim)}
+.dl dd{margin:0;text-align:right;font-family:var(--mono)}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (max-width:1180px){.k4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:980px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;height:auto;flex-direction:column;border-right:0;border-bottom:1px solid var(--line)}
+  nav{flex-direction:row;flex-wrap:wrap;gap:6px}
+  nav .grp{display:none}
+  .sidefoot{display:none}
+  .split,.split2{grid-template-columns:minmax(0,1fr)}
+  main,.topbar{padding-left:16px;padding-right:16px}
+}
+@media (max-width:620px){.k4,.k3{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{
+  .side,.topbar .btns,.tip{display:none}
+  body{background:#fff;color:#000}
+  .card{box-shadow:none;break-inside:avoid}
+  section[data-view]{display:block!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="shell">
+  <aside class="side" aria-label="Workbench navigation">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8"><path d="M4 18V9m5 9V5m5 13v-6m5 6V8" stroke-linecap="round"/><path d="M2 21h20" stroke-linecap="round"/></svg></span>
+      <div><b>Energy Transition</b><span>Workbench v1.0.0</span></div>
+    </div>
+    <nav aria-label="Modules">
+      <div class="grp">Explore</div>
+      <button class="navlink" data-go="overview" aria-current="page"><span class="n">00</span>Overview</button>
+      <button class="navlink" data-go="dispatch"><span class="n">01</span>Dispatch &amp; LCOE</button>
+      <button class="navlink" data-go="storage"><span class="n">02</span>Storage &amp; lulls</button>
+      <button class="navlink" data-go="carbon"><span class="n">03</span>Carbon &amp; MACC</button>
+      <button class="navlink" data-go="flex"><span class="n">04</span>Flexibility</button>
+      <button class="navlink" data-go="grid"><span class="n">05</span>Meshed grid</button>
+      <button class="navlink" data-go="risk"><span class="n">07</span>Risk &amp; CVaR</button>
+      <div class="grp">Trust</div>
+      <button class="navlink" data-go="method"><span class="n">99</span>Method &amp; checks</button>
+    </nav>
+    <div class="sidefoot">
+      <span class="ok">● offline · zero requests</span>
+      <span id="side-digest">digest …</span>
+      <span id="side-version">v1.0.0</span>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <div class="titles">
+        <h1 id="view-title">Overview</h1>
+        <div class="sub" id="view-sub">One page, six solved modules, no network calls.</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="btns">
+        <button id="btn-link" title="Copy a deep link to this view">Copy link</button>
+        <button id="btn-csv" title="Download the active view's table as CSV">Export CSV</button>
+        <button id="btn-svg" title="Download the active chart as SVG">Export SVG</button>
+        <button id="btn-theme" aria-pressed="false" title="Toggle colour theme">Theme</button>
+      </div>
+    </header>
+    <main id="main">
+
+      <section data-view="overview" class="on" aria-labelledby="ov-h">
+        <div class="head">
+          <div class="eyebrow">Energy Transition Model · v1.0.0</div>
+          <h2 id="ov-h">A whole energy-system model in one offline page</h2>
+          <p class="lede">Every number below was produced by solving a PyPSA/HiGHS linear program in this repository — capacity expansion, multi-duration storage, CO₂ cap-and-trade duality, ramp/reserve adequacy, meshed DC-OPF and a mean-CVaR stochastic program. Move a control and the page re-reads the solved data; nothing is typed by hand and nothing is fetched from the internet.</p>
+        </div>
+        <div class="grid k4">
+          <div class="card kpi"><span class="lab">System LCOE · 7% WACC</span><span class="val" id="ov-lcoe">—</span><span class="meta" id="ov-lcoe-m">reference case, VRE CapEx ×1.00</span></div>
+          <div class="card kpi"><span class="lab">VRE share of energy</span><span class="val" id="ov-vre">—</span><span class="meta">solar + wind dispatch</span></div>
+          <div class="card kpi"><span class="lab">Net-zero carbon price</span><span class="val" id="ov-co2">—</span><span class="meta">shadow price at a 100% cap</span></div>
+          <div class="card kpi"><span class="lab">Surrogate accuracy</span><span class="val" id="ov-r2">—</span><span class="meta" id="ov-r2-m">16 unseen nodes</span></div>
+        </div>
+        <div class="grid split mt">
+          <div class="card">
+            <h3>Cost surface: discount rate × VRE CapEx</h3>
+            <p class="hint">Exact LP solves on a 5×5 grid. Click a cell to load that case into the dispatch view.</p>
+            <div class="chart" id="heat"></div>
+          </div>
+          <div class="card">
+            <h3>Module map</h3>
+            <p class="hint">Each card is a solved model; select one to explore.</p>
+            <div class="bars" id="module-map"></div>
+            <div class="rule"></div>
+            <dl class="dl" id="ov-facts"></dl>
+          </div>
+        </div>
+        <div class="grid mt">
+          <div class="card">
+            <h3>Cross-module invariants</h3>
+            <p class="hint">Residuals recomputed from the solved primal/dual pairs at build time; tolerance is the numerical acceptance band used by the test suite.</p>
+            <div style="overflow:auto"><table id="ov-verif"><thead><tr><th>Module</th><th>Identity</th><th>Residual</th><th>Tolerance</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="dispatch" aria-labelledby="d-h">
+        <div class="head">
+          <div class="eyebrow">01 · Modules 1–2 · capacity expansion &amp; nodal duality</div>
+          <h2 id="d-h">Dispatch, cost stack and the price of capital</h2>
+          <p class="lede">A representative day is solved to least cost with extendable solar, wind and gas. The KKT dual of the power balance is the nodal price; its load-weighted mean equals the system LCOE to machine precision. Drag the financial levers to watch the portfolio re-optimise.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Hourly dispatch <span class="tag mono" id="d-case">—</span></h3>
+            <div class="chart" id="dispatchChart"></div>
+            <div class="legend" id="dispatchLegend"></div>
+          </div>
+          <div class="card ctl">
+            <h3>Controls</h3>
+            <div class="field">
+              <div class="row"><label for="wacc">Real discount rate (WACC)</label><span class="out" id="wacc-out">7.0%</span></div>
+              <input id="wacc" type="range" min="1" max="15" step="0.5" value="7" aria-describedby="wacc-help">
+              <span class="hint" id="wacc-help">Grid nodes at 1%, 4%, 7%, 11% and 15%. Between nodes the surface is bilinearly interpolated.</span>
+            </div>
+            <div class="field">
+              <div class="row"><label for="capex">VRE capital-cost multiplier</label><span class="out" id="capex-out">×1.00</span></div>
+              <input id="capex" type="range" min="0.55" max="1.75" step="0.05" value="1" aria-describedby="capex-help">
+              <span class="hint" id="capex-help">Scales annualised solar and wind CapEx only; gas costs are untouched.</span>
+            </div>
+            <div class="rule"></div>
+            <div class="grid k3" style="gap:10px">
+              <div class="kpi"><span class="lab">LCOE</span><span class="val" style="font-size:19px" id="d-lcoe">—</span></div>
+              <div class="kpi"><span class="lab">VRE share</span><span class="val" style="font-size:19px" id="d-vre">—</span></div>
+              <div class="kpi"><span class="lab">Peak LMP</span><span class="val" style="font-size:19px" id="d-peak">—</span></div>
+            </div>
+            <div class="bars" id="d-mix"></div>
+            <div class="note" id="d-note"></div>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Cost stack across the surface</h3>
+            <p class="hint">Annualised capital versus fuel and variable O&amp;M at the current case.</p>
+            <div class="chart" id="costChart"></div>
+          </div>
+          <div class="card">
+            <h3>Hourly prices</h3>
+            <p class="hint">Nodal shadow price λ<sub>t</sub>; scarcity hours price gas at its marginal cost plus capacity scarcity.</p>
+            <div class="chart" id="lmpChart"></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="storage" aria-labelledby="s-h">
+        <div class="head">
+          <div class="eyebrow">02 · Module 2 · chronological multi-duration storage</div>
+          <h2 id="s-h">Batteries, hydrogen and the length of a dark lull</h2>
+          <p class="lede">A 168-hour week is solved with a 4-hour Li-ion battery (95% one-way efficiency, cyclic SoC) and a decoupled power-to-hydrogen chain (68% electrolyser, 50% fuel cell, cavern store). The crossover between power-dense and energy-dense storage is a function of how long the wind and sun disappear.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>LCOE versus lull duration</h3>
+            <div class="chart" id="storageChart"></div>
+            <div class="legend"><span><i style="background:var(--amber)"></i>BESS only</span><span><i style="background:var(--cyan)"></i>H₂ only</span><span><i style="background:var(--green)"></i>Hybrid (lower envelope)</span></div>
+          </div>
+          <div class="card ctl">
+            <h3>Dunkelflaute length</h3>
+            <div class="field">
+              <div class="row"><label for="lull">Zero-VRE lull</label><span class="out" id="lull-out">48 h</span></div>
+              <input id="lull" type="range" min="0" max="9" step="1" value="7">
+              <span class="hint">Sweep nodes only — the model solves integer lull durations.</span>
+            </div>
+            <div class="callout" id="s-callout">—</div>
+            <div class="rule"></div>
+            <dl class="dl" id="s-facts"></dl>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Adequacy regimes (168 h, annualised)</h3>
+            <div style="overflow:auto"><table id="s-table"><thead><tr><th>Regime</th><th>Solar MW</th><th>Wind MW</th><th>BESS MWh</th><th>H₂ MWh<sub>e</sub></th><th>LCOE</th></tr></thead><tbody></tbody></table></div>
+          </div>
+          <div class="card">
+            <h3>Chronological dispatch in the lull</h3>
+            <p class="hint">Hybrid portfolio over 168 hours; hover to read hour-level detail.</p>
+            <div class="chart" id="storageDispatch"></div>
+            <div class="legend"><span><i style="background:var(--amber)"></i>Gas</span><span><i style="background:var(--green)"></i>Solar</span><span><i style="background:var(--cyan)"></i>Wind</span><span><i style="background:var(--violet)"></i>BESS discharge</span><span><i style="background:var(--red)"></i>H₂ turbine</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="carbon" aria-labelledby="c-h">
+        <div class="head">
+          <div class="eyebrow">03 · Module 3 · cap-and-trade duality &amp; MACC</div>
+          <h2 id="c-h">What a tonne of CO₂ costs when the cap binds</h2>
+          <p class="lede">Relaxing the annual CO₂ cap with its KKT multiplier reproduces the Pigouvian carbon tax exactly: at the dual price the tax optimum equals the cap optimum plus the value of the allowance. The marginal abatement cost curve is the derivative of the frontier, and its right-hand limit at zero emissions is the minimum net-zero price.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Pareto frontier: emissions versus resource cost</h3>
+            <p class="hint">Solid: resource LCOE (left axis). Dashed: the dual CO₂ shadow price (right axis) as the cap tightens.</p>
+            <div class="chart" id="paretoChart"></div>
+            <div class="legend"><span><i class="ln" style="background:var(--green)"></i>Resource LCOE</span><span><i class="ln" style="background:var(--amber)"></i>Shadow carbon price μ*</span></div>
+          </div>
+          <div class="card ctl">
+            <h3>Abatement target</h3>
+            <div class="field">
+              <div class="row"><label for="cap">CO₂ cap reduction</label><span class="out" id="cap-out">96%</span></div>
+              <input id="cap" type="range" min="0" max="11" step="1" value="8">
+              <span class="hint">Sweep nodes span 0–100% abatement in 12 steps.</span>
+            </div>
+            <div class="grid k3" style="gap:10px">
+              <div class="kpi"><span class="lab">Shadow price</span><span class="val" style="font-size:18px" id="c-price">—</span></div>
+              <div class="kpi"><span class="lab">Residual CO₂</span><span class="val" style="font-size:18px" id="c-co2">—</span></div>
+              <div class="kpi"><span class="lab">LCOE</span><span class="val" style="font-size:18px" id="c-lcoe">—</span></div>
+            </div>
+            <div class="bars" id="c-mix"></div>
+            <div class="callout" id="c-callout">—</div>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Marginal abatement cost curve</h3>
+            <p class="hint">Step marginal cost of each abatement increment, and the average cost of the whole programme.</p>
+            <div class="chart" id="maccChart"></div>
+          </div>
+          <div class="card">
+            <h3>Fuel-switching stages</h3>
+            <p class="hint">Installed capacity by carrier at the selected cap.</p>
+            <div class="chart" id="mixChart"></div>
+            <div class="legend" id="mixLegend"></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="flex" aria-labelledby="f-h">
+        <div class="head">
+          <div class="eyebrow">04 · Module 4 · ramping, must-run floors &amp; spinning reserves</div>
+          <h2 id="f-h">The duck curve is a flexibility problem</h2>
+          <p class="lede">Intertemporal ramp envelopes, minimum stable generation and co-optimised upward reserves are added to the capacity problem. Reserve co-optimisation is paid for in the energy market, and a binding downward ramp can push a nodal price below zero even when every fuel cost is non-negative.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Net load and price shape (48 h)</h3>
+            <div class="chart" id="flexChart"></div>
+            <div class="seg mt" id="flex-seg" style="margin-top:10px"></div>
+          </div>
+          <div class="card ctl">
+            <h3>Regime metrics</h3>
+            <dl class="dl" id="f-facts"></dl>
+            <div class="rule"></div>
+            <div class="callout" id="f-callout">—</div>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Reserve requirement vs. price</h3>
+            <p class="hint">Reserve requirement α<sub>load</sub>·L<sub>t</sub> + α<sub>vre</sub>·VRE<sub>t</sub>, and the reserve shadow price.</p>
+            <div class="chart" id="reserveChart"></div>
+          </div>
+          <div class="card">
+            <h3>Regime comparison</h3>
+            <div style="overflow:auto"><table id="f-table"><thead><tr><th>Regime</th><th>LCOE</th><th>Peak LMP</th><th>Reserve price</th><th>BESS MWh</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="grid" aria-labelledby="g-h">
+        <div class="head">
+          <div class="eyebrow">05 · Module 5 · 4-zone meshed DC-OPF &amp; AC-TEP</div>
+          <h2 id="g-h">Loop flows, congestion rent and Braess's paradox</h2>
+          <p class="lede">Four zones, five 380 kV corridors and two independent Kirchhoff voltage loops. Passive flows follow the PTDF matrix, zonal prices decompose into a reference price minus congestion terms, and the ISO merchandising surplus recovers exactly the cost of the grid it co-optimises.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Network state <span class="tag mono" id="g-hour-tag">hour 0</span></h3>
+            <div class="chart" id="network"></div>
+            <p class="hint">A zero nodal price means the marginal unit at that zone is non-binding (curtailed VRE sets the price). Drag the snapshot slider to watch congestion appear.</p>
+            <div class="field mt">
+              <div class="row"><label for="hour">Snapshot</label><span class="out" id="hour-out">00:00</span></div>
+              <input id="hour" type="range" min="0" max="47" step="1" value="0">
+            </div>
+          </div>
+          <div class="card ctl">
+            <h3>Regime</h3>
+            <div class="seg" id="grid-seg"></div>
+            <div class="field mt">
+              <div class="row"><label for="gridscale">Corridor capacity multiplier</label><span class="out" id="gridscale-out">×1.00</span></div>
+              <input id="gridscale" type="range" min="0" max="4" step="1" value="2">
+              <span class="hint">Fixed-grid sweep: 0.5×, 0.75×, 1×, 1.5×, 2.5× of 400 MW total.</span>
+            </div>
+            <div class="rule"></div>
+            <dl class="dl" id="g-facts"></dl>
+            <div class="callout mt" id="g-callout">—</div>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Congestion rent versus corridor capacity</h3>
+            <div class="chart" id="gridscaleChart"></div>
+          </div>
+          <div class="card">
+            <h3>PTDF matrix</h3>
+            <p class="hint">Sensitivity of each corridor flow to a 1 MW injection at a zone (withdrawal at the East Metro slack).</p>
+            <div style="overflow:auto"><table id="ptdf-table"><thead><tr><th>Corridor</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="risk" aria-labelledby="r-h">
+        <div class="head">
+          <div class="eyebrow">07 · Module 7 · explicit mean-CVaR stochastic program</div>
+          <h2 id="r-h">Hedging the tail instead of the average</h2>
+          <p class="lede">Eight weather-and-demand regimes are solved jointly. The objective is (1−β)·E[Z] + β·CVaR<sub>95%</sub>(Z) through its Rockafellar–Uryasev epigraph, in one 1,357-variable LP with explicit sparse matrices. The dual risk kernel q* shows exactly which futures the hedge is buying, and where it hits the π/(1−α) bound.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Efficient frontier: expected cost versus tail cost</h3>
+            <div class="chart" id="frontierChart"></div>
+            <div class="legend"><span><i style="background:var(--green)"></i>Mean–CVaR efficient set</span><span><i style="background:var(--violet)"></i>Selected β</span></div>
+          </div>
+          <div class="card ctl">
+            <h3>Risk aversion β</h3>
+            <div class="field">
+              <div class="row"><label for="beta">β (0 = risk neutral, 1 = pure CVaR)</label><span class="out" id="beta-out">0.35</span></div>
+              <input id="beta" type="range" min="0" max="8" step="1" value="3">
+            </div>
+            <div class="grid k3" style="gap:10px">
+              <div class="kpi"><span class="lab">LCOE</span><span class="val" style="font-size:18px" id="r-lcoe">—</span></div>
+              <div class="kpi"><span class="lab">CVaR<sub>95</sub></span><span class="val" style="font-size:18px" id="r-cvar">—</span></div>
+              <div class="kpi"><span class="lab">EENS</span><span class="val" style="font-size:18px" id="r-eens">—</span></div>
+            </div>
+            <div class="bars" id="r-mix"></div>
+            <div class="note" id="r-note"></div>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Dual risk kernel q*</h3>
+            <p class="hint">Bars: optimal scenario weights q* at the selected β (left axis). Circles: the prior π. Dashed ticks: the theoretical ceiling π/(1−α) that q* reaches at β = 1 (right axis).</p>
+            <div class="chart" id="kernelChart"></div>
+            <div class="legend"><span><i style="background:var(--green)"></i>q* at prior level</span><span><i style="background:var(--violet)"></i>q* bidding above prior</span><span><i class="ln" style="background:var(--amber)"></i>prior π</span><span><i class="ln" style="background:var(--red)"></i>ceiling π/(1−α)</span></div>
+          </div>
+          <div class="card">
+            <h3>Stochastic bounds</h3>
+            <p class="hint">Wait-and-see ≤ recourse ≤ expected-value plan evaluated across futures.</p>
+            <div class="chart" id="boundsChart"></div>
+            <div class="callout mt" id="r-callout">—</div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="method" aria-labelledby="m-h">
+        <div class="head">
+          <div class="eyebrow">99 · verification, provenance &amp; limits</div>
+          <h2 id="m-h">How to reproduce every pixel</h2>
+          <p class="lede">The page is a build artifact: <code>workbench/data/etm_workbench_data.json</code> holds solved values, and <code>energy_model/workbench.py</code> renders them into this single HTML file. A CI job re-renders the committed page from the committed data and fails on any drift, so the figure you are reading cannot silently diverge from the repository.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Surrogate validation</h3>
+            <p class="hint">Exact LP solves at 16 node positions never used for interpolation.</p>
+            <div class="chart" id="surrogateChart"></div>
+            <div class="legend"><span><i style="background:var(--cyan)"></i>Holdout solves</span><span><i class="ln" style="background:var(--muted)"></i>y = x</span></div>
+          </div>
+          <div class="card">
+            <h3>Build provenance</h3>
+            <dl class="dl" id="m-meta"></dl>
+            <div class="rule"></div>
+            <h3 style="font-size:12.5px">Reproduce locally</h3>
+<pre>python -m venv .venv
+.venv/bin/pip install --no-build-isolation -e ".[dev]"
+.venv/bin/etm-workbench build    # re-solve + re-render
+.venv/bin/etm-workbench render   # template only
+.venv/bin/etm-workbench check    # verify no drift</pre>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Test inventory</h3>
+            <div style="overflow:auto"><table id="m-tests"><thead><tr><th>Test module</th><th>Tests</th></tr></thead><tbody></tbody></table></div>
+            <div class="note mt" id="m-total"></div>
+          </div>
+          <div class="card">
+            <h3>Scope &amp; honest limits</h3>
+            <ol class="steps">
+              <li>Inputs are deterministic synthetic profiles and illustrative annualised costs in an unspecified currency; they are not metered SCADA data or investment quotes.</li>
+              <li>Module 7's CVaR panel is an independent explicit-LP re-derivation on its own declared 8-regime set. It is not a numerical replica of the Module 6 run, which remains the reference implementation and CLI.</li>
+              <li>The cost surface is exactly solved at 25 nodes and bilinearly interpolated between them; the reported holdout error bounds the interpolation, it does not remove it.</li>
+              <li>Single-node copper-plate dispatch in M1–M4 and lossless DC power flow in M5; no AC power flow, unit commitment or integer investment.</li>
+            </ol>
+            <div class="rule"></div>
+            <p class="small">Licence MIT · cite via <code>CITATION.cff</code>. Built as the practical implementation of the Politecnico di Milano EQF-7 microcredential “Modelling the Energy Transition: the revolution of open-source software”.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+    <footer>
+      <div class="row">
+        <span>Generated by <code>etm-workbench</code> from solved PyPSA/HiGHS models — no network, no fonts, no tracking.</span>
+        <span class="mono" id="foot-digest">digest …</span>
+      </div>
+    </footer>
+  </div>
+</div>
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+<span class="sr" id="live" aria-live="polite"></span>
+<script id="etm-data" type="application/json">__ETM_WORKBENCH_DATA__</script>
+<script>
+/* Workbench runtime: pure ES2019, no dependencies. */
+(function(){
+"use strict";
+var DATA = JSON.parse(document.getElementById('etm-data').textContent);
+var META = DATA.meta, SURF = DATA.surface, STO = DATA.storage, CAR = DATA.carbon,
+    FLX = DATA.flexibility, GRID = DATA.grid, RSK = DATA.risk, SUR = DATA.surrogate;
+var C = {green:'var(--green)', cyan:'var(--cyan)', amber:'var(--amber)', red:'var(--red)',
+         violet:'var(--violet)', slate:'var(--slate)', text:'var(--text)', muted:'var(--muted)', line:'var(--line)'};
+var NS = 'http://www.w3.org/2000/svg';
+var S = {view:'overview', wacc:0.07, capex:1, lull:7, cap:8, flex:3, grid:3, scale:2, hour:0, beta:3};
+
+/* ---------- small utils ---------- */
+function $(id){ return document.getElementById(id); }
+function fmt(v,d){ if(v===null||v===undefined||isNaN(v)) return '—';
+  return Number(v).toLocaleString('en-US',{minimumFractionDigits:d===undefined?2:d,maximumFractionDigits:d===undefined?2:d}); }
+function money(v){ return fmt(v,0); }
+function pct(v,d){ return fmt(v,d===undefined?1:d)+'%'; }
+function clamp(v,a,b){ return Math.min(b,Math.max(a,v)); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function el(tag,attrs,text){ var n=document.createElement(tag); if(attrs) for(var k in attrs){ if(k==='class') n.className=attrs[k]; else n.setAttribute(k,attrs[k]); } if(text!==undefined) n.textContent=text; return n; }
+function sEl(tag,attrs,text){ var n=document.createElementNS(NS,tag); if(attrs) for(var k in attrs) n.setAttribute(k,attrs[k]); if(text!==undefined) n.textContent=text; return n; }
+function clear(node){ while(node.firstChild) node.removeChild(node.firstChild); }
+function reduced(){ return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+function announce(msg){ $('live').textContent = msg; }
+
+/* nearest-index lookup used by every interpolated control */
+function bracket(axis, v){
+  if(v<=axis[0]) return {i0:0,i1:1,t:0};
+  var n=axis.length; if(v>=axis[n-1]) return {i0:n-2,i1:n-1,t:1};
+  var i1=1; while(i1<axis.length && axis[i1]<v) i1++; var i0=i1-1;
+  return {i0:i0,i1:i1,t:(v-axis[i0])/(axis[i1]-axis[i0])};
+}
+function surfaceAt(key,wacc,capex){
+  var bx=bracket(SURF.wacc_grid,wacc), by=bracket(SURF.capex_grid,capex), g=SURF[key];
+  var lo=lerp(g[bx.i0][by.i0], g[bx.i0][by.i1], by.t), hi=lerp(g[bx.i1][by.i0], g[bx.i1][by.i1], by.t);
+  return lerp(lo,hi,bx.t);
+}
+function caseFor(wacc,capex){
+  var best=SURF.cases[0], bd=1e9;
+  SURF.cases.forEach(function(c){ var d=Math.abs(c.wacc-wacc)+Math.abs(c.capex_scale-capex); if(d<bd){bd=d;best=c;} });
+  return best;
+}
+
+/* ---------- chart scaffold ---------- */
+function chart(host, opts){
+  var width=720, height=opts.height||300, pad={l:52,r:opts.padR||18,t:16,b:34};
+  var svg=sEl('svg',{role:'img',viewBox:'0 0 '+width+' '+height,width:'100%',height:height});
+  if(opts.label){ svg.appendChild(sEl('title',{},opts.label)); svg.appendChild(sEl('desc',{},opts.desc||opts.label)); }
+  clear(host); host.appendChild(svg);
+  function measure(){
+    var w=host.clientWidth||720; if(Math.abs(w-width)>2){ width=w; svg.setAttribute('viewBox','0 0 '+width+' '+height); return true; }
+    return false;
+  }
+  measure();
+  var api={svg:svg,get w(){return width;},get h(){return height;},pad:pad,
+    x:function(a,b){ return function(v){ return pad.l+(v-a)/(b-a)*(width-pad.l-pad.r); }; },
+    y:function(a,b){ return function(v){ return height-pad.b-(v-a)/(b-a)*(height-pad.t-pad.b); }; },
+    resize:measure, clear:function(){ clear(svg); }};
+  return api;
+}
+function niceTicks(min,max,count){
+  if(!(max>min)) return [min];
+  var span=max-min, step=Math.pow(10,Math.floor(Math.log(span/count)/Math.LN10)), err=span/count/step;
+  if(err>=7.5) step*=10; else if(err>=3.5) step*=5; else if(err>=1.5) step*=2;
+  var out=[], v=Math.ceil(min/step)*step;
+  for(; v<=max+step*1e-6; v+=step) out.push(Math.abs(v)<step*1e-9?0:v);
+  return out;
+}
+function axes(c, frame, o){
+  o=o||{};
+  var xv=niceTicks(frame.x0,frame.x1,o.xTicks||5), yv=niceTicks(frame.y0,frame.y1,o.yTicks||5);
+  var g=sEl('g',{});
+  yv.forEach(function(v){ var y=c.y(frame.y0,frame.y1)(v);
+    g.appendChild(sEl('line',{x1:c.pad.l,x2:c.w-c.pad.r,y1:y,y2:y,stroke:C.line,'stroke-width':1,'stroke-dasharray':v===0?'':'2 4',opacity:.7}));
+    g.appendChild(sEl('text',{x:c.pad.l-8,y:y+4,'text-anchor':'end',fill:C.muted,'font-size':10.5,'font-family':'var(--mono)'},o.yFmt?o.yFmt(v):fmt(v,0)));
+  });
+  xv.forEach(function(v){ var x=c.x(frame.x0,frame.x1)(v);
+    g.appendChild(sEl('text',{x:x,y:c.h-c.pad.b+16,'text-anchor':'middle',fill:C.muted,'font-size':10.5,'font-family':'var(--mono)'},o.xFmt?o.xFmt(v):fmt(v,0)));
+  });
+  if(o.xLabel) g.appendChild(sEl('text',{x:(c.pad.l+c.w-c.pad.r)/2,y:c.h-4,'text-anchor':'middle',fill:C.muted,'font-size':10.5},o.xLabel));
+  if(o.yLabel) g.appendChild(sEl('text',{x:12,y:c.pad.t+2,'text-anchor':'start',fill:C.muted,'font-size':10.5,transform:'rotate(-90 12 '+(c.pad.t+2)+') translate(-'+(c.h/2)+' 0)'},o.yLabel));
+  if(o.right){
+    var rf=o.right.frame, span=(frame.y1-frame.y0)||1;
+    yv.forEach(function(v){
+      var y=c.y(frame.y0,frame.y1)(v), rv=rf[0]+(v-frame.y0)/span*(rf[1]-rf[0]);
+      g.appendChild(sEl('text',{x:c.w-c.pad.r+7,y:y+4,'text-anchor':'start',fill:o.right.color||C.muted,'font-size':10,'font-family':'var(--mono)'},o.right.fmt(rv)));
+    });
+    g.appendChild(sEl('text',{x:c.w-2,y:c.pad.t-3,'text-anchor':'end',fill:o.right.color||C.muted,'font-size':10},o.right.label||''));
+  }
+  c.svg.appendChild(g);
+  return {x:function(v){return c.x(frame.x0,frame.x1)(v);}, y:function(v){return c.y(frame.y0,frame.y1)(v);}};
+}
+function pathOf(pts,close,baseY){
+  if(!pts.length) return '';
+  var d='M'+pts[0][0].toFixed(2)+' '+pts[0][1].toFixed(2);
+  for(var i=1;i<pts.length;i++) d+='L'+pts[i][0].toFixed(2)+' '+pts[i][1].toFixed(2);
+  if(close) d+='L'+pts[pts.length-1][0].toFixed(2)+' '+(baseY||pts[pts.length-1][1]).toFixed(2)+'L'+pts[0][0].toFixed(2)+' '+(baseY||pts[0][1]).toFixed(2)+'Z';
+  return d;
+}
+/* tooltip + hover capture */
+var tip=$('tip'), tipOn=false;
+function showTip(evt,html){ tip.innerHTML=html; tip.classList.add('on'); tipOn=true; moveTip(evt); }
+function moveTip(evt){
+  if(!tipOn) return;
+  var x=evt.clientX+14, y=evt.clientY+14, r=tip.getBoundingClientRect();
+  if(x+r.width>window.innerWidth-8) x=evt.clientX-r.width-14;
+  if(y+r.height>window.innerHeight-8) y=evt.clientY-r.height-14;
+  tip.style.left=x+'px'; tip.style.top=y+'px';
+}
+function hideTip(){ tip.classList.remove('on'); tipOn=false; }
+window.addEventListener('scroll',hideTip,{passive:true});
+function hoverLayer(c, onMove, onLeave){
+  var rect=sEl('rect',{x:c.pad.l,y:c.pad.t,width:Math.max(0,c.w-c.pad.l-c.pad.r),height:Math.max(0,c.h-c.pad.t-c.pad.b),fill:'transparent',style:'cursor:crosshair'});
+  rect.addEventListener('mousemove',onMove);
+  rect.addEventListener('mouseleave',function(){ hideTip(); if(onLeave) onLeave(); });
+  c.svg.appendChild(rect);
+  return rect;
+}
+
+/* ---------- view: overview ---------- */
+function renderOverview(){
+  $('ov-lcoe').innerHTML = fmt(DATA.kpi.lcoe_at_reference_per_mwh,2)+' <small>/MWh</small>';
+  $('ov-lcoe-m').textContent = 'reference case · VRE CapEx ×1.00 · '+fmt(META.reference_wacc*100,0)+'% WACC';
+  $('ov-vre').innerHTML = pct(DATA.kpi.vre_share_at_reference_pct,1);
+  $('ov-co2').innerHTML = fmt(DATA.kpi.net_zero_carbon_price_per_tco2,2)+' <small>/tCO₂</small>';
+  $('ov-r2').innerHTML = SUR.r2===null?'—':'R² '+fmt(SUR.r2,4);
+  $('ov-r2-m').textContent = SUR.max_abs_error_per_mwh===null?'no holdout run':'max error '+fmt(SUR.max_abs_error_per_mwh,2)+' /MWh on '+SUR.n_solves+' unseen nodes';
+
+  /* heatmap */
+  var host=$('heat'), c=chart(host,{height:300,label:'System LCOE across discount rate and VRE capital cost'}), W=c.w;
+  var g=SURF.lcoe.flat(), lo=Math.min.apply(null,g), hi=Math.max.apply(null,g);
+  var x0=78,y0=18,cellW=(W-x0-54)/SURF.capex_grid.length,cellH=(c.h-y0-58)/SURF.wacc_grid.length;
+  var grad=document.createElementNS(NS,'defs');
+  c.svg.appendChild(grad);
+  var pal=['var(--green)','var(--cyan)','var(--amber)','var(--red)'];
+  function col(t){ // piecewise green -> cyan -> amber -> red
+    var stops=[[0,74,222,128],[.38,56,189,248],[.68,251,191,36],[1,248,113,113]];
+    for(var i=1;i<stops.length;i++){ if(t<=stops[i][0]){ var a=stops[i-1],b=stops[i],u=(t-a[0])/(b[0]-a[0]);
+      return 'rgb('+Math.round(lerp(a[1],b[1],u))+','+Math.round(lerp(a[2],b[2],u))+','+Math.round(lerp(a[3],b[3],u))+')'; } }
+    return 'rgb(248,113,113)';
+  }
+  SURF.wacc_grid.forEach(function(w,i){
+    c.svg.appendChild(sEl('text',{x:x0-10,y:y0+cellH*(i+.55),'text-anchor':'end',fill:C.muted,'font-size':11,'font-family':'var(--mono)'},(w*100).toFixed(1)+'%'));
+    SURF.capex_grid.forEach(function(k,j){
+      var v=SURF.lcoe[i][j], t=(v-lo)/(hi-lo||1), x=x0+cellW*j, y=y0+cellH*i;
+      var r=sEl('rect',{x:x+1.5,y:y+1.5,width:cellW-3,height:cellH-3,rx:7,fill:col(t),opacity:.9,style:'cursor:pointer'});
+      r.addEventListener('mouseenter',function(e){ showTip(e,'<div class="k">WACC '+(w*100).toFixed(1)+'% · CapEx ×'+k.toFixed(2)+'</div><b>'+fmt(v,2)+' /MWh</b><div class="k">VRE '+hexpct(i,j)+'</div>'); });
+      r.addEventListener('mouseleave',hideTip);
+      r.addEventListener('click',function(){ S.wacc=w; S.capex=k; syncControls(); go('dispatch'); });
+      c.svg.appendChild(r);
+      c.svg.appendChild(sEl('text',{x:x+cellW/2,y:y+cellH/2+4,'text-anchor':'middle',fill:t>0.62?'#ffffff':t>0.42?'#2a1a05':'#08110c','font-size':11.5,'font-weight':700,'font-family':'var(--mono)','pointer-events':'none'},fmt(v,1)));
+    });
+  });
+  SURF.capex_grid.forEach(function(k,j){
+    c.svg.appendChild(sEl('text',{x:x0+cellW*(j+.5),y:c.h-36,'text-anchor':'middle',fill:C.muted,'font-size':11,'font-family':'var(--mono)'},'×'+k.toFixed(2)));
+  });
+  c.svg.appendChild(sEl('text',{x:x0+cellW*SURF.capex_grid.length/2,y:c.h-16,'text-anchor':'middle',fill:C.muted,'font-size':11},'VRE capital-cost multiplier'));
+  c.svg.appendChild(sEl('text',{x:14,y:c.h/2,'text-anchor':'middle',fill:C.muted,'font-size':11,transform:'rotate(-90 14 '+(c.h/2)+')'},'discount rate (WACC)'));
+
+  /* module map */
+  var mm=$('module-map'); clear(mm);
+  var items=[
+    {t:'01 · Capacity & dispatch', v:DATA.kpi.lcoe_at_reference_per_mwh, d:2, u:'/MWh LCOE', go:'dispatch', w:1},
+    {t:'02 · Storage hybrid', v:Math.min.apply(null,STO.hybrid_lcoe), d:2, u:'/MWh (best)', go:'storage', w:.7},
+    {t:'03 · Net-zero carbon', v:CAR.net_zero_shadow_price_per_tco2, d:2, u:'/tCO₂', go:'carbon', w:.55},
+    {t:'04 · Flexible reserves', v:Math.min.apply(null,FLX.regimes.map(function(r){return r.system_lcoe_per_mwh;})), d:2, u:'/MWh (best)', go:'flex', w:.8},
+    {t:'05 · Co-optimised grid', v:GRID.regimes[3].system_lcoe_per_mwh, d:2, u:'/MWh AC-TEP', go:'grid', w:.65},
+    {t:'07 · Risk premium at β=1', v:RSK.risk_premium_per_mwh[RSK.risk_premium_per_mwh.length-1], d:2, u:'/MWh', go:'risk', w:.35}
+  ];
+  items.forEach(function(it){
+    var row=el('div',{class:'b'});
+    row.appendChild(el('span',{},it.t));
+    var track=el('div',{class:'track'}), fill=el('div',{class:'fill'});
+    fill.style.background=C.green; fill.style.width=(clamp(it.w,0,1)*100)+'%'; track.appendChild(fill);
+    row.appendChild(track);
+    row.appendChild(el('span',{class:'mono'},fmt(it.v,it.d)+' '+it.u));
+    row.style.cursor='pointer'; row.addEventListener('click',function(){ go(it.go); });
+    mm.appendChild(row);
+  });
+
+  var facts=$('ov-facts'); clear(facts);
+  [['Engine','PyPSA '+META.pypsa+' · HiGHS'],['Solver runs',fmt(META.n_solves,0)],
+   ['Build time',fmt(META.runtime_seconds,1)+' s'],['Surrogate nodes',SURF.wacc_grid.length+' × '+SURF.capex_grid.length],
+   ['CVaR kernel',fmt(RSK.kernel_size.variables,0)+' vars'],['Data digest',DATA_DIGEST.slice(0,12)+'…']].forEach(function(p){
+    facts.appendChild(el('dt',{},p[0])); facts.appendChild(el('dd',{},p[1]));
+  });
+
+  var body=$('ov-verif').querySelector('tbody'); clear(body);
+  DATA.verification.forEach(function(v){
+    var tr=el('tr');
+    tr.appendChild(el('td',{},v.module));
+    tr.appendChild(el('td',{class:'mono',style:'text-align:left;font-size:11.5px'},v.identity));
+    tr.appendChild(el('td',{class:'mono'},v.residual===0?'0':v.residual.toExponential(2)));
+    tr.appendChild(el('td',{class:'mono'},v.tolerance.toExponential(0)));
+    var td=el('td'); var ok=v.residual<=v.tolerance;
+    td.appendChild(el('span',{class:'tag '+(ok?'ok':'warn')},ok?'pass':'review')); tr.appendChild(td);
+    body.appendChild(tr);
+  });
+  function hexpct(i,j){ return pct(SURF.vre_share_pct[i][j],0); }
+}
+
+/* ---------- view: dispatch ---------- */
+function renderDispatch(){
+  var kp={lcoe:surfaceAt('lcoe',S.wacc,S.capex), vre:surfaceAt('vre_share_pct',S.wacc,S.capex),
+          peak:surfaceAt('peak_lmp_per_mwh',S.wacc,S.capex), curt:surfaceAt('curtailment_pct',S.wacc,S.capex)};
+  $('wacc-out').textContent=(S.wacc*100).toFixed(1)+'%';
+  $('capex-out').textContent='×'+S.capex.toFixed(2);
+  $('d-lcoe').innerHTML=fmt(kp.lcoe,2)+' <small>/MWh</small>';
+  $('d-vre').innerHTML=pct(kp.vre,1);
+  $('d-peak').innerHTML=fmt(kp.peak,1)+' <small>/MWh</small>';
+  var cs=caseFor(S.wacc,S.capex);
+  $('d-case').textContent='node '+(cs.wacc*100).toFixed(1)+'% × '+cs.capex_scale.toFixed(2);
+  $('d-note').textContent = (Math.abs(cs.wacc-S.wacc)<1e-9 && Math.abs(cs.capex_scale-S.capex)<1e-9)
+    ? 'Sliders sit on an exactly solved node; every value is a raw LP result.'
+    : 'Sliders are between solved nodes: KPIs are bilinearly interpolated, the hourly chart shows the nearest solved node.';
+
+  var host=$('dispatchChart'), c=chart(host,{height:300,padR:46,label:'Hourly dispatch stacked by technology with demand line'});
+  var hours=cs.load.length, xs=cs.load.map(function(_,i){return i;});
+  var maxY=Math.max.apply(null,cs.load.concat(cs.solar.map(function(v,i){return v+cs.wind[i]+cs.gas[i];})));
+  var lmpHi=Math.max(1,Math.max.apply(null,cs.lmp)), lmpLo=Math.min(0,Math.min.apply(null,cs.lmp));
+  var ax=axes(c,{x0:0,x1:hours-1,y0:0,y1:maxY*1.12},{xLabel:'hour of day',yLabel:'MW',xFmt:function(v){return v+'h';},
+    right:{frame:[lmpLo,lmpHi*1.12],label:'/MWh',color:C.violet,fmt:function(v){return fmt(v,0);}}});
+  var series=[{k:'gas',col:C.amber,fill:.9},{k:'wind',col:C.cyan,fill:.82},{k:'solar',col:C.green,fill:.9}];
+  var base=new Array(hours).fill(0);
+  series.forEach(function(s){ // stack from bottom: gas, wind, solar
+    var top=cs[s.k].map(function(v,i){ return base[i]+v; });
+    var d='M'+base.map(function(v,i){return ax.x(i).toFixed(1)+' '+ax.y(v).toFixed(1);}).join('L')
+        +'L'+top.map(function(v,i){return ax.x(i).toFixed(1)+' '+ax.y(v).toFixed(1);}).reverse().join('L')+'Z';
+    c.svg.appendChild(sEl('path',{d:d,fill:s.col,opacity:s.fill,stroke:'var(--bg)','stroke-width':1}));
+    base=top;
+  });
+  c.svg.appendChild(sEl('path',{d:pathOf(cs.load.map(function(v,i){return [ax.x(i),ax.y(v)];})),fill:'none',stroke:C.text,'stroke-width':2,'stroke-dasharray':'5 4'}));
+  var lmpY=function(v){ return ax.y(clamp(v,lmpLo,lmpHi*1.12)/Math.max(lmpHi*1.12,1e-9)*maxY*1.12); };
+  c.svg.appendChild(sEl('path',{d:pathOf(cs.lmp.map(function(v,i){return [ax.x(i),lmpY(v)];})),fill:'none',stroke:C.violet,'stroke-width':1.7,opacity:.95}));
+  hoverLayer(c,function(e){
+    var i=clamp(Math.round((e.offsetX-c.pad.l)/((c.w-c.pad.l-c.pad.r)/(hours-1))),0,hours-1);
+    showTip(e,'<div class="k">hour '+String(i).padStart(2,'0')+':00</div>'+
+      '<b>'+fmt(cs.load[i],1)+' MW demand</b><br>solar '+fmt(cs.solar[i],1)+' · wind '+fmt(cs.wind[i],1)+
+      ' · gas '+fmt(cs.gas[i],1)+'<br><span class="k">LMP '+fmt(cs.lmp[i],2)+' /MWh</span>');
+  });
+  $('dispatchLegend').innerHTML='<span><i style="background:'+C.green+'"></i>Solar</span><span><i style="background:'+C.cyan+'"></i>Wind</span>'+
+    '<span><i style="background:'+C.amber+'"></i>Gas</span><span><i class="ln" style="background:'+C.text+'"></i>Demand</span>'+
+    '<span><i class="ln" style="background:'+C.violet+'"></i>Nodal LMP (right axis)</span>';
+
+  /* cost stack */
+  var cc=chart($('costChart'),{height:190,label:'Annual capital versus operating cost'}), cap=cs.capex_per_year||0, opx=cs.opex_per_year||0, tot=cap+opx||1;
+  var yBar=[34,86], barH=30;
+  [['Annualised capital',cap,C.cyan],['Fuel & variable O&M',opx,C.amber]].forEach(function(b,i){
+    var w=(b[1]/tot)*(cc.w-190);
+    cc.svg.appendChild(sEl('rect',{x:132,y:yBar[i],width:Math.max(2,w),height:barH,rx:6,fill:b[2],opacity:.85}));
+    cc.svg.appendChild(sEl('text',{x:124,y:yBar[i]+20,'text-anchor':'end',fill:C.muted,'font-size':11},b[0]));
+    cc.svg.appendChild(sEl('text',{x:138+w+8,y:yBar[i]+20,fill:C.text,'font-size':11.5,'font-family':'var(--mono)'},money(b[1])));
+  });
+  cc.svg.appendChild(sEl('text',{x:132,y:150,fill:C.muted,'font-size':11},'total '+money(tot)+' currency/yr · '+pct(100*cap/tot,1)+' capital'));
+
+  /* lmp chart */
+  var lc=chart($('lmpChart'),{height:190,label:'Hourly nodal price'});
+  var lo=Math.min.apply(null,cs.lmp), hi=Math.max.apply(null,cs.lmp);
+  var lax=axes(lc,{x0:0,x1:hours-1,y0:Math.min(0,lo),y1:hi*1.05},{yLabel:'/MWh',xLabel:'hour',xFmt:function(v){return v+'h';}});
+  lc.svg.appendChild(sEl('path',{d:pathOf(cs.lmp.map(function(v,i){return [lax.x(i),lax.y(v)];})),fill:'none',stroke:C.violet,'stroke-width':2}));
+  lc.svg.appendChild(sEl('line',{x1:lc.pad.l,x2:lc.w-lc.pad.r,y1:lax.y(0),y2:lax.y(0),stroke:C.line,'stroke-dasharray':'3 4'}));
+
+  /* mix bars */
+  var mix=$('d-mix'); clear(mix);
+  [['Solar',cs.caps.solar,C.green],['Wind',cs.caps.wind,C.cyan],['Gas',cs.caps.gas,C.amber]].forEach(function(m){
+    var mx=Math.max(cs.caps.solar,cs.caps.wind,cs.caps.gas)||1, row=el('div',{class:'b'});
+    row.appendChild(el('span',{},m[0]));
+    var t=el('div',{class:'track'}), f=el('div',{class:'fill'}); f.style.background=m[2]; f.style.width=(100*m[1]/mx)+'%'; t.appendChild(f);
+    row.appendChild(t); row.appendChild(el('span',{class:'mono'},fmt(m[1],0)+' MW'));
+    mix.appendChild(row);
+  });
+}
+
+/* ---------- view: storage ---------- */
+function renderStorage(){
+  var i=clamp(Math.round(S.lull),0,STO.durations.length-1);
+  $('lull-out').textContent=STO.durations[i]+' h';
+  var host=$('storageChart'), c=chart(host,{height:300,label:'Storage LCOE versus lull duration'});
+  var xs=STO.durations, all=STO.bess_only_lcoe.concat(STO.h2_only_lcoe,STO.hybrid_lcoe);
+  var ax=axes(c,{x0:0,x1:Math.max.apply(null,xs),y0:Math.min.apply(null,all)*.92,y1:Math.max.apply(null,all)*1.06},
+    {xLabel:'Dunkelflaute lull (hours)',yLabel:'/MWh',xFmt:function(v){return v+'h';}});
+  [['bess_only_lcoe',C.amber],['h2_only_lcoe',C.cyan],['hybrid_lcoe',C.green]].forEach(function(s){
+    c.svg.appendChild(sEl('path',{d:pathOf(STO[s[0]].map(function(v,k){return [ax.x(xs[k]),ax.y(v)];})),fill:'none',stroke:s[1],'stroke-width':s[0]==='hybrid_lcoe'?2.6:1.8,opacity:s[0]==='hybrid_lcoe'?1:.85}));
+    STO[s[0]].forEach(function(v,k){ c.svg.appendChild(sEl('circle',{cx:ax.x(xs[k]),cy:ax.y(v),r:2.6,fill:s[1]})); });
+  });
+  var mx=ax.x(xs[i]);
+  c.svg.appendChild(sEl('line',{x1:mx,x2:mx,y1:c.pad.t,y2:c.h-c.pad.b,stroke:C.violet,'stroke-dasharray':'4 4','stroke-width':1.4}));
+  c.svg.appendChild(sEl('text',{x:mx+6,y:c.pad.t+12,fill:C.violet,'font-size':10.5,'font-family':'var(--mono)'},STO.durations[i]+' h'));
+  if(STO.crossover_hours){
+    var cx=ax.x(STO.crossover_hours);
+    var j=0; STO.durations.forEach(function(v,k){ if(v<=STO.crossover_hours) j=k; });
+    var t=(STO.crossover_hours-STO.durations[j])/Math.max(STO.durations[j+1]-STO.durations[j],1e-9);
+    var cy=ax.y(lerp(STO.bess_only_lcoe[j],STO.bess_only_lcoe[j+1],t));
+    c.svg.appendChild(sEl('line',{x1:cx,x2:cx,y1:c.pad.t,y2:c.h-c.pad.b,stroke:C.red,'stroke-dasharray':'2 4','stroke-width':1,opacity:.6}));
+    c.svg.appendChild(sEl('circle',{cx:cx,cy:cy,r:4.5,fill:'none',stroke:C.red,'stroke-width':1.6}));
+    c.svg.appendChild(sEl('text',{x:cx+9,y:c.pad.t+24,fill:C.red,'font-size':10.5,'font-family':'var(--mono)'},'crossover '+fmt(STO.crossover_hours,1)+' h'));
+  }
+  hoverLayer(c,function(e){
+    var k=Math.round((e.offsetX-c.pad.l)/((c.w-c.pad.l-c.pad.r)/Math.max(xs[xs.length-1],1))), best=0, bd=1e9;
+    xs.forEach(function(v,j){ var d=Math.abs(v-k); if(d<bd){bd=d;best=j;} });
+    showTip(e,'<div class="k">'+xs[best]+' h lull</div>BESS '+fmt(STO.bess_only_lcoe[best],2)+
+      '<br>H₂ '+fmt(STO.h2_only_lcoe[best],2)+'<br><b>hybrid '+fmt(STO.hybrid_lcoe[best],2)+' /MWh</b>');
+  });
+  var facts=$('s-facts'); clear(facts);
+  [['Hybrid LCOE',fmt(STO.hybrid_lcoe[i],2)+' /MWh'],
+   ['BESS energy',fmt(STO.hybrid_bess_mwh[i],0)+' MWh'],
+   ['H₂ energy (e-equiv)',fmt(STO.hybrid_h2_mwh_e_equiv[i],0)+' MWh'],
+   ['BESS cycles / yr',fmt(STO.bess_cycles_per_year,1)],
+   ['H₂ cycles / yr',fmt(STO.h2_cycles_per_year,1)],
+   ['Duality gap',STO.duality_gap?STO.duality_gap.toExponential(1):'0']].forEach(function(p){
+    facts.appendChild(el('dt',{},p[0])); facts.appendChild(el('dd',{},p[1]));
+  });
+  $('s-callout').innerHTML = 'At <b>'+STO.durations[i]+' h</b> the hybrid portfolio costs <b>'+fmt(STO.hybrid_lcoe[i],2)+
+    ' /MWh</b>, '+(STO.hybrid_lcoe[i]<=Math.min(STO.bess_only_lcoe[i],STO.h2_only_lcoe[i])+1e-9?
+      'matching the cheaper single technology':'above the cheaper single technology')+
+    '. Power-dense batteries win short lulls; energy-dense cavern hydrogen wins long ones.';
+
+  var body=$('s-table').querySelector('tbody'); clear(body);
+  STO.regimes.forEach(function(r){
+    var tr=el('tr');
+    tr.appendChild(el('td',{},r.label));
+    [r.solar_mw,r.wind_mw,r.bess_mwh,r.h2_store_mwh_h2,r.system_lcoe_per_mwh].forEach(function(v,k){
+      tr.appendChild(el('td',{class:'mono'},fmt(v,k===4?2:0)));
+    });
+    body.appendChild(tr);
+  });
+
+  /* 168 h dispatch */
+  var host2=$('storageDispatch'), c2=chart(host2,{height:260,label:'168 hour storage dispatch'}), d=STO.dispatch, n=d.load.length;
+  var maxV=0;
+  function g(k,t){ var a=d[k]; return (a&&a.length>t)?a[t]:0; }
+  for(var t=0;t<n;t++){ maxV=Math.max(maxV,g('load',t), g('gas',t)+g('bess_discharge',t)+g('h2_discharge',t)+g('wind',t)+g('solar',t), g('load',t)+g('bess_charge',t)); }
+  var a2=axes(c2,{x0:0,x1:n-1,y0:0,y1:maxV*1.06},{yLabel:'MW',xLabel:'hour of week',xFmt:function(v){return v+'h';}});
+  var base=new Array(n).fill(0);
+  var layers=[['gas',C.amber,.9],['solar',C.green,.9],['wind',C.cyan,.8],['bess_discharge',C.violet,.95],['h2_discharge',C.red,.9]];
+  layers.forEach(function(L){
+    var vals=Array.from({length:n},function(_,t){return g(L[0],t);}), top=vals.map(function(v,k){return base[k]+v;});
+    var dd='M'+base.map(function(v,k){return a2.x(k).toFixed(1)+' '+a2.y(v).toFixed(1);}).join('L')+
+           'L'+top.map(function(v,k){return a2.x(k).toFixed(1)+' '+a2.y(v).toFixed(1);}).reverse().join('L')+'Z';
+    c2.svg.appendChild(sEl('path',{d:dd,fill:L[1],opacity:L[2],stroke:'var(--bg)','stroke-width':1}));
+    base=top;
+  });
+  c2.svg.appendChild(sEl('path',{d:pathOf(Array.from({length:n},function(_,k){return [a2.x(k),a2.y(g('load',k))];})),fill:'none',stroke:C.text,'stroke-width':1.6,'stroke-dasharray':'4 3'}));
+  hoverLayer(c2,function(e){
+    var k=clamp(Math.round((e.offsetX-c2.pad.l)/((c2.w-c2.pad.l-c2.pad.r)/(n-1))),0,n-1);
+    showTip(e,'<div class="k">hour '+k+'</div>load '+fmt(g('load',k),0)+' MW<br>solar '+fmt(g('solar',k),0)+' · wind '+fmt(g('wind',k),0)+
+      '<br>BESS discharge '+fmt(g('bess_discharge',k),0)+' · H₂ '+fmt(g('h2_discharge',k),0)+' · gas '+fmt(g('gas',k),0)+
+      '<br><span class="k">SoC BESS '+fmt(g('bess_soc',k),0)+' MWh · LMP '+fmt(g('lmp',k),1)+'</span>');
+  });
+}
+
+/* ---------- view: carbon ---------- */
+function renderCarbon(){
+  var i=clamp(Math.round(S.cap),0,CAR.targets_pct.length-1);
+  $('cap-out').textContent=pct(CAR.targets_pct[i],1);
+  $('c-price').innerHTML=fmt(CAR.shadow_price_per_tco2[i],2)+' <small>/t</small>';
+  $('c-co2').innerHTML=fmt(CAR.emissions_tco2[i]/1e6,2)+' <small>Mt</small>';
+  $('c-lcoe').innerHTML=fmt(CAR.resource_lcoe_per_mwh[i],2)+' <small>/MWh</small>';
+
+  var c=chart($('paretoChart'),{height:300,label:'CO2 Pareto frontier'});
+  var x0=Math.min(0,Math.min.apply(null,CAR.emissions_tco2)), x1=Math.max.apply(null,CAR.emissions_tco2);
+  var y0c=Math.min.apply(null,CAR.resource_lcoe_per_mwh)*.95, y1c=Math.max.apply(null,CAR.resource_lcoe_per_mwh)*1.05;
+  var ax=axes(c,{x0:x0,x1:x1,y0:y0c,y1:y1c},
+    {xLabel:'residual CO₂ (tCO₂/yr)',yLabel:'resource LCOE (/MWh)',xFmt:function(v){return (v/1e6).toFixed(2)+'M';},
+     right:{frame:[0,Math.max.apply(null,CAR.shadow_price_per_tco2)*1.05],label:'/tCO₂',color:C.amber,fmt:function(v){return fmt(v,0);}}});
+  var maxP=Math.max.apply(null,CAR.shadow_price_per_tco2)||1;
+  c.svg.appendChild(sEl('path',{d:pathOf(CAR.resource_lcoe_per_mwh.map(function(v,k){return [ax.x(CAR.emissions_tco2[k]),ax.y(v)];})),
+    fill:'none',stroke:C.green,'stroke-width':2.4}));
+  var pMap=function(v){ return y0c+(v/(maxP*1.05))*(y1c-y0c); };
+  c.svg.appendChild(sEl('path',{d:pathOf(CAR.shadow_price_per_tco2.map(function(v,k){
+    return [ax.x(CAR.emissions_tco2[k]), ax.y(pMap(v))];})),
+    fill:'none',stroke:C.amber,'stroke-width':1.7,'stroke-dasharray':'4 3'}));
+  var px=ax.x(CAR.emissions_tco2[i]), py=ax.y(CAR.resource_lcoe_per_mwh[i]);
+  c.svg.appendChild(sEl('line',{x1:px,x2:px,y1:c.pad.t,y2:c.h-c.pad.b,stroke:C.violet,'stroke-dasharray':'3 4'}));
+  c.svg.appendChild(sEl('circle',{cx:px,cy:py,r:5,fill:C.violet,stroke:'#fff','stroke-width':1.4}));
+  hoverLayer(c,function(e){
+    var k=0,bd=1e9; CAR.emissions_tco2.forEach(function(v,j){var d=Math.abs(ax.x(v)-(e.offsetX)) ; if(d<bd){bd=d;k=j;}});
+    showTip(e,'<div class="k">'+pct(CAR.targets_pct[k],1)+' abatement</div><b>'+fmt(CAR.resource_lcoe_per_mwh[k],2)+' /MWh</b><br>'+
+      fmt(CAR.emissions_tco2[k]/1e6,3)+' MtCO₂<br><span class="k">μ* '+fmt(CAR.shadow_price_per_tco2[k],2)+' /tCO₂</span>');
+  });
+
+  /* MACC */
+  var mc=chart($('maccChart'),{height:250,label:'Marginal abatement cost curve'});
+  var maxM=Math.max.apply(null,CAR.shadow_price_per_tco2)||1;
+  var a2=axes(mc,{x0:0,x1:100,y0:0,y1:maxM*1.08},{xLabel:'abatement (%)',yLabel:'/tCO₂'});
+  var bw=(mc.w-mc.pad.l-mc.pad.r)/CAR.targets_pct.length;
+  CAR.shadow_price_per_tco2.forEach(function(v,k){
+    var h=mc.h-mc.pad.b-a2.y(v);
+    mc.svg.appendChild(sEl('rect',{x:a2.x(CAR.targets_pct[k])-bw*0.36,y:a2.y(v),width:bw*0.72,height:Math.max(1,h),rx:3,
+      fill:k===i?C.violet:'color-mix(in srgb,var(--amber) 70%,transparent)'}));
+  });
+  mc.svg.appendChild(sEl('path',{d:pathOf(CAR.average_cost_per_tco2.map(function(v,k){return [a2.x(CAR.targets_pct[k]),a2.y(v)];})),
+    fill:'none',stroke:C.cyan,'stroke-width':1.8,'stroke-dasharray':'5 4'}));
+  mc.svg.appendChild(sEl('text',{x:mc.w-mc.pad.r,y:mc.pad.t+12,'text-anchor':'end',fill:C.cyan,'font-size':10.5},'average cost (dashed)'));
+
+  /* mix stack */
+  var mixc=chart($('mixChart'),{height:250,label:'Installed capacity mix by abatement target'});
+  var keys=[['coal_mw',C.slate],['ccgt_mw',C.amber],['ocgt_mw',C.red],['gas_ccs_mw',C.violet],['solar_mw',C.green],['wind_mw',C.cyan]];
+  var maxCap=0; CAR.targets_pct.forEach(function(_,k){ var s=0; keys.forEach(function(K){s+=CAR.mix[K[0]][k];}); maxCap=Math.max(maxCap,s); });
+  var a3=axes(mixc,{x0:0,x1:100,y0:0,y1:maxCap*1.08},{xLabel:'abatement (%)',yLabel:'MW'});
+  var bw2=(mixc.w-mixc.pad.l-mixc.pad.r)/CAR.targets_pct.length;
+  CAR.targets_pct.forEach(function(t,k){
+    var base=0, x=a3.x(t)-bw2*0.34;
+    keys.forEach(function(K){
+      var v=CAR.mix[K[0]][k]||0, h=(v/Math.max(maxCap,1))*(mixc.h-mixc.pad.t-mixc.pad.b);
+      if(h>0.4){ mixc.svg.appendChild(sEl('rect',{x:x,y:a3.y(base+v),width:bw2*0.68,height:h,fill:K[1],opacity:.88})); }
+      base+=v;
+    });
+  });
+  mixc.svg.appendChild(sEl('line',{x1:a3.x(CAR.targets_pct[i]),x2:a3.x(CAR.targets_pct[i]),y1:mixc.pad.t,y2:mixc.h-mixc.pad.b,stroke:C.violet,'stroke-width':1.4,'stroke-dasharray':'3 3'}));
+  var lg=$('mixLegend'); lg.innerHTML=keys.map(function(K){
+    return '<span><i style="background:'+K[1]+'"></i>'+K[0].replace('_mw','').replace('gas_ccs','gas+CCS').replace('_',' ')+'</span>';}).join('');
+
+  var mix=$('c-mix'); clear(mix);
+  var shares=[['Coal',CAR.mix.coal_mw[i],C.slate],['Gas (unabated)',CAR.mix.ccgt_mw[i]+CAR.mix.ocgt_mw[i],C.amber],
+              ['Gas + CCS',CAR.mix.gas_ccs_mw[i],C.violet],['Solar',CAR.mix.solar_mw[i],C.green],['Wind',CAR.mix.wind_mw[i],C.cyan]];
+  var mx=Math.max.apply(null,shares.map(function(s){return s[1];}))||1;
+  shares.forEach(function(s){
+    var row=el('div',{class:'b'}); row.appendChild(el('span',{},s[0]));
+    var t=el('div',{class:'track'}), f=el('div',{class:'fill'}); f.style.background=s[2]; f.style.width=(100*s[1]/mx)+'%'; t.appendChild(f);
+    row.appendChild(t); row.appendChild(el('span',{class:'mono'},fmt(s[1],0)+' MW')); mix.appendChild(row);
+  });
+  $('c-callout').innerHTML = i===CAR.targets_pct.length-1
+    ? '<b>Net zero.</b> Every tonne is abated at a shadow price of '+fmt(CAR.net_zero_shadow_price_per_tco2,2)+' /tCO₂ — the right-hand limit of the dual as the cap goes to zero.'
+    : 'Shadow price <b>'+fmt(CAR.shadow_price_per_tco2[i],2)+' /tCO₂</b>; average abatement cost '+fmt(CAR.average_cost_per_tco2[i],2)+
+      ' /tCO₂. Saddle-point residual '+CAR.saddle_identity_gap.toExponential(1)+' currency/yr.';
+}
+
+/* ---------- view: flexibility ---------- */
+function renderFlex(){
+  var seg=$('flex-seg'); clear(seg);
+  FLX.regimes.forEach(function(r,k){
+    var b=el('button',{type:'button','aria-pressed':String(k===S.flex)},String(k+1)+' · '+r.regime.split('_').slice(1).join(' '));
+    b.addEventListener('click',function(){ S.flex=k; renderFlex(); route(true); }); seg.appendChild(b);
+  });
+  var r=FLX.regimes[S.flex], s=FLX.series[S.flex], n=s.net_load.length;
+  var facts=$('f-facts'); clear(facts);
+  [['System LCOE',fmt(r.system_lcoe_per_mwh,2)+' /MWh'],['Annual cost',money(r.total_annual_cost)],
+   ['Load-weighted LMP',fmt(r.load_weighted_lmp_per_mwh,2)],['Reserve price (load-wtd)',fmt(r.load_weighted_reserve_price_per_mw_h,2)],
+   ['Peak LMP',fmt(r.max_lmp_per_mwh,2)],['VRE capacity',fmt(r.vre_total_mw,0)+' MW'],
+   ['BESS energy',fmt(r.bess_e_nom_mwh,0)+' MWh'],['Evening ramp',fmt(r.max_evening_net_load_ramp_mw_per_h,0)+' MW/h'],
+   ['Revenue gap',r.strong_duality_revenue_gap.toExponential(1)]].forEach(function(p){
+    facts.appendChild(el('dt',{},p[0])); facts.appendChild(el('dd',{},p[1]));
+  });
+  $('f-callout').innerHTML = S.flex===3
+    ? '<b>Co-optimised BESS.</b> Storage supplies both energy and upward reserves, cutting the peak price from '+fmt(FLX.regimes[2].max_lmp_per_mwh,1)+' to '+fmt(r.max_lmp_per_mwh,1)+' /MWh while keeping revenue adequacy at '+r.strong_duality_revenue_gap.toExponential(1)+'.'
+    : 'Reserve requirement priced at '+fmt(r.max_reserve_price_per_mw_h,2)+' /MW-h at the peak; strong duality gap '+r.strong_duality_revenue_gap.toExponential(1)+' currency/yr.';
+
+  var c=chart($('flexChart'),{height:290,padR:46,label:'Net load and nodal price over 48 hours'});
+  var nlHi=Math.max.apply(null,s.net_load), lHi=Math.max.apply(null,s.lmp), lLo=Math.min(0,Math.min.apply(null,s.lmp));
+  var ax=axes(c,{x0:0,x1:47,y0:Math.min(0,Math.min.apply(null,s.net_load)),y1:nlHi*1.08},
+    {xLabel:'hour',yLabel:'MW',xFmt:function(v){return v+'h';},
+     right:{frame:[lLo,lHi*1.08],label:'/MWh',color:C.amber,fmt:function(v){return fmt(v,0);}}});
+  c.svg.appendChild(sEl('path',{d:pathOf(s.net_load.map(function(v,k){return [ax.x(k),ax.y(v)];})),fill:'none',stroke:C.cyan,'stroke-width':2.2}));
+  c.svg.appendChild(sEl('line',{x1:c.pad.l,x2:c.w-c.pad.r,y1:ax.y(0),y2:ax.y(0),stroke:C.line,'stroke-dasharray':'3 4'}));
+  c.svg.appendChild(sEl('path',{d:pathOf(s.lmp.map(function(v,k){
+    return [ax.x(k), ax.y(clamp(v,lLo,lHi*1.08)/Math.max(lHi*1.08,1e-9)*nlHi*1.08)];})),fill:'none',stroke:C.amber,'stroke-width':1.6,'stroke-dasharray':'4 3'}));
+  hoverLayer(c,function(e){
+    var k=clamp(Math.round((e.offsetX-c.pad.l)/((c.w-c.pad.l-c.pad.r)/47)),0,n-1);
+    showTip(e,'<div class="k">hour '+k+'</div>net load '+fmt(s.net_load[k],0)+' MW<br>LMP '+fmt(s.lmp[k],2)+' /MWh'+
+      '<br><span class="k">reserve '+fmt(s.reserve_price[k],1)+' /MW-h · req '+fmt(s.reserve_requirement[k],0)+' MW</span>');
+  });
+  $('flexChart').parentNode.insertAdjacentHTML('beforeend',
+    '<div class="legend"><span><i class="ln" style="background:'+C.cyan+'"></i>Net load (left)</span><span><i class="ln" style="background:'+C.amber+'"></i>Nodal LMP (right)</span></div>');
+
+  var c2=chart($('reserveChart'),{height:250,padR:48,label:'Reserve requirement and reserve price'});
+  var reqHi=Math.max.apply(null,s.reserve_requirement)*1.1, rpHi=Math.max.apply(null,s.reserve_price)*1.1||1;
+  var a2=axes(c2,{x0:0,x1:47,y0:0,y1:reqHi},{xLabel:'hour',yLabel:'MW',
+    right:{frame:[0,rpHi],label:'/MW-h',color:C.amber,fmt:function(v){return fmt(v,0);}}});
+  c2.svg.appendChild(sEl('path',{d:'M'+s.reserve_requirement.map(function(v,k){return a2.x(k).toFixed(1)+' '+a2.y(v).toFixed(1);}).join('L')+
+    'L'+a2.x(47).toFixed(1)+' '+a2.y(0).toFixed(1)+'L'+a2.x(0).toFixed(1)+' '+a2.y(0).toFixed(1)+'Z',
+    fill:C.violet,opacity:.18,stroke:C.violet,'stroke-width':1.4}));
+  c2.svg.appendChild(sEl('path',{d:pathOf(s.reserve_price.map(function(v,k){
+    return [a2.x(k), a2.y((v/rpHi)*reqHi)];})),fill:'none',stroke:C.amber,'stroke-width':1.7}));
+
+  var body=$('f-table').querySelector('tbody'); clear(body);
+  FLX.regimes.forEach(function(r2,k){
+    var tr=el('tr',{style:'cursor:pointer'});
+    tr.appendChild(el('td',{},(k+1)+' · '+r2.regime.split('_').slice(1).join(' ')));
+    [r2.system_lcoe_per_mwh,r2.max_lmp_per_mwh,r2.max_reserve_price_per_mw_h,r2.bess_e_nom_mwh].forEach(function(v,j){
+      tr.appendChild(el('td',{class:'mono'},fmt(v,j===3?0:2)));
+    });
+    tr.addEventListener('click',function(){ S.flex=k; renderFlex(); route(true); });
+    body.appendChild(tr);
+  });
+}
+
+/* ---------- view: grid ---------- */
+var ZONE_POS={North_Wind:[.30,.14],West_Solar:[.09,.52],South_Hub:[.44,.87],East_Metro:[.86,.44]};
+function renderGrid(){
+  var seg=$('grid-seg'); clear(seg);
+  GRID.regimes.forEach(function(r,k){
+    var b=el('button',{type:'button','aria-pressed':String(k===S.grid)},String(k+1)+' · '+r.regime.split('_').slice(1).join(' '));
+    b.addEventListener('click',function(){ S.grid=k; renderGrid(); route(true); }); seg.appendChild(b);
+  });
+  var reg=GRID.regimes[S.grid], flows=GRID.flows[S.grid], prices=GRID.prices[S.grid];
+  var h=clamp(Math.round(S.hour),0,GRID.hours.length-1);
+  $('hour-out').textContent=String(h).padStart(2,'0')+':00';
+  $('g-hour-tag').textContent=String(h).padStart(2,'0')+':00';
+  $('gridscale-out').textContent='×'+GRID.scale_sweep.scale[clamp(S.scale,0,4)].toFixed(2);
+
+  var host=$('network'), c=chart(host,{height:340,label:'Four-zone network with flows and zonal prices',padR:14});
+  var W=c.w, H=c.h, pad=26;
+  function pos(name){ var p=ZONE_POS[name]||[.5,.5]; return [pad+p[0]*(W-2*pad), pad+p[1]*(H-2*pad-24)]; }
+  var zmax=0; prices.per_mwh.forEach(function(a){ a.forEach(function(v){ zmax=Math.max(zmax,Math.abs(v)); }); });
+  zmax=zmax||1;
+
+  GRID.corridors.forEach(function(corr){
+    var a=pos(corr.bus0), b=pos(corr.bus1);
+    var idx=flows.corridor.indexOf(corr.name);
+    var series=idx>=0?flows.mw[idx]:null;
+    var mw=series?series[h]:0;
+    var share=Math.min(1,Math.abs(mw)/Math.max(corr.s_nom_mw,1));
+    var wpx=1.4+2.6*share;
+    c.svg.appendChild(sEl('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:C.line,'stroke-width':wpx+3,opacity:.55,'stroke-linecap':'round'}));
+    c.svg.appendChild(sEl('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:Math.abs(mw)>1?(mw>0?C.cyan:C.amber):C.slate,
+      'stroke-width':wpx,opacity:.95,'stroke-linecap':'round','stroke-dasharray':Math.abs(mw)>1?'':'2 4'}));
+    var mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2;
+    c.svg.appendChild(sEl('rect',{x:mx-27,y:my-15,width:54,height:30,rx:7,fill:'var(--panel)','fill-opacity':.92,stroke:C.line}));
+    c.svg.appendChild(sEl('text',{x:mx,y:my-3,'text-anchor':'middle',fill:C.muted,'font-size':9,'font-family':'var(--mono)'},corr.name.split('_')[0]+' · '+corr.s_nom_mw.toFixed(0)));
+    c.svg.appendChild(sEl('text',{x:mx,y:my+11,'text-anchor':'middle',fill:Math.abs(mw)>1?C.text:C.slate,'font-size':10.5,'font-family':'var(--mono)'},fmt(mw,0)+' MW'));
+  });
+  GRID.zones.forEach(function(z){
+    var p=pos(z), i=prices.zone.indexOf(z), lmp=i>=0?prices.per_mwh[i][h]:0;
+    var rad=15+9*Math.min(1,Math.abs(lmp)/zmax);
+    c.svg.appendChild(sEl('circle',{cx:p[0],cy:p[1],r:rad,fill:'color-mix(in srgb,'+C.green+' 24%,transparent)',stroke:C.green,'stroke-width':1.8}));
+    c.svg.appendChild(sEl('circle',{cx:p[0],cy:p[1],r:rad-6,fill:'none',stroke:C.green,'stroke-width':.8,opacity:.5}));
+    c.svg.appendChild(sEl('text',{x:p[0],y:p[1]-rad-11,'text-anchor':'middle',fill:C.text,'font-size':11.5,'font-weight':600},z.replace(/_/g,' ')));
+    c.svg.appendChild(sEl('text',{x:p[0],y:p[1]+5,'text-anchor':'middle',fill:C.text,'font-size':12.5,'font-weight':700,'font-family':'var(--mono)'},fmt(lmp,0)));
+    c.svg.appendChild(sEl('text',{x:p[0],y:p[1]+rad+13,'text-anchor':'middle',fill:C.muted,'font-size':9},'LMP'));
+  });
+  c.svg.appendChild(sEl('text',{x:pad,y:H-8,fill:C.muted,'font-size':10.5},'line width ∝ |flow| / rating · colour = direction · circle = zonal LMP'));
+
+  var facts=$('g-facts'); clear(facts);
+  [['System LCOE',fmt(reg.system_lcoe_per_mwh,2)+' /MWh'],['Mean LMP spread',fmt(reg.mean_lmp_spread_per_mwh,2)+' /MWh'],
+   ['Max LMP spread',fmt(reg.max_lmp_spread_per_mwh,2)+' /MWh'],['Total corridor',fmt(reg.total_line_mw,0)+' MW'],
+   ['Added lines',fmt(reg.added_line_mw,0)+' MW'],['Congestion rent',money(reg.annual_congestion_rent)],
+   ['Line CapEx',money(reg.annual_line_capex_cost)],['Merchandising gap',reg.merchandising_surplus_gap.toExponential(1)]].forEach(function(p){
+    facts.appendChild(el('dt',{},p[0])); facts.appendChild(el('dd',{},p[1]));
+  });
+  $('g-callout').innerHTML = S.grid===3
+    ? '<b>Co-optimised TEP.</b> The planner builds '+fmt(reg.added_line_mw,0)+' MW of new corridor and the annual congestion rent ('+money(reg.annual_congestion_rent)+') recovers the line CapEx to '+reg.merchandising_surplus_gap.toExponential(1)+' currency/yr.'
+    : (S.grid===1 ? '<b>Braess trap.</b> Adding a passive bridge to this topology raises dispatch cost by '+fmt(GRID.braess.cost_increase_pct,1)+'% ('+money(GRID.braess.base_cost_per_h)+' → '+money(GRID.braess.ac_bridge_cost_per_h)+' /h) because KVL forces counter-price loop flow.'
+       : 'Congestion rent is ISO merchandising surplus: it equals the price-spread rent on every corridor, hour by hour.');
+
+  var c2=chart($('gridscaleChart'),{height:250,padR:56,label:'LCOE and congestion rent versus corridor capacity'});
+  var ss=GRID.scale_sweep, sL0=Math.min.apply(null,ss.lcoe_per_mwh)*.95, sL1=Math.max.apply(null,ss.lcoe_per_mwh)*1.05;
+  var a2=axes(c2,{x0:ss.scale[0],x1:ss.scale[ss.scale.length-1],y0:sL0,y1:sL1},
+    {xLabel:'corridor capacity multiplier',yLabel:'LCOE /MWh',xFmt:function(v){return '×'+v.toFixed(2);},
+     right:{frame:[0,Math.max.apply(null,ss.congestion_rent)*1.05],label:'rent /yr',color:C.amber,fmt:function(v){return (v/1e6).toFixed(0)+'M';}}});
+  c2.svg.appendChild(sEl('path',{d:pathOf(ss.lcoe_per_mwh.map(function(v,k){return [a2.x(ss.scale[k]),a2.y(v)];})),fill:'none',stroke:C.green,'stroke-width':2.4}));
+  ss.lcoe_per_mwh.forEach(function(v,k){ c2.svg.appendChild(sEl('circle',{cx:a2.x(ss.scale[k]),cy:a2.y(v),r:3.4,fill:C.green})); });
+  var rmax2=Math.max.apply(null,ss.congestion_rent)*1.05||1;
+  c2.svg.appendChild(sEl('path',{d:pathOf(ss.congestion_rent.map(function(v,k){
+    return [a2.x(ss.scale[k]), a2.y(sL0+(v/rmax2)*(sL1-sL0))];})),fill:'none',stroke:C.amber,'stroke-width':1.7,'stroke-dasharray':'5 4'}));
+  c2.svg.appendChild(sEl('circle',{cx:c2.w-c2.pad.r-6,cy:c2.pad.t-3,r:3,fill:C.amber}));
+  var cur=clamp(S.scale,0,4);
+  c2.svg.appendChild(sEl('line',{x1:a2.x(ss.scale[cur]),x2:a2.x(ss.scale[cur]),y1:c2.pad.t,y2:c2.h-c2.pad.b,stroke:C.violet,'stroke-dasharray':'3 3'}));
+
+  var head=$('ptdf-table').querySelector('thead tr'); clear(head);
+  head.appendChild(el('th',{},'Corridor'));
+  GRID.zones.forEach(function(z){ head.appendChild(el('th',{},z.replace(/_/g,' '))); });
+  var body=$('ptdf-table').querySelector('tbody'); clear(body);
+  GRID.corridors.forEach(function(corr,i){
+    var tr=el('tr'); tr.appendChild(el('td',{class:'mono'},corr.name));
+    GRID.ptdf[i].forEach(function(v){ tr.appendChild(el('td',{class:'mono'},fmt(v,3))); });
+    body.appendChild(tr);
+  });
+}
+
+/* ---------- view: risk ---------- */
+function renderRisk(){
+  var i=clamp(Math.round(S.beta),0,RSK.betas.length-1), beta=RSK.betas[i];
+  $('beta-out').textContent=beta.toFixed(2);
+  $('r-lcoe').innerHTML=fmt(RSK.lcoe_per_mwh[i],2)+' <small>/MWh</small>';
+  $('r-cvar').innerHTML=fmt(RSK.cvar_per_year[i]/1e6,1)+' <small>M/yr</small>';
+  $('r-eens').innerHTML='<span style="font-size:18px">'+fmt(RSK.eens_mwh_per_year[i],1)+'</span> <small>MWh</small>';
+  $('r-note').textContent = 'Risk premium '+fmt(RSK.risk_premium_per_mwh[i],2)+
+    ' /MWh buys a '+fmt(RSK.cvar_reduction_pct[i],1)+'% reduction in tail cost versus the risk-neutral plan.';
+
+  var c=chart($('frontierChart'),{height:300,label:'Mean CVaR efficient frontier'});
+  var ez=RSK.expected_cost_per_year, cv=RSK.cvar_per_year;
+  var ax=axes(c,{x0:Math.min.apply(null,ez)*.96,x1:Math.max.apply(null,ez)*1.03,
+    y0:Math.min.apply(null,cv)*.98,y1:Math.max.apply(null,cv)*1.03},
+    {xLabel:'expected annual cost E[Z]',yLabel:'CVaR 95% [Z]',xFmt:function(v){return (v/1e6).toFixed(0)+'M';},yFmt:function(v){return (v/1e6).toFixed(0)+'M';}});
+  c.svg.appendChild(sEl('path',{d:pathOf(ez.map(function(v,k){return [ax.x(v),ax.y(cv[k])];})),fill:'none',stroke:C.green,'stroke-width':2.2}));
+  RSK.betas.forEach(function(b,k){
+    c.svg.appendChild(sEl('circle',{cx:ax.x(ez[k]),cy:ax.y(cv[k]),r:k===i?6.5:3.4,
+      fill:k===i?C.violet:C.green,stroke:k===i?'#fff':C.green,'stroke-width':k===i?1.6:0}));
+    if(k===0||k===RSK.betas.length-1||k===i){
+      c.svg.appendChild(sEl('text',{x:ax.x(ez[k])+8,y:ax.y(cv[k])-8,fill:k===i?C.violet:C.muted,'font-size':10.5,'font-family':'var(--mono)'},'β='+b.toFixed(2)));
+    }
+  });
+  hoverLayer(c,function(e){
+    var k=0,bd=1e9; ez.forEach(function(v,j){var d=Math.abs(ax.x(v)-e.offsetX)+Math.abs(ax.y(cv[j])-e.offsetY); if(d<bd){bd=d;k=j;}});
+    showTip(e,'<div class="k">β = '+RSK.betas[k].toFixed(2)+'</div><b>E[Z] '+money(ez[k])+'</b><br>CVaR '+money(cv[k])+
+      '<br><span class="k">LCOE '+fmt(RSK.lcoe_per_mwh[k],2)+' /MWh · solar '+fmt(RSK.capacities_mw.solar[k],0)+' MW</span>');
+  });
+
+  var kw=RSK.risk_weights.filter(function(w){return Math.abs(w.beta-beta)<1e-9;})[0]||RSK.risk_weights[1];
+  var c2=chart($('kernelChart'),{height:280,padR:52,label:'Dual risk weights q star'});
+  var names=RSK.regimes.map(function(r){return r.name;});
+  var maxQ=Math.max.apply(null,kw.weights)*1.35||0.1;
+  var maxCap=Math.max.apply(null,RSK.regimes.map(function(r){return r.envelope_cap;}))*1.08;
+  var a2=axes(c2,{x0:0,x1:names.length-1,y0:0,y1:maxQ},
+    {yLabel:'q* (risk weight)',xFmt:function(v){return 'WY'+Math.round(v)+1;},yFmt:function(v){return fmt(v,2);},
+     right:{frame:[0,maxCap],label:'ceiling π/(1−α)',color:C.red,fmt:function(v){return fmt(v,2);}}});
+  var bw=(c2.w-c2.pad.l-c2.pad.r)/names.length;
+  RSK.regimes.forEach(function(r,k){
+    var q=kw.weights[k];
+    c2.svg.appendChild(sEl('rect',{x:a2.x(k)-bw*.28,y:a2.y(q),width:bw*.56,height:Math.max(1,c2.h-c2.pad.b-a2.y(q)),rx:3,
+      fill:r.envelope_cap>r.probability*1.5?C.violet:C.green,opacity:.92}));
+    c2.svg.appendChild(sEl('circle',{cx:a2.x(k),cy:a2.y(r.probability),r:3.2,fill:'none',stroke:C.amber,'stroke-width':1.5}));
+    var capY=a2.y((r.envelope_cap/maxCap)*maxQ);
+    c2.svg.appendChild(sEl('line',{x1:a2.x(k)-bw*.34,x2:a2.x(k)+bw*.34,y1:capY,y2:capY,stroke:C.red,'stroke-width':1.3,'stroke-dasharray':'3 3'}));
+    c2.svg.appendChild(sEl('text',{x:a2.x(k),y:c2.h-c2.pad.b+14,'text-anchor':'middle',fill:C.muted,'font-size':9},'WY'+(k+1)));
+  });
+
+  hoverLayer(c2,function(e){
+    var k=clamp(Math.floor((e.offsetX-c2.pad.l)/bw),0,names.length-1), r=RSK.regimes[k];
+    showTip(e,'<div class="k">'+r.name.replace(/_/g,' ')+'</div>π '+fmt(r.probability,3)+' → q* '+fmt(kw.weights[k],3)+
+      '<br><span class="k">ceiling '+fmt(r.envelope_cap,2)+' · load +'+fmt(r.load_adder_mw,0)+' MW · wind cap '+fmt(r.wind_cap_cf*100,0)+'%</span>');
+  });
+
+  var mix=$('r-mix'); clear(mix);
+  var caps=[['Solar',RSK.capacities_mw.solar[i],C.green],['Wind',RSK.capacities_mw.wind[i],C.cyan],
+            ['Gas',RSK.capacities_mw.gas[i],C.amber],['BESS',RSK.capacities_mw.bess[i],C.violet]];
+  var mx=Math.max.apply(null,caps.map(function(x){return x[1];}))||1;
+  caps.forEach(function(m){
+    var row=el('div',{class:'b'}); row.appendChild(el('span',{},m[0]));
+    var t=el('div',{class:'track'}), f=el('div',{class:'fill'}); f.style.background=m[2]; f.style.width=(100*m[1]/mx)+'%'; t.appendChild(f);
+    row.appendChild(t); row.appendChild(el('span',{class:'mono'},fmt(m[1],0)+' MW')); mix.appendChild(row);
+  });
+
+  var bl=RSK.birge_louveaux;
+  var c3=chart($('boundsChart'),{height:250,label:'Wait and see, recourse and expected value bounds'});
+  var vals=[['WS',bl.wait_and_see_per_year,C.green],['RP',bl.recourse_per_year,C.cyan],['EEV',bl.expected_ev_per_year,C.red]];
+  var mxv=Math.max.apply(null,vals.map(function(v){return v[1];}));
+  var a3=axes(c3,{x0:0,x1:2,y0:0,y1:mxv*1.12},
+    {yLabel:'currency/yr (millions)',yFmt:function(v){return (v/1e6).toFixed(0)+'M';},
+     xFmt:function(v){return vals[Math.round(v)]?vals[Math.round(v)][0]:'';}});
+  vals.forEach(function(v,k){
+    c3.svg.appendChild(sEl('rect',{x:a3.x(k)-22,y:a3.y(v[1]),width:44,height:c3.h-c3.pad.b-a3.y(v[1]),rx:5,fill:v[2],opacity:.85}));
+    c3.svg.appendChild(sEl('text',{x:a3.x(k),y:a3.y(v[1])-8,'text-anchor':'middle',fill:C.text,'font-size':10.5,'font-family':'var(--mono)'},(v[1]/1e6).toFixed(0)+'M'));
+    c3.svg.appendChild(sEl('text',{x:a3.x(k),y:c3.h-c3.pad.b+16,'text-anchor':'middle',fill:C.muted,'font-size':10.5},v[0]));
+  });
+  c3.svg.appendChild(sEl('line',{x1:c3.pad.l,x2:c3.w-c3.pad.r,y1:c3.pad.t+6,y2:c3.pad.t+6,stroke:C.line}));
+  $('r-callout').innerHTML = '<b>EVPI '+money(bl.evpi_per_year)+'</b> · <b>VSS '+money(bl.vss_per_year)+
+    '</b>. The expected-value plan builds '+fmt(bl.expected_value_plan_mw.solar,0)+' MW solar, '+fmt(bl.expected_value_plan_mw.wind,0)+
+    ' MW wind and <b>'+fmt(bl.expected_value_plan_mw.gas,0)+' MW gas</b>; averaged over the eight futures it costs '+
+    fmt(bl.expected_ev_per_year/bl.recourse_per_year,1)+'× the hedged plan. Ordering WS ≤ RP ≤ EEV: '+(bl.ordering_ok?'holds':'fails')+'.';
+}
+
+/* ---------- view: method ---------- */
+function renderMethod(){
+  var c=chart($('surrogateChart'),{height:280,label:'Surrogate versus exact LCOE on holdout nodes'});
+  var pts=SUR.samples;
+  if(pts.length){
+    var vals=pts.map(function(p){return p.exact_lcoe;}).concat(pts.map(function(p){return p.surrogate_lcoe;}));
+    var lo=Math.min.apply(null,vals)*.97, hi=Math.max.apply(null,vals)*1.03;
+    var ax=axes(c,{x0:lo,x1:hi,y0:lo,y1:hi},{xLabel:'exact LP /MWh',yLabel:'surrogate /MWh'});
+    c.svg.appendChild(sEl('line',{x1:ax.x(lo),y1:ax.y(lo),x2:ax.x(hi),y2:ax.y(hi),stroke:C.muted,'stroke-width':1.2,'stroke-dasharray':'5 4'}));
+    pts.forEach(function(p){
+      c.svg.appendChild(sEl('circle',{cx:ax.x(p.exact_lcoe),cy:ax.y(p.surrogate_lcoe),r:4,fill:C.cyan,opacity:.85}));
+    });
+    c.svg.appendChild(sEl('text',{x:c.pad.l+6,y:c.pad.t+12,fill:C.muted,'font-size':10.5,'font-family':'var(--mono)'},
+      'R² '+fmt(SUR.r2,4)+' · RMSE '+fmt(SUR.rmse_per_mwh,3)+' · max '+fmt(SUR.max_abs_error_per_mwh,2)+' /MWh'));
+  } else { c.svg.appendChild(sEl('text',{x:20,y:40,fill:C.muted,'font-size':12},'no holdout run')); }
+
+  var meta=$('m-meta'); clear(meta);
+  [['Package',META.package_version],['Generated (UTC)',META.generated_utc],['Python',META.python],
+   ['PyPSA',META.pypsa],['NumPy / SciPy',META.numpy+' / '+META.scipy],['Pandas',META.pandas],
+   ['Solver runs',fmt(META.n_solves,0)],['Build time',fmt(META.runtime_seconds,1)+' s'],
+   ['Data digest',DATA_DIGEST.slice(0,16)+'…']].forEach(function(p){
+    meta.appendChild(el('dt',{},p[0])); meta.appendChild(el('dd',{},p[1]));
+  });
+  var body=$('m-tests').querySelector('tbody'); clear(body);
+  var total=0;
+  DATA.tests.forEach(function(t){
+    var tr=el('tr'); tr.appendChild(el('td',{class:'mono'},t.file)); tr.appendChild(el('td',{class:'mono'},fmt(t.tests,0)));
+    body.appendChild(tr); total+=t.tests;
+  });
+  $('m-total').textContent='Static inventory of '+total+' test functions across '+DATA.tests.length+
+    ' modules; the CI matrix runs the full pytest suite on Python 3.11, 3.12 and 3.13.';
+}
+
+/* ---------- routing, controls, exports ---------- */
+var VIEWS={overview:['Overview','One page, six solved modules, no network calls.',renderOverview],
+  dispatch:['Dispatch & LCOE','Representative day, cost stack and nodal prices.',renderDispatch],
+  storage:['Storage & lulls','Battery versus hydrogen across Dunkelflaute lengths.',renderStorage],
+  carbon:['Carbon & MACC','Cap-and-trade duality, abatement cost and fuel switching.',renderCarbon],
+  flex:['Flexibility','Ramping, must-run floors and co-optimised reserves.',renderFlex],
+  grid:['Meshed grid','4-zone DC-OPF, loop flows and transmission expansion.',renderGrid],
+  risk:['Risk & CVaR','Mean-CVaR frontier, dual risk kernel and stochastic bounds.',renderRisk],
+  method:['Method & checks','Surrogate validation, provenance and limits.',renderMethod]};
+function go(id,silent){
+  if(!VIEWS[id]) id='overview';
+  S.view=id;
+  document.querySelectorAll('section[data-view]').forEach(function(s){ s.classList.toggle('on',s.getAttribute('data-view')===id); });
+  document.querySelectorAll('.navlink').forEach(function(b){ if(b.getAttribute('data-go')===id) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  $('view-title').textContent=VIEWS[id][0]; $('view-sub').textContent=VIEWS[id][1];
+  VIEWS[id][2]();
+  if(!silent) window.scrollTo({top:0,behavior:reduced()?'auto':'smooth'});
+  route(true);
+}
+function stateParams(){
+  var p=[];
+  if(S.view==='dispatch'){ p.push('wacc='+S.wacc.toFixed(3),'capex='+S.capex.toFixed(2)); }
+  if(S.view==='storage') p.push('lull='+S.lull);
+  if(S.view==='carbon') p.push('cap='+S.cap);
+  if(S.view==='flex') p.push('flex='+S.flex);
+  if(S.view==='grid') p.push('grid='+S.grid,'scale='+S.scale,'hour='+S.hour);
+  if(S.view==='risk') p.push('beta='+S.beta);
+  return p.length?'?'+p.join('&'):'';
+}
+function route(push){
+  var h='#/'+S.view+stateParams();
+  if(location.hash!==h){ try{ history.replaceState(null,'',h); }catch(e){ location.hash=h; } }
+}
+function parseHash(){
+  var raw=(location.hash||'').replace(/^#\/?/,'');
+  var parts=raw.split('?'), id=parts[0]||'overview', q={};
+  (parts[1]||'').split('&').forEach(function(kv){ var a=kv.split('='); if(a[0]) q[a[0]]=a[1]; });
+  if(q.wacc!==undefined) S.wacc=clamp(parseFloat(q.wacc),0.01,0.15);
+  if(q.capex!==undefined) S.capex=clamp(parseFloat(q.capex),0.55,1.75);
+  if(q.lull!==undefined) S.lull=clamp(parseInt(q.lull,10),0,STO.durations.length-1);
+  if(q.cap!==undefined) S.cap=clamp(parseInt(q.cap,10),0,CAR.targets_pct.length-1);
+  if(q.flex!==undefined) S.flex=clamp(parseInt(q.flex,10),0,FLX.regimes.length-1);
+  if(q.grid!==undefined) S.grid=clamp(parseInt(q.grid,10),0,GRID.regimes.length-1);
+  if(q.scale!==undefined) S.scale=clamp(parseInt(q.scale,10),0,4);
+  if(q.hour!==undefined) S.hour=clamp(parseInt(q.hour,10),0,GRID.hours.length-1);
+  if(q.beta!==undefined) S.beta=clamp(parseInt(q.beta,10),0,RSK.betas.length-1);
+  return VIEWS[id]?id:'overview';
+}
+function syncControls(){
+  $('wacc').value=S.wacc*100; $('capex').value=S.capex;
+  $('lull').value=S.lull; $('cap').value=S.cap; $('hour').value=S.hour;
+  $('gridscale').value=S.scale; $('beta').value=S.beta;
+}
+function renderActive(){ VIEWS[S.view][2](); }
+function bind(){
+  document.querySelectorAll('.navlink').forEach(function(b){ b.addEventListener('click',function(){ go(b.getAttribute('data-go')); }); });
+  $('wacc').addEventListener('input',function(e){ S.wacc=parseFloat(e.target.value)/100; renderActive(); route(true); });
+  $('capex').addEventListener('input',function(e){ S.capex=parseFloat(e.target.value); renderActive(); route(true); });
+  $('lull').addEventListener('input',function(e){ S.lull=parseFloat(e.target.value); renderActive(); route(true); });
+  $('cap').addEventListener('input',function(e){ S.cap=parseFloat(e.target.value); renderActive(); route(true); });
+  $('hour').addEventListener('input',function(e){ S.hour=parseFloat(e.target.value); renderActive(); route(true); });
+  $('gridscale').addEventListener('input',function(e){ S.scale=parseFloat(e.target.value); renderActive(); route(true); });
+  $('beta').addEventListener('input',function(e){ S.beta=parseFloat(e.target.value); renderActive(); route(true); });
+
+  $('btn-theme').addEventListener('click',function(){
+    var next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',next);
+    this.setAttribute('aria-pressed',String(next==='light'));
+    try{ localStorage.setItem('etm-theme',next); }catch(e){}
+    renderActive();
+  });
+  $('btn-link').addEventListener('click',function(){
+    var url=location.href;
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(function(){ announce('Link copied'); }); }
+    else{ announce(url); }
+    this.textContent='Copied'; var self=this; setTimeout(function(){ self.textContent='Copy link'; },1400);
+  });
+  $('btn-csv').addEventListener('click',function(){
+    var rows=csvFor(S.view);
+    if(!rows.length){ announce('nothing to export'); return; }
+    download('etm-'+S.view+'.csv',rows.map(function(r){return r.join(',');}).join('\n'),'text/csv');
+    announce('CSV exported');
+  });
+  $('btn-svg').addEventListener('click',function(){
+    var host=document.querySelector('section[data-view].on .chart svg');
+    if(!host){ announce('no chart'); return; }
+    var clone=host.cloneNode(true);
+    clone.setAttribute('xmlns',NS);
+    var css='text{font-family:DejaVu Sans,sans-serif}';
+    var style=document.createElementNS(NS,'style'); style.textContent=css; clone.insertBefore(style,clone.firstChild);
+    download('etm-'+S.view+'.svg',new XMLSerializer().serializeToString(clone),'image/svg+xml');
+    announce('SVG exported');
+  });
+  window.addEventListener('hashchange',function(){
+    var id=parseHash(); syncControls(); go(id,true);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.metaKey||e.ctrlKey) return;
+    var keys=Object.keys(VIEWS);
+    if(e.key>='1'&&e.key<='8'){ go(keys[parseInt(e.key,10)-1]); }
+    if(e.key==='['||e.key===']'){
+      var k=keys.indexOf(S.view)+(e.key===']'?1:-1); go(keys[(k+keys.length)%keys.length]);
+    }
+  });
+  var t=null;
+  window.addEventListener('resize',function(){ clearTimeout(t); t=setTimeout(renderActive,140); });
+}
+function csvFor(view){
+  var rows=[];
+  if(view==='dispatch'){ var cs=caseFor(S.wacc,S.capex);
+    rows.push(['hour','load_mw','solar_mw','wind_mw','gas_mw','lmp_per_mwh']);
+    cs.load.forEach(function(v,i){ rows.push([i,v,cs.solar[i],cs.wind[i],cs.gas[i],cs.lmp[i]]); }); return rows; }
+  if(view==='storage'){ rows.push(['lull_hours','bess_only_lcoe','h2_only_lcoe','hybrid_lcoe']);
+    STO.durations.forEach(function(d,i){ rows.push([d,STO.bess_only_lcoe[i],STO.h2_only_lcoe[i],STO.hybrid_lcoe[i]]); }); return rows; }
+  if(view==='carbon'){ rows.push(['abatement_pct','emissions_tco2','lcoe_per_mwh','shadow_price','average_cost']);
+    CAR.targets_pct.forEach(function(t,i){ rows.push([t,CAR.emissions_tco2[i],CAR.resource_lcoe_per_mwh[i],CAR.shadow_price_per_tco2[i],CAR.average_cost_per_tco2[i]]); }); return rows; }
+  if(view==='flex'){ rows.push(['hour','net_load_mw','lmp','reserve_price']);
+    FLX.series[S.flex].net_load.forEach(function(v,i){ rows.push([i,v,FLX.series[S.flex].lmp[i],FLX.series[S.flex].reserve_price[i]]); }); return rows; }
+  if(view==='grid'){ var f=GRID.flows[S.grid]; rows.push(['hour'].concat(f.corridor));
+    GRID.hours.forEach(function(h,i){ rows.push([h].concat(f.corridor.map(function(_,j){return f.mw[j][i];}))); }); return rows; }
+  if(view==='risk'){ rows.push(['beta','expected_cost','cvar','lcoe','eens','solar_mw','wind_mw','gas_mw','bess_mw']);
+    RSK.betas.forEach(function(b,i){ rows.push([b,RSK.expected_cost_per_year[i],RSK.cvar_per_year[i],RSK.lcoe_per_mwh[i],RSK.eens_mwh_per_year[i],
+      RSK.capacities_mw.solar[i],RSK.capacities_mw.wind[i],RSK.capacities_mw.gas[i],RSK.capacities_mw.bess[i]]); }); return rows; }
+  if(view==='method'){ rows.push(['wacc','capex_scale','exact_lcoe','surrogate_lcoe']);
+    SUR.samples.forEach(function(p){ rows.push([p.wacc,p.capex_scale,p.exact_lcoe,p.surrogate_lcoe]); }); return rows; }
+  rows.push(['module','identity','residual','tolerance']);
+  DATA.verification.forEach(function(v){ rows.push([v.module,v.identity,v.residual,v.tolerance]); });
+  return rows;
+}
+function download(name,text,mime){
+  var blob=new Blob([text],{type:mime+';charset=utf-8'}), url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); },600);
+}
+
+/* ---------- boot ---------- */
+var DATA_DIGEST=(document.querySelector('meta[name="etm-data-digest"]')||{content:''}).content;
+(function init(){
+  try{ var saved=localStorage.getItem('etm-theme'); if(saved) document.documentElement.setAttribute('data-theme',saved); }catch(e){}
+  $('side-digest').textContent=DATA_DIGEST.slice(0,10)+'…';
+  $('foot-digest').textContent='dataset sha256 '+DATA_DIGEST.slice(0,16)+'… · '+META.package_version;
+  $('side-version').textContent='data '+META.generated_utc.slice(0,10);
+  /* open the grid view on the hour with the widest zonal price spread */
+  (function pickHour(){
+    var reg=GRID.prices[S.grid], best=0, bestSpread=-1;
+    for(var h=0; h<GRID.hours.length; h++){
+      var vals=reg.per_mwh.map(function(a){return a[h];});
+      var sp=Math.max.apply(null,vals)-Math.min.apply(null,vals);
+      if(sp>bestSpread){ bestSpread=sp; best=h; }
+    }
+    S.hour=best;
+  })();
+  bind(); syncControls();
+  go(parseHash(),true);
+})();
+})();
+</script>
+</body>
+</html>

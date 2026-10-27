@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: "Energy Transition Optimization Model: Capacity Expansion, Multi-Duration Storage & Nodal KKT Duality"
+title: "Energy Transition Optimization Model: Capacity Expansion, Storage, Carbon Duality, DC-OPF & Mean-CVaR Risk with an Offline Workbench"
 message: "If you use this software in academic or engineering research, please cite it as below."
 type: software
 authors:
@@ -8,11 +8,19 @@ authors:
     alias: hariszafar740-lang
 repository-code: "https://github.com/hariszafar740-lang/energy-transition-model"
 url: "https://github.com/hariszafar740-lang/energy-transition-model"
+abstract: >-
+  Open-source energy-system capacity expansion, multi-duration storage, CO2
+  cap-and-trade duality, ramp/reserve adequacy, meshed DC-OPF/AC-TEP and an
+  explicit mean-CVaR stochastic program, plus a single-file offline interactive
+  workbench rendered from solved models.
 license: MIT
-version: 0.8.0
-date-released: "2026-10-25"
+version: 1.0.0
+date-released: "2026-10-27"
 keywords:
   - energy-transition
+  - cvar
+  - stochastic-programming
+  - interactive-workbench
   - capacity-expansion
   - economic-dispatch
   - pypsa

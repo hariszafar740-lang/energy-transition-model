@@ -1,0 +1,74 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Verify & stage the offline workbench
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install package (no solver re-run needed)
+        run: |
+          python -m pip install --upgrade pip "setuptools>=77.0" wheel
+          python -m pip install --no-build-isolation -e .
+
+      - name: Verify the committed page matches the committed dataset
+        run: etm-workbench check
+
+      - name: Stage the single-file workbench
+        run: |
+          # The page is published at three stable locations:
+          #   /                       -> the workbench itself
+          #   /workbench/             -> the documented deep link
+          #   /404.html               -> any unknown path renders the workbench
+          mkdir -p site/workbench/data site/data
+          cp workbench/index.html site/index.html
+          cp workbench/index.html site/404.html
+          cp workbench/index.html site/workbench/index.html
+          cp workbench/data/etm_workbench_data.json site/data/etm_workbench_data.json
+          cp workbench/data/etm_workbench_data.json site/workbench/data/etm_workbench_data.json
+          printf 'etm-workbench: offline single-file build\n' > site/.nojekyll
+          ls -la site site/workbench
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

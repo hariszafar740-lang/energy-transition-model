@@ -1,10 +1,15 @@
 # Energy Transition Optimization Model
 
 [![CI](https://github.com/hariszafar740-lang/energy-transition-model/actions/workflows/ci.yml/badge.svg)](https://github.com/hariszafar740-lang/energy-transition-model/actions/workflows/ci.yml)
+[![Pages](https://github.com/hariszafar740-lang/energy-transition-model/actions/workflows/deploy_pages.yml/badge.svg)](https://hariszafar740-lang.github.io/energy-transition-model/workbench/)
 ![Python 3.11 | 3.12 | 3.13](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776ab?logo=python&logoColor=white)
+[![Tests: 285](https://img.shields.io/badge/tests-285%20passing-2ea043)](#quickstart--verification)
+[![Offline workbench](https://img.shields.io/badge/workbench-offline%20%C2%B7%20zero%20requests-0e7490)](https://hariszafar740-lang.github.io/energy-transition-model/workbench/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An open-source energy-system capacity-expansion, chronological multi-duration energy storage (`Li-Ion BESS` + `Green H2` Power-to-X), discounted cash-flow (`WACC` / `CRF` / `LCOE`), and KKT nodal shadow-price (`LMP`) duality model built with **PyPSA** (Python for Power System Analysis) and the **HiGHS** linear-programming solver.
+An open-source energy-system capacity-expansion, chronological multi-duration energy storage (`Li-Ion BESS` + `Green H2` Power-to-X), discounted cash-flow (`WACC` / `CRF` / `LCOE`), KKT nodal shadow-price (`LMP`) duality, CO2 cap-and-trade, ramp/reserve adequacy, meshed `DC-OPF`/`AC-TEP` and mean-CVaR stochastic model built with **PyPSA** (Python for Power System Analysis) and the **HiGHS** linear-programming solver — plus a **single-file, offline, zero-dependency interactive workbench** that renders every solved module in the browser.
+
+[![Open the offline workbench](https://img.shields.io/badge/%E2%96%B6%20open%20the%20workbench-interactive%20%C2%B7%20no%20network-0e7490?style=for-the-badge)](https://hariszafar740-lang.github.io/energy-transition-model/workbench/)
 
 ![Representative-Day Dispatch, KKT Nodal LMP Duality & WACC Sensitivity](results/baseline_dispatch_and_lmp_duality.png)
 
@@ -15,7 +20,7 @@ This repository serves as the practical engineering implementation for the offic
 * **Issuing Institution:** Politecnico di Milano
 * **Qualification Level:** EQF Level 7
 
-## Architecture & Module Capabilities (`v0.8.0`)
+## Architecture & Module Capabilities (`v1.0.0`)
 
 * **Single-bus LP baseline (`energy_model/model.py`):** Representative-day capacity expansion (`Regional_Grid`, `System_Demand`, `Solar_PV`, `Wind_Turbine`, `Gas_Peaker`) with strict hourly time-series validation (`energy_model/profiles.py`).
 * **Discounted cash-flow & KKT nodal price duality (`energy_model/economics.py`):**
@@ -25,6 +30,11 @@ This repository serves as the practical engineering implementation for the offic
   * **Short-duration power-coupled battery (`Li_Ion_BESS` via PyPSA `StorageUnit`):** `4 h` duration, $\eta_{\text{ch}} = \eta_{\text{dis}} = 95\%$ ($\eta_{\text{RTE}} = 90.25\%$), cyclic State-of-Charge (`SoC`), optimal for daily midday-solar-to-evening shifting (`278.7` eq. cycles/yr).
   * **Long-duration decoupled Power-to-X hydrogen (`Green_H2` via PyPSA `Bus` + `Store` + `Link`s):** Independently sized `H2_Electrolyzer` ($\eta_{\text{el}} = 68\%$), underground `H2_Cavern` (`350` currency/MWh$_{\text{H2}}$/yr, cyclic `SoC`), and `H2_Turbine` ($\eta_{\text{fc}} = 50\%$, $\eta_{\text{RTE}} = 34.0\%$), optimal for bridging multi-day **`Dunkelflaute`** wind/solar lulls (`52.1` eq. cycles/yr).
   * **Independent matrix LP cross-checks:** Both `economics.py` and `storage.py` construct standalone `scipy.optimize.linprog(..., method="highs")` primal + dual matrices confirming `< 1e-11` agreement with PyPSA/linopy across capacities, objective values, and nodal shadow prices.
+* **CO2 cap–tax Lagrangian duality & MACC (`energy_model/emissions.py`):** Partial-equilibrium multi-fuel emissions accounting, annual `CO2` caps, Pigouvian taxes, and the saddle-point identity $J_{\text{tax}}^*(\mu^*) = J_{\text{cap}}^*(\bar{E}) + \mu^* \bar{E}$ to `2.2e-08` currency/yr.
+* **Operational flexibility (`energy_model/flexibility.py`):** Intertemporal ramp envelopes, must-run floors, co-optimised upward spinning reserves, and a proof that binding ramps can produce strictly negative nodal prices with non-negative fuel costs (`-138.00` currency/MWh).
+* **Meshed transmission (`energy_model/transmission.py`):** 4-zone / 5-corridor `DC-OPF` with `PTDF`/`KVL` equivalence, ISO merchandising surplus, `AC-TEP` co-optimisation, and a Wheatstone-bridge Braess paradox (`+62.5%` dispatch cost for a zero-cost passive line).
+* **Risk-aware planning (`energy_model/workbench.py`):** An explicit 1,357-variable mean-CVaR linear program over 8 weather-and-demand regimes with a Rockafellar–Uryasev epigraph, dual risk kernel $q^*$, and Birge–Louveaux bounds (`WS ≤ RP ≤ EEV`).
+* **Offline workbench (`workbench/`):** `etm-workbench build` re-solves every module, writes `workbench/data/etm_workbench_data.json`, and renders a single self-contained `workbench/index.html` (no CDN, no fonts, no network requests) that CI re-verifies byte-for-byte on every push.
 
 ## Multi-Duration Storage & `Dunkelflaute` Adequacy (`v0.4.0`)
 
@@ -165,10 +175,137 @@ Module 6 (`energy_model/risk_sensitivity.py` + `energy_model/cli.py`) unifies pa
 .venv/bin/etm-sim --wacc 0.04 --vre-capex-scale 0.75 --cvar-beta 0.35 --json-summary /tmp/etm_summary.json
 ```
 
+## Interactive Energy-Transition Workbench (v1.0.0)
+
+Module 7 turns the model family into an **artifact you can open**: a single ~170 kB HTML file with no CDN, no web fonts, no `<script src>`, no `fetch()`, and no build step required to read it. Open `workbench/index.html` from a local clone (or the live Pages deployment) and every panel — dispatch, storage, carbon, reserves, meshed grid and risk — is driven by numbers that were produced by solving the linear programs in this repository.
+
+**[▶ Open the live workbench](https://hariszafar740-lang.github.io/energy-transition-model/workbench/)** · `workbench/index.html` · `workbench/data/etm_workbench_data.json`
+
+### Build → render → verify contract
+
+```
+solved models  ──►  workbench/data/etm_workbench_data.json  ──►  workbench/index.html
+   (PyPSA/HiGHS)          (single source of truth)                 (single-file UI)
+```
+
+* `etm-workbench build` re-solves all six model families (**149 optimisations** — 118 PyPSA/linopy solves + 31 explicit mean-CVaR LPs, ≈120 s), embeds the results as a JSON dataset with an `etm-workbench/1` schema, and renders the page.
+* `etm-workbench render` re-renders the page from the committed dataset only (≈2 s, no solver).
+* `etm-workbench check` re-renders in memory and compares byte-for-byte with the committed file; **CI fails on any drift**, so a hand-edited figure cannot survive a push.
+* Every page embeds `sha256` of its dataset in `<meta name="etm-data-digest">`; the footer prints the same digest, so a downloaded page can be traced back to the exact dataset that produced it.
+
+### The page itself
+
+| View | What it shows | Interaction |
+| :--- | :--- | :--- |
+| `00` Overview | 5×5 exact `LCOE` surface, module map, cross-module invariant table | click any cell → loads that case |
+| `01` Dispatch & LCOE | stacked hourly dispatch, annual cost stack, nodal price | `WACC` and VRE-CapEx sliders (bilinear interpolation between 25 solved nodes) |
+| `02` Storage & lulls | `BESS`-only / `H₂`-only / hybrid `LCOE` vs. lull length, 168 h SoC and dispatch | lull-duration scrubber |
+| `03` Carbon & MACC | Pareto frontier, dual carbon price, step `MACC`, fuel-switching mix | abatement-target scrubber |
+| `04` Flexibility | net load vs. nodal price, reserve requirement vs. reserve price | 4-regime switch |
+| `05` Meshed grid | live 4-zone network diagram, corridor flows, zonal `LMP`, `PTDF` matrix | 4-regime switch + hour slider |
+| `07` Risk & CVaR | mean–CVaR frontier, dual risk kernel $q^*$, Birge–Louveaux bounds | $\beta$ scrubber |
+| `99` Method & checks | surrogate holdout parity, build provenance, test inventory, explicit limits | — |
+
+Keyboard: `1…8` switch views, `[` / `]` step through them. Each view has a deep-link hash (`#/risk?beta=5`), CSV export of its table, SVG export of its active chart, and a light/dark theme toggle. The page works offline, from `file://`, in print, and under `prefers-reduced-motion`.
+
+### Module 7a — explicit mean-CVaR stochastic program
+
+Eight weather-and-demand regimes $\omega$ (windy equinox → severe `Dunkelflaute`, $\pi_\omega$ summing to `1.000`) are solved **jointly** as one linear program in 1,357 variables and 1,352 constraints, built as explicit sparse matrices:
+
+$$\min_{K,\,p,\,\eta,\,z}\;(1-\beta)\sum_\omega \pi_\omega Z_\omega \;+\; \beta\Big[\eta + \frac{1}{1-\alpha}\sum_\omega \pi_\omega z_\omega\Big] \quad\text{s.t.}\quad Z_\omega \le \eta + z_\omega,\; z_\omega \ge 0$$
+
+where $Z_\omega$ is the annual cost of future $\omega$ (annualised CapEx + gas fuel + `VoLL` × unserved energy, `1,800` currency/MWh), $K$ is the shared first-stage capacity vector, and $p_\omega$ is the hourly recourse dispatch with cyclic battery state of charge. The epigraph is the Rockafellar–Uryasev representation of $\mathrm{CVaR}_\alpha$, so $\eta^* = \mathrm{VaR}_\alpha$ and the duals of the epigraph rows **are** the risk kernel $q^*$.
+
+![Mean-CVaR Frontier, Dual Risk Kernel, Birge–Louveaux Bounds & Hedge Composition](results/risk_frontier_and_cvar_kernel.png)
+
+#### Verified risk/return frontier ($\alpha = 95\%$, annualised, cost in `currency/yr`)
+
+| $\beta$ | $\mathbb{E}[Z]$ (M) | $\mathrm{CVaR}_{95}$ (M) | System `LCOE` | Risk premium | Tail reduction | `EENS` (MWh/yr) | `Solar` | `Wind` | `Gas` | `BESS` |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `0.00` | `40.14` | `105.24` | `28.79` / MWh | `+0.00` | `0.0%` | `167.5` | `79 MW` | `309 MW` | `192 MW` | `69 MW` |
+| `0.10` | `40.41` | `99.67` | `28.98` / MWh | `+0.19` | `5.3%` | `0.0` | `91 MW` | `315 MW` | `192 MW` | `99 MW` |
+| `0.20` | `40.78` | `97.57` | `29.25` / MWh | `+0.46` | `7.3%` | `0.0` | `51 MW` | `374 MW` | `189 MW` | `97 MW` |
+| `0.35` | `42.08` | `94.86` | `30.18` / MWh | `+1.39` | `9.9%` | `0.0` | `61 MW` | `413 MW` | `215 MW` | `67 MW` |
+| `0.50` | `42.41` | `94.38` | `30.42` / MWh | `+1.63` | `10.3%` | `0.0` | `30 MW` | `437 MW` | `215 MW` | `65 MW` |
+| `0.65` | `48.55` | `90.31` | `34.82` / MWh | `+6.03` | `14.2%` | `0.0` | `0 MW` | `571 MW` | `172 MW` | `94 MW` |
+| `0.80` | `59.41` | `86.40` | `42.61` / MWh | `+13.82` | `17.9%` | `0.0` | `0 MW` | `752 MW` | `216 MW` | `32 MW` |
+| `0.90` | `60.75` | `86.17` | `43.57` / MWh | `+14.78` | `18.1%` | `0.0` | `0 MW` | `772 MW` | `203 MW` | `43 MW` |
+| `1.00` | `61.23` | `86.12` | `43.92` / MWh | `+15.13` | `18.2%` | `0.0` | `0 MW` | `779 MW` | `198 MW` | `47 MW` |
+
+Reading the frontier: **`1.39` currency/MWh of insurance buys `9.9%` off the worst-5% tail and eliminates every expected blackout hour** ($\beta = 0.35$); beyond $\beta \approx 0.65$ the hedge rotates out of solar entirely into wind plus storage, and the marginal price of tail reduction rises steeply — the classic convexity of the mean–CVaR frontier. Objective-to-primal duality gap `≤ 7.4e-08` currency/yr against $q^{*\top} Z$ at every $\beta$.
+
+#### Dual risk kernel $q^*$ (Rockafellar–Uryasev)
+
+At $\beta = 0.5$ the epigraph duals concentrate probability exactly where the tail lives:
+
+| Regime | $\pi_\omega$ | $q^*_\omega$ ($\beta$=0.5) | Ceiling $\pi_\omega/(1-\alpha)$ |
+| :--- | :---: | :---: | :---: |
+| `WY1_Windy_Equinox` | `0.180` | `0.090` | `3.60` |
+| `WY2_Sunny_Anticyclone` | `0.170` | `0.085` | `3.40` |
+| `WY3_Temperate_Normal` | `0.250` | `0.125` | `5.00` |
+| `WY4_Cloudy_Maritime` | `0.160` | `0.080` | `3.20` |
+| `WY5_Summer_Heat_Wave` | `0.140` | `0.170` | `2.80` |
+| `WY6_Winter_Cloud_Trough` | `0.060` | `0.030` | `1.20` |
+| `WY7_Polar_Vortex_Freeze` | `0.025` | `0.2625` | `0.50` |
+| `WY8_Severe_Dunkelflaute` | `0.015` | `0.1575` | `0.30` |
+
+The kernel satisfies $\sum_\omega q^*_\omega = 1$ and $0 \le q^*_\omega \le \pi_\omega/(1-\alpha)$ to `1e-9`. At $\beta = 1$ it degenerates onto the three worst futures only — `WY8` `0.30`, `WY7` `0.50`, `WY2` `0.20` — each sitting exactly on its ceiling, which is what "pure worst-tail optimisation with £-per-tail-mass pricing" means numerically.
+
+#### Birge–Louveaux stochastic bounds (risk-neutral, $\beta = 0$)
+
+| Bound | Annual cost | Construction |
+| :--- | :---: | :--- |
+| Wait-and-see `WS` | `28.62 M` | bespoke capacity plan per future (8 separate LPs) |
+| Recourse `RP` | `40.14 M` | one hedged plan across all 8 futures |
+| Expected-value plan `EEV` | `345.08 M` | plan built for the mean future, then evaluated on all 8 |
+
+`EVPI = 11.52 M/yr`, `VSS = 304.94 M/yr`, ordering `WS ≤ RP ≤ EEV` holds with slack. The expected-value plan builds `24 MW` solar, `320 MW` wind, `93 MW` battery and **`0 MW` gas**; averaged over the eight futures it costs `8.6×` the hedged plan, because a single mean future never contains the `+78 MW` `Dunkelflaute` night that dominates the tail.
+
+### Module 7b — reduced-order surrogate with measured error
+
+The overview and dispatch views let the reader sweep `WACC ∈ [1%, 15%]` and VRE CapEx `∈ [0.55, 1.75]×` continuously. A continuous sweep is not free: every grid node is one LP. The workbench therefore ships the **exact** 5×5 solved surface and bilinearly interpolates between nodes, then measures the interpolation error on 16 node positions that were never used to build it:
+
+| Metric | Value |
+| :--- | :---: |
+| Holdout solves | `16` (4 × 4 mid-quadrant nodes) |
+| `R²` (surrogate vs. exact) | `0.999705` |
+| `RMSE` | `0.206` currency/MWh |
+| Max absolute error | `0.80` currency/MWh |
+| Max relative error | `1.37%` |
+
+Where a slider sits between solved nodes, the page labels every KPI as *interpolated* and draws the hourly chart from the nearest exactly-solved node — interpolation never masquerades as a solve.
+
+### Reproduce the workbench
+
+```bash
+python -m venv .venv
+.venv/bin/python -m pip install --upgrade pip "setuptools>=77.0" wheel build
+.venv/bin/python -m pip install --no-build-isolation -e ".[dev]"
+
+# Re-solve every module (149 optimisations) and re-render the single-file page
+.venv/bin/etm-workbench build
+
+# Cheap re-render from the committed dataset, and the drift gate used by CI
+.venv/bin/etm-workbench render
+.venv/bin/etm-workbench check
+
+# Static 4-panel figure for this section
+.venv/bin/python -c "from energy_model.workbench import plot_risk_frontier_and_kernel; \
+    plot_risk_frontier_and_kernel('results/risk_frontier_and_cvar_kernel.png')"
+```
+
+### Scope boundaries of Module 7 (read before citing)
+
+* The `CVaR` panel is an **independent explicit-LP re-derivation** on its own declared 8-regime scenario set (own demand shape, own VRE availability, own `VoLL`). It is *not* a numerical replica of the Module 6 risk model, and it deliberately does not call it — agreement between two independent formulations would be meaningless if one called the other.
+* The 8 regimes are **synthetic stress shapes**, not reanalysis weather years; $\pi_\omega$ is a declared prior, not an estimated frequency. All costs are illustrative and currency-agnostic.
+* The surrogate is an interpolation of solved LPs, bounded by the holdout error above — it is not a fitted model and carries no extrapolation guarantee outside the plotted grid (sliders clamp at the edges).
+* `DC` power flow, lossless corridors, continuous investment, no unit commitment; see the shared boundaries in *Inputs, Assumptions & Provenance*.
+
 ## Inputs, Assumptions & Provenance
 
 * **Shipped 24 h baseline (`energy_model/data/profiles_synthetic_24h.csv`)** and **168 h `Dunkelflaute` sequence (`generate_dunkelflaute_profiles`)** are **deterministic synthetic benchmarks** designed to verify time-series constraints, KKT shadow-price duality, and chronological storage arbitrage; they are not metered SCADA or meteorological reanalysis records.
 * **Cost inputs** (`DEFAULT_TECHNOLOGIES`, `BatteryStorageSpec`, `HydrogenP2XSpec`) are illustrative annualised parameters without a specified currency. Outputs represent exact mathematical consequences of the stated linear programs and are **not** real-world investment quotes or engineering certification.
+* **Workbench dataset (`workbench/data/etm_workbench_data.json`)** is generated, never hand-edited: it is the serialised output of `etm-workbench build`, its `sha256` is embedded in `workbench/index.html`, and CI fails if the two ever disagree. The 8 Module-7 regimes are declared synthetic stress cases with an assumed prior, not estimated weather frequencies.
 
 ## Quickstart & Verification
 
@@ -180,11 +317,14 @@ python -m venv .venv
 # Representative-day baseline + KKT LMP duality + 168 h Dunkelflaute multi-duration storage
 .venv/bin/python main.py --duality-report --dunkelflaute-report   --save-plot results/baseline_dispatch_and_lmp_duality.png   --save-storage-plot results/multiduration_storage_dunkelflaute_dispatch.png
 
-# Lint, formatting check, and full pytest suite
+# Lint, formatting check, artifact freshness gate, and full pytest suite
 .venv/bin/ruff check .
 .venv/bin/ruff format --check .
+.venv/bin/etm-workbench check
 .venv/bin/pytest -v
 ```
+
+> **Workbench in one line:** `etm-workbench build` re-solves all six model families and rewrites `workbench/index.html`; `etm-workbench check` proves the committed page still matches the committed dataset. The published copy lives at <https://hariszafar740-lang.github.io/energy-transition-model/workbench/>.
 
 ## License
 

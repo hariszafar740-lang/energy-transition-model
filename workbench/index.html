@@ -1,0 +1,1393 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="Offline, zero-dependency interactive workbench for the energy-transition-model: capacity expansion, storage, CO2 MACC, flexibility, meshed DC-OPF and mean-CVaR risk.">
+<meta name="etm-data-digest" content="87e280684d54ea699803fc09a5182c2288c8043d82552d6bdd1d1707e0fb82e3">
+<meta name="generator" content="etm-workbench (energy-transition-model v1.0.0)">
+<title>Energy Transition Workbench · capacity, storage, carbon, grids &amp; risk</title>
+<style>
+:root{
+  --bg:#080b12; --bg2:#0d1220; --panel:#111827; --panel2:#151d2e; --line:#1f2a40;
+  --text:#e8eef9; --muted:#93a2ba; --dim:#6b7a93;
+  --green:#4ade80; --cyan:#38bdf8; --amber:#fbbf24; --red:#f87171; --violet:#a78bfa; --slate:#64748b;
+  --shadow:0 18px 46px -24px rgba(0,0,0,.85);
+  --r:14px; --maxw:1420px;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+html[data-theme="light"]{
+  --bg:#f4f6fb; --bg2:#eef1f8; --panel:#ffffff; --panel2:#f7f9fd; --line:#dde4f0;
+  --text:#101828; --muted:#54637a; --dim:#7a8699;
+  --green:#15803d; --cyan:#0369a1; --amber:#b45309; --red:#b91c1c; --violet:#6d28d9; --slate:#64748b;
+  --shadow:0 16px 40px -28px rgba(16,24,40,.45);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:radial-gradient(1200px 600px at 78% -10%,color-mix(in srgb,var(--cyan) 9%,transparent),transparent 60%),
+             radial-gradient(900px 500px at 0% 0%,color-mix(in srgb,var(--green) 8%,transparent),transparent 55%),var(--bg);
+  color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3,h4{margin:0;line-height:1.2;letter-spacing:-.02em;font-weight:650}
+p{margin:0}
+.skip{position:absolute;left:-9999px;top:0;background:var(--panel);color:var(--text);padding:10px 14px;border-radius:8px;z-index:99}
+.skip:focus{left:12px;top:12px}
+.shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:18px;
+  padding:20px 16px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--bg2) 82%,transparent);backdrop-filter:blur(8px)}
+.brand{display:flex;gap:11px;align-items:center}
+.mark{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(150deg,color-mix(in srgb,var(--green) 30%,transparent),color-mix(in srgb,var(--cyan) 26%,transparent));
+  border:1px solid color-mix(in srgb,var(--green) 40%,var(--line))}
+.mark svg{width:19px;height:19px}
+.brand b{display:block;font-size:14px;letter-spacing:-.01em}
+.brand span{display:block;font-size:11px;color:var(--muted);font-family:var(--mono)}
+nav{margin-top:4px;display:flex;flex-direction:column;gap:2px}
+nav .grp{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:12px 8px 6px}
+.navlink{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:var(--muted);
+  font-size:13.5px;border:1px solid transparent;cursor:pointer;background:none;text-align:left;width:100%;font-family:inherit}
+.navlink:hover{background:var(--panel);color:var(--text);text-decoration:none}
+.navlink .n{font-family:var(--mono);font-size:10.5px;color:var(--dim);width:18px;flex:none}
+.navlink[aria-current="page"]{background:color-mix(in srgb,var(--green) 12%,var(--panel));color:var(--text);
+  border-color:color-mix(in srgb,var(--green) 34%,var(--line))}
+.navlink[aria-current="page"] .n{color:var(--green)}
+.sidefoot{margin-top:auto;font-size:11px;color:var(--dim);display:grid;gap:6px;font-family:var(--mono)}
+.sidefoot .ok{color:var(--green)}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:14px 26px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px)}
+.topbar .titles{min-width:0}
+.topbar h1{font-size:17px}
+.topbar .sub{font-size:12.5px;color:var(--muted)}
+.spacer{flex:1}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button,.btn{font-family:inherit;font-size:12.5px;color:var(--text);background:var(--panel);border:1px solid var(--line);
+  padding:7px 11px;border-radius:9px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+button:hover,.btn:hover{border-color:color-mix(in srgb,var(--cyan) 45%,var(--line));text-decoration:none}
+button[aria-pressed="true"]{background:color-mix(in srgb,var(--green) 16%,var(--panel));border-color:var(--green)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+main{padding:22px 26px 8px;max-width:var(--maxw);width:100%;margin:0 auto}
+section[data-view]{display:none;animation:fade .26s ease}
+section[data-view].on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--green)}
+.lede{color:var(--muted);font-size:14px;max-width:92ch;margin-top:6px}
+.head{margin-bottom:16px}
+.head h2{font-size:clamp(21px,2.4vw,29px);margin-top:6px}
+.grid{display:grid;gap:14px}
+.k4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.k3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.split{grid-template-columns:minmax(0,1.5fr) minmax(280px,.72fr)}
+.split2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.mt{margin-top:14px}
+.card{background:linear-gradient(180deg,var(--panel),color-mix(in srgb,var(--panel) 88%,var(--bg)));border:1px solid var(--line);
+  border-radius:var(--r);padding:16px;box-shadow:var(--shadow);min-width:0}
+.card h3{font-size:13px;letter-spacing:.02em;color:var(--text)}
+.card .hint{font-size:12px;color:var(--muted);margin-top:3px}
+.kpi{display:flex;flex-direction:column;gap:6px}
+.kpi .lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-family:var(--mono)}
+.kpi .val{font-size:clamp(21px,2.2vw,27px);font-weight:650;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.kpi .val small{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:0}
+.kpi .meta{font-size:12px;color:var(--muted)}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted)}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:middle}
+.legend .ln{width:14px;height:2px;border-radius:2px}
+.ctl{display:grid;gap:14px}
+.field{display:grid;gap:6px}
+.field .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.field label{font-size:12.5px;color:var(--text);font-weight:550}
+.field .out{font-family:var(--mono);font-size:12.5px;color:var(--green)}
+input[type=range]{width:100%;accent-color:var(--green);height:22px;background:transparent}
+select{font-family:inherit;font-size:12.5px;background:var(--panel2);color:var(--text);border:1px solid var(--line);
+  border-radius:9px;padding:8px 10px;width:100%}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:6px 10px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600}
+th:first-child,td:first-child{text-align:left}
+tbody tr:hover{background:color-mix(in srgb,var(--cyan) 6%,transparent)}
+td.mono,th.mono{font-family:var(--mono)}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-family:var(--mono);padding:3px 8px;border-radius:999px;
+  border:1px solid var(--line);color:var(--muted);background:var(--panel2)}
+.tag.ok{color:var(--green);border-color:color-mix(in srgb,var(--green) 42%,var(--line))}
+.tag.warn{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 42%,var(--line))}
+.note{font-size:12.5px;color:var(--muted);border-left:2px solid var(--line);padding-left:12px}
+.callout{border:1px solid color-mix(in srgb,var(--violet) 34%,var(--line));background:color-mix(in srgb,var(--violet) 8%,var(--panel));border-radius:12px;padding:12px 14px;font-size:13px}
+.callout b{color:var(--text)}
+.tip{position:fixed;z-index:60;pointer-events:none;opacity:0;transition:opacity .12s ease;background:var(--panel2);
+  border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;box-shadow:var(--shadow);max-width:260px}
+.tip.on{opacity:1}
+.tip .k{color:var(--muted);font-size:11px}
+.mono{font-family:var(--mono)}
+.small{font-size:11.5px;color:var(--muted)}
+.rule{height:1px;background:var(--line);margin:14px 0}
+footer{padding:18px 26px 30px;color:var(--dim);font-size:12px;max-width:var(--maxw);margin:0 auto;width:100%}
+footer .row{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+ol.steps{margin:8px 0 0;padding-left:20px;color:var(--muted);font-size:13px}
+ol.steps li{margin:4px 0}
+code{font-family:var(--mono);font-size:12px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:1px 5px}
+pre{font-family:var(--mono);font-size:12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;margin:8px 0 0}
+.bars{display:grid;gap:8px;margin-top:10px}
+.bars .b{display:grid;grid-template-columns:96px minmax(0,1fr) 74px;gap:10px;align-items:center;font-size:12px}
+.bars .track{height:9px;border-radius:5px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
+.bars .fill{height:100%;border-radius:5px;transition:width .3s ease}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12.5px;margin-top:10px}
+.dl dt{color:var(--dim)}
+.dl dd{margin:0;text-align:right;font-family:var(--mono)}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (max-width:1180px){.k4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:980px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;height:auto;flex-direction:column;border-right:0;border-bottom:1px solid var(--line)}
+  nav{flex-direction:row;flex-wrap:wrap;gap:6px}
+  nav .grp{display:none}
+  .sidefoot{display:none}
+  .split,.split2{grid-template-columns:minmax(0,1fr)}
+  main,.topbar{padding-left:16px;padding-right:16px}
+}
+@media (max-width:620px){.k4,.k3{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{
+  .side,.topbar .btns,.tip{display:none}
+  body{background:#fff;color:#000}
+  .card{box-shadow:none;break-inside:avoid}
+  section[data-view]{display:block!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="shell">
+  <aside class="side" aria-label="Workbench navigation">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8"><path d="M4 18V9m5 9V5m5 13v-6m5 6V8" stroke-linecap="round"/><path d="M2 21h20" stroke-linecap="round"/></svg></span>
+      <div><b>Energy Transition</b><span>Workbench v1.0.0</span></div>
+    </div>
+    <nav aria-label="Modules">
+      <div class="grp">Explore</div>
+      <button class="navlink" data-go="overview" aria-current="page"><span class="n">00</span>Overview</button>
+      <button class="navlink" data-go="dispatch"><span class="n">01</span>Dispatch &amp; LCOE</button>
+      <button class="navlink" data-go="storage"><span class="n">02</span>Storage &amp; lulls</button>
+      <button class="navlink" data-go="carbon"><span class="n">03</span>Carbon &amp; MACC</button>
+      <button class="navlink" data-go="flex"><span class="n">04</span>Flexibility</button>
+      <button class="navlink" data-go="grid"><span class="n">05</span>Meshed grid</button>
+      <button class="navlink" data-go="risk"><span class="n">07</span>Risk &amp; CVaR</button>
+      <div class="grp">Trust</div>
+      <button class="navlink" data-go="method"><span class="n">99</span>Method &amp; checks</button>
+    </nav>
+    <div class="sidefoot">
+      <span class="ok">● offline · zero requests</span>
+      <span id="side-digest">digest …</span>
+      <span id="side-version">v1.0.0</span>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <div class="titles">
+        <h1 id="view-title">Overview</h1>
+        <div class="sub" id="view-sub">One page, six solved modules, no network calls.</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="btns">
+        <button id="btn-link" title="Copy a deep link to this view">Copy link</button>
+        <button id="btn-csv" title="Download the active view's table as CSV">Export CSV</button>
+        <button id="btn-svg" title="Download the active chart as SVG">Export SVG</button>
+        <button id="btn-theme" aria-pressed="false" title="Toggle colour theme">Theme</button>
+      </div>
+    </header>
+    <main id="main">
+
+      <section data-view="overview" class="on" aria-labelledby="ov-h">
+        <div class="head">
+          <div class="eyebrow">Energy Transition Model · v1.0.0</div>
+          <h2 id="ov-h">A whole energy-system model in one offline page</h2>
+          <p class="lede">Every number below was produced by solving a PyPSA/HiGHS linear program in this repository — capacity expansion, multi-duration storage, CO₂ cap-and-trade duality, ramp/reserve adequacy, meshed DC-OPF and a mean-CVaR stochastic program. Move a control and the page re-reads the solved data; nothing is typed by hand and nothing is fetched from the internet.</p>
+        </div>
+        <div class="grid k4">
+          <div class="card kpi"><span class="lab">System LCOE · 7% WACC</span><span class="val" id="ov-lcoe">—</span><span class="meta" id="ov-lcoe-m">reference case, VRE CapEx ×1.00</span></div>
+          <div class="card kpi"><span class="lab">VRE share of energy</span><span class="val" id="ov-vre">—</span><span class="meta">solar + wind dispatch</span></div>
+          <div class="card kpi"><span class="lab">Net-zero carbon price</span><span class="val" id="ov-co2">—</span><span class="meta">shadow price at a 100% cap</span></div>
+          <div class="card kpi"><span class="lab">Surrogate accuracy</span><span class="val" id="ov-r2">—</span><span class="meta" id="ov-r2-m">16 unseen nodes</span></div>
+        </div>
+        <div class="grid split mt">
+          <div class="card">
+            <h3>Cost surface: discount rate × VRE CapEx</h3>
+            <p class="hint">Exact LP solves on a 5×5 grid. Click a cell to load that case into the dispatch view.</p>
+            <div class="chart" id="heat"></div>
+          </div>
+          <div class="card">
+            <h3>Module map</h3>
+            <p class="hint">Each card is a solved model; select one to explore.</p>
+            <div class="bars" id="module-map"></div>
+            <div class="rule"></div>
+            <dl class="dl" id="ov-facts"></dl>
+          </div>
+        </div>
+        <div class="grid mt">
+          <div class="card">
+            <h3>Cross-module invariants</h3>
+            <p class="hint">Residuals recomputed from the solved primal/dual pairs at build time; tolerance is the numerical acceptance band used by the test suite.</p>
+            <div style="overflow:auto"><table id="ov-verif"><thead><tr><th>Module</th><th>Identity</th><th>Residual</th><th>Tolerance</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="dispatch" aria-labelledby="d-h">
+        <div class="head">
+          <div class="eyebrow">01 · Modules 1–2 · capacity expansion &amp; nodal duality</div>
+          <h2 id="d-h">Dispatch, cost stack and the price of capital</h2>
+          <p class="lede">A representative day is solved to least cost with extendable solar, wind and gas. The KKT dual of the power balance is the nodal price; its load-weighted mean equals the system LCOE to machine precision. Drag the financial levers to watch the portfolio re-optimise.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Hourly dispatch <span class="tag mono" id="d-case">—</span></h3>
+            <div class="chart" id="dispatchChart"></div>
+            <div class="legend" id="dispatchLegend"></div>
+          </div>
+          <div class="card ctl">
+            <h3>Controls</h3>
+            <div class="field">
+              <div class="row"><label for="wacc">Real discount rate (WACC)</label><span class="out" id="wacc-out">7.0%</span></div>
+              <input id="wacc" type="range" min="1" max="15" step="0.5" value="7" aria-describedby="wacc-help">
+              <span class="hint" id="wacc-help">Grid nodes at 1%, 4%, 7%, 11% and 15%. Between nodes the surface is bilinearly interpolated.</span>
+            </div>
+            <div class="field">
+              <div class="row"><label for="capex">VRE capital-cost multiplier</label><span class="out" id="capex-out">×1.00</span></div>
+              <input id="capex" type="range" min="0.55" max="1.75" step="0.05" value="1" aria-describedby="capex-help">
+              <span class="hint" id="capex-help">Scales annualised solar and wind CapEx only; gas costs are untouched.</span>
+            </div>
+            <div class="rule"></div>
+            <div class="grid k3" style="gap:10px">
+              <div class="kpi"><span class="lab">LCOE</span><span class="val" style="font-size:19px" id="d-lcoe">—</span></div>
+              <div class="kpi"><span class="lab">VRE share</span><span class="val" style="font-size:19px" id="d-vre">—</span></div>
+              <div class="kpi"><span class="lab">Peak LMP</span><span class="val" style="font-size:19px" id="d-peak">—</span></div>
+            </div>
+            <div class="bars" id="d-mix"></div>
+            <div class="note" id="d-note"></div>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Cost stack across the surface</h3>
+            <p class="hint">Annualised capital versus fuel and variable O&amp;M at the current case.</p>
+            <div class="chart" id="costChart"></div>
+          </div>
+          <div class="card">
+            <h3>Hourly prices</h3>
+            <p class="hint">Nodal shadow price λ<sub>t</sub>; scarcity hours price gas at its marginal cost plus capacity scarcity.</p>
+            <div class="chart" id="lmpChart"></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="storage" aria-labelledby="s-h">
+        <div class="head">
+          <div class="eyebrow">02 · Module 2 · chronological multi-duration storage</div>
+          <h2 id="s-h">Batteries, hydrogen and the length of a dark lull</h2>
+          <p class="lede">A 168-hour week is solved with a 4-hour Li-ion battery (95% one-way efficiency, cyclic SoC) and a decoupled power-to-hydrogen chain (68% electrolyser, 50% fuel cell, cavern store). The crossover between power-dense and energy-dense storage is a function of how long the wind and sun disappear.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>LCOE versus lull duration</h3>
+            <div class="chart" id="storageChart"></div>
+            <div class="legend"><span><i style="background:var(--amber)"></i>BESS only</span><span><i style="background:var(--cyan)"></i>H₂ only</span><span><i style="background:var(--green)"></i>Hybrid (lower envelope)</span></div>
+          </div>
+          <div class="card ctl">
+            <h3>Dunkelflaute length</h3>
+            <div class="field">
+              <div class="row"><label for="lull">Zero-VRE lull</label><span class="out" id="lull-out">48 h</span></div>
+              <input id="lull" type="range" min="0" max="9" step="1" value="7">
+              <span class="hint">Sweep nodes only — the model solves integer lull durations.</span>
+            </div>
+            <div class="callout" id="s-callout">—</div>
+            <div class="rule"></div>
+            <dl class="dl" id="s-facts"></dl>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Adequacy regimes (168 h, annualised)</h3>
+            <div style="overflow:auto"><table id="s-table"><thead><tr><th>Regime</th><th>Solar MW</th><th>Wind MW</th><th>BESS MWh</th><th>H₂ MWh<sub>e</sub></th><th>LCOE</th></tr></thead><tbody></tbody></table></div>
+          </div>
+          <div class="card">
+            <h3>Chronological dispatch in the lull</h3>
+            <p class="hint">Hybrid portfolio over 168 hours; hover to read hour-level detail.</p>
+            <div class="chart" id="storageDispatch"></div>
+            <div class="legend"><span><i style="background:var(--amber)"></i>Gas</span><span><i style="background:var(--green)"></i>Solar</span><span><i style="background:var(--cyan)"></i>Wind</span><span><i style="background:var(--violet)"></i>BESS discharge</span><span><i style="background:var(--red)"></i>H₂ turbine</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="carbon" aria-labelledby="c-h">
+        <div class="head">
+          <div class="eyebrow">03 · Module 3 · cap-and-trade duality &amp; MACC</div>
+          <h2 id="c-h">What a tonne of CO₂ costs when the cap binds</h2>
+          <p class="lede">Relaxing the annual CO₂ cap with its KKT multiplier reproduces the Pigouvian carbon tax exactly: at the dual price the tax optimum equals the cap optimum plus the value of the allowance. The marginal abatement cost curve is the derivative of the frontier, and its right-hand limit at zero emissions is the minimum net-zero price.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Pareto frontier: emissions versus resource cost</h3>
+            <p class="hint">Solid: resource LCOE (left axis). Dashed: the dual CO₂ shadow price (right axis) as the cap tightens.</p>
+            <div class="chart" id="paretoChart"></div>
+            <div class="legend"><span><i class="ln" style="background:var(--green)"></i>Resource LCOE</span><span><i class="ln" style="background:var(--amber)"></i>Shadow carbon price μ*</span></div>
+          </div>
+          <div class="card ctl">
+            <h3>Abatement target</h3>
+            <div class="field">
+              <div class="row"><label for="cap">CO₂ cap reduction</label><span class="out" id="cap-out">96%</span></div>
+              <input id="cap" type="range" min="0" max="11" step="1" value="8">
+              <span class="hint">Sweep nodes span 0–100% abatement in 12 steps.</span>
+            </div>
+            <div class="grid k3" style="gap:10px">
+              <div class="kpi"><span class="lab">Shadow price</span><span class="val" style="font-size:18px" id="c-price">—</span></div>
+              <div class="kpi"><span class="lab">Residual CO₂</span><span class="val" style="font-size:18px" id="c-co2">—</span></div>
+              <div class="kpi"><span class="lab">LCOE</span><span class="val" style="font-size:18px" id="c-lcoe">—</span></div>
+            </div>
+            <div class="bars" id="c-mix"></div>
+            <div class="callout" id="c-callout">—</div>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Marginal abatement cost curve</h3>
+            <p class="hint">Step marginal cost of each abatement increment, and the average cost of the whole programme.</p>
+            <div class="chart" id="maccChart"></div>
+          </div>
+          <div class="card">
+            <h3>Fuel-switching stages</h3>
+            <p class="hint">Installed capacity by carrier at the selected cap.</p>
+            <div class="chart" id="mixChart"></div>
+            <div class="legend" id="mixLegend"></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="flex" aria-labelledby="f-h">
+        <div class="head">
+          <div class="eyebrow">04 · Module 4 · ramping, must-run floors &amp; spinning reserves</div>
+          <h2 id="f-h">The duck curve is a flexibility problem</h2>
+          <p class="lede">Intertemporal ramp envelopes, minimum stable generation and co-optimised upward reserves are added to the capacity problem. Reserve co-optimisation is paid for in the energy market, and a binding downward ramp can push a nodal price below zero even when every fuel cost is non-negative.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Net load and price shape (48 h)</h3>
+            <div class="chart" id="flexChart"></div>
+            <div class="seg mt" id="flex-seg" style="margin-top:10px"></div>
+          </div>
+          <div class="card ctl">
+            <h3>Regime metrics</h3>
+            <dl class="dl" id="f-facts"></dl>
+            <div class="rule"></div>
+            <div class="callout" id="f-callout">—</div>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Reserve requirement vs. price</h3>
+            <p class="hint">Reserve requirement α<sub>load</sub>·L<sub>t</sub> + α<sub>vre</sub>·VRE<sub>t</sub>, and the reserve shadow price.</p>
+            <div class="chart" id="reserveChart"></div>
+          </div>
+          <div class="card">
+            <h3>Regime comparison</h3>
+            <div style="overflow:auto"><table id="f-table"><thead><tr><th>Regime</th><th>LCOE</th><th>Peak LMP</th><th>Reserve price</th><th>BESS MWh</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="grid" aria-labelledby="g-h">
+        <div class="head">
+          <div class="eyebrow">05 · Module 5 · 4-zone meshed DC-OPF &amp; AC-TEP</div>
+          <h2 id="g-h">Loop flows, congestion rent and Braess's paradox</h2>
+          <p class="lede">Four zones, five 380 kV corridors and two independent Kirchhoff voltage loops. Passive flows follow the PTDF matrix, zonal prices decompose into a reference price minus congestion terms, and the ISO merchandising surplus recovers exactly the cost of the grid it co-optimises.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Network state <span class="tag mono" id="g-hour-tag">hour 0</span></h3>
+            <div class="chart" id="network"></div>
+            <p class="hint">A zero nodal price means the marginal unit at that zone is non-binding (curtailed VRE sets the price). Drag the snapshot slider to watch congestion appear.</p>
+            <div class="field mt">
+              <div class="row"><label for="hour">Snapshot</label><span class="out" id="hour-out">00:00</span></div>
+              <input id="hour" type="range" min="0" max="47" step="1" value="0">
+            </div>
+          </div>
+          <div class="card ctl">
+            <h3>Regime</h3>
+            <div class="seg" id="grid-seg"></div>
+            <div class="field mt">
+              <div class="row"><label for="gridscale">Corridor capacity multiplier</label><span class="out" id="gridscale-out">×1.00</span></div>
+              <input id="gridscale" type="range" min="0" max="4" step="1" value="2">
+              <span class="hint">Fixed-grid sweep: 0.5×, 0.75×, 1×, 1.5×, 2.5× of 400 MW total.</span>
+            </div>
+            <div class="rule"></div>
+            <dl class="dl" id="g-facts"></dl>
+            <div class="callout mt" id="g-callout">—</div>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Congestion rent versus corridor capacity</h3>
+            <div class="chart" id="gridscaleChart"></div>
+          </div>
+          <div class="card">
+            <h3>PTDF matrix</h3>
+            <p class="hint">Sensitivity of each corridor flow to a 1 MW injection at a zone (withdrawal at the East Metro slack).</p>
+            <div style="overflow:auto"><table id="ptdf-table"><thead><tr><th>Corridor</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="risk" aria-labelledby="r-h">
+        <div class="head">
+          <div class="eyebrow">07 · Module 7 · explicit mean-CVaR stochastic program</div>
+          <h2 id="r-h">Hedging the tail instead of the average</h2>
+          <p class="lede">Eight weather-and-demand regimes are solved jointly. The objective is (1−β)·E[Z] + β·CVaR<sub>95%</sub>(Z) through its Rockafellar–Uryasev epigraph, in one 1,357-variable LP with explicit sparse matrices. The dual risk kernel q* shows exactly which futures the hedge is buying, and where it hits the π/(1−α) bound.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Efficient frontier: expected cost versus tail cost</h3>
+            <div class="chart" id="frontierChart"></div>
+            <div class="legend"><span><i style="background:var(--green)"></i>Mean–CVaR efficient set</span><span><i style="background:var(--violet)"></i>Selected β</span></div>
+          </div>
+          <div class="card ctl">
+            <h3>Risk aversion β</h3>
+            <div class="field">
+              <div class="row"><label for="beta">β (0 = risk neutral, 1 = pure CVaR)</label><span class="out" id="beta-out">0.35</span></div>
+              <input id="beta" type="range" min="0" max="8" step="1" value="3">
+            </div>
+            <div class="grid k3" style="gap:10px">
+              <div class="kpi"><span class="lab">LCOE</span><span class="val" style="font-size:18px" id="r-lcoe">—</span></div>
+              <div class="kpi"><span class="lab">CVaR<sub>95</sub></span><span class="val" style="font-size:18px" id="r-cvar">—</span></div>
+              <div class="kpi"><span class="lab">EENS</span><span class="val" style="font-size:18px" id="r-eens">—</span></div>
+            </div>
+            <div class="bars" id="r-mix"></div>
+            <div class="note" id="r-note"></div>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Dual risk kernel q*</h3>
+            <p class="hint">Bars: optimal scenario weights q* at the selected β (left axis). Circles: the prior π. Dashed ticks: the theoretical ceiling π/(1−α) that q* reaches at β = 1 (right axis).</p>
+            <div class="chart" id="kernelChart"></div>
+            <div class="legend"><span><i style="background:var(--green)"></i>q* at prior level</span><span><i style="background:var(--violet)"></i>q* bidding above prior</span><span><i class="ln" style="background:var(--amber)"></i>prior π</span><span><i class="ln" style="background:var(--red)"></i>ceiling π/(1−α)</span></div>
+          </div>
+          <div class="card">
+            <h3>Stochastic bounds</h3>
+            <p class="hint">Wait-and-see ≤ recourse ≤ expected-value plan evaluated across futures.</p>
+            <div class="chart" id="boundsChart"></div>
+            <div class="callout mt" id="r-callout">—</div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="method" aria-labelledby="m-h">
+        <div class="head">
+          <div class="eyebrow">99 · verification, provenance &amp; limits</div>
+          <h2 id="m-h">How to reproduce every pixel</h2>
+          <p class="lede">The page is a build artifact: <code>workbench/data/etm_workbench_data.json</code> holds solved values, and <code>energy_model/workbench.py</code> renders them into this single HTML file. A CI job re-renders the committed page from the committed data and fails on any drift, so the figure you are reading cannot silently diverge from the repository.</p>
+        </div>
+        <div class="grid split">
+          <div class="card">
+            <h3>Surrogate validation</h3>
+            <p class="hint">Exact LP solves at 16 node positions never used for interpolation.</p>
+            <div class="chart" id="surrogateChart"></div>
+            <div class="legend"><span><i style="background:var(--cyan)"></i>Holdout solves</span><span><i class="ln" style="background:var(--muted)"></i>y = x</span></div>
+          </div>
+          <div class="card">
+            <h3>Build provenance</h3>
+            <dl class="dl" id="m-meta"></dl>
+            <div class="rule"></div>
+            <h3 style="font-size:12.5px">Reproduce locally</h3>
+<pre>python -m venv .venv
+.venv/bin/pip install --no-build-isolation -e ".[dev]"
+.venv/bin/etm-workbench build    # re-solve + re-render
+.venv/bin/etm-workbench render   # template only
+.venv/bin/etm-workbench check    # verify no drift</pre>
+          </div>
+        </div>
+        <div class="grid split2 mt">
+          <div class="card">
+            <h3>Test inventory</h3>
+            <div style="overflow:auto"><table id="m-tests"><thead><tr><th>Test module</th><th>Tests</th></tr></thead><tbody></tbody></table></div>
+            <div class="note mt" id="m-total"></div>
+          </div>
+          <div class="card">
+            <h3>Scope &amp; honest limits</h3>
+            <ol class="steps">
+              <li>Inputs are deterministic synthetic profiles and illustrative annualised costs in an unspecified currency; they are not metered SCADA data or investment quotes.</li>
+              <li>Module 7's CVaR panel is an independent explicit-LP re-derivation on its own declared 8-regime set. It is not a numerical replica of the Module 6 run, which remains the reference implementation and CLI.</li>
+              <li>The cost surface is exactly solved at 25 nodes and bilinearly interpolated between them; the reported holdout error bounds the interpolation, it does not remove it.</li>
+              <li>Single-node copper-plate dispatch in M1–M4 and lossless DC power flow in M5; no AC power flow, unit commitment or integer investment.</li>
+            </ol>
+            <div class="rule"></div>
+            <p class="small">Licence MIT · cite via <code>CITATION.cff</code>. Built as the practical implementation of the Politecnico di Milano EQF-7 microcredential “Modelling the Energy Transition: the revolution of open-source software”.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+    <footer>
+      <div class="row">
+        <span>Generated by <code>etm-workbench</code> from solved PyPSA/HiGHS models — no network, no fonts, no tracking.</span>
+        <span class="mono" id="foot-digest">digest …</span>
+      </div>
+    </footer>
+  </div>
+</div>
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+<span class="sr" id="live" aria-live="polite"></span>
+<script id="etm-data" type="application/json">{"schema":"etm-workbench/1","meta":{"package_version":"1.0.0","generated_utc":"2026-10-27T05:59:24Z","python":"3.11.2","pypsa":"1.4.0","numpy":"2.4.6","scipy":"1.17.1","pandas":"3.1.0","platform":"Linux-6.1.158+-x86_64-with-glibc2.36","runtime_seconds":121.63,"n_solves":149,"n_pypsa_solves":118,"n_explicit_lp_solves":31,"currency":"unspecified currency units (currency/yr, currency/MWh)","reference_wacc":0.07,"wacc_sweep_reference":[0.0,0.02,0.04,0.07,0.1,0.12,0.15]},"kpi":{"lcoe_at_reference_per_mwh":28.0555,"vre_share_at_reference_pct":92.43,"net_zero_carbon_price_per_tco2":418.2546,"congestion_rent_per_year":7088134.2,"risk_premium_at_beta_half":1.629,"surrogate_r2":0.999705,"max_abs_surrogate_error_per_mwh":0.8031},"surface":{"wacc_grid":[0.01,0.04,0.07,0.11,0.15],"capex_grid":[0.55,0.75,1.0,1.35,1.75],"lcoe":[[9.274,12.4127,16.1478,20.9813,26.0702],[12.8472,17.0638,21.8926,28.0351,34.5178],[16.886,22.1174,28.0555,35.6523,43.909],[22.5821,29.1665,36.6573,46.6037,57.6108],[28.4025,36.3144,45.632,58.2075,68.8642]],"vre_share_pct":[[99.824,99.13,98.1,96.192,92.431],[99.13,98.1,96.192,92.431,90.235],[98.1,96.192,92.431,90.235,88.207],[96.192,92.431,90.235,88.198,86.555],[93.943,90.235,88.198,86.555,0.0]],"curtailment_pct":[[27.594,23.72,19.729,14.192,6.141],[23.72,19.729,14.192,6.141,2.792],[19.729,14.192,6.141,2.792,0.835],[14.192,6.141,2.792,0.828,0.081],[9.215,2.792,0.828,0.081,0.0]],"peak_lmp_per_mwh":[[93.984,97.168,97.168,97.168,97.168],[107.714,107.714,107.714,107.714,107.714],[119.795,119.795,119.795,119.795,119.795],[137.896,137.896,137.896,137.896,137.896],[157.741,157.741,157.741,157.741,157.741]],"capex_per_year":[[12035499.5,15566762.2,19595558.0,24316988.7,27791254.2],[16137765.1,20799211.3,25514446.5,30373164.8,37016241.5],[20565579.3,25809890.1,30400013.5,38506896.6,47623620.5],[26420510.1,31859873.5,39827545.9,51156896.6,64217168.8],[32147415.0,39376935.7,49880122.5,65001231.1,5077545.9]],"opex_per_year":[[150559.6,743470.8,1622644.3,3252400.3,6464926.6],[743470.8,1622644.3,3252400.3,6464926.6,8340182.9],[1622644.3,3252400.3,6464926.6,8340182.9,10072754.3],[3252400.3,6464926.6,8340182.9,10080382.2,11483377.8],[5173491.3,8340182.9,10080382.2,11483377.8,85410000.0]],"hours":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],"cases":[{"wacc":0.01,"capex_scale":0.55,"lcoe":9.274,"caps":{"solar":54.26,"wind":554.06,"gas":3.17},"capex_per_year":12035499.5,"opex_per_year":150559.6,"curtailment_pct":27.594,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,20.349,28.76,-0.0,39.287,40.698,13.7,35.272,28.76,20.349,10.527,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,129.651,121.24,150.0,110.713,109.302,136.3,114.728,121.24,129.651,136.3,146.827,150.0,150.0,150.0,150.0,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,3.173,3.173,-0.0,-0.0,-0.0,-0.0,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,60.408,68.184,93.984,0.0,0.0,0.0,0.0,0.0]},{"wacc":0.01,"capex_scale":0.75,"lcoe":12.413,"caps":{"solar":58.56,"wind":517.24,"gas":12.93},"capex_per_year":15566762.2,"opex_per_year":743470.8,"curtailment_pct":23.72,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,21.958,31.034,-0.0,42.394,43.917,22.759,38.061,31.034,21.958,11.36,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,128.042,118.966,150.0,107.606,106.083,127.241,111.939,118.966,121.034,127.241,137.069,150.0,150.0,150.0,150.0,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,7.007,11.399,12.931,-0.0,-0.0,-0.0,-0.0,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,22.535,65.0,65.0,97.168,48.201,0.0,0.0,0.0,0.0]},{"wacc":0.01,"capex_scale":1.0,"lcoe":16.148,"caps":{"solar":78.96,"wind":470.22,"gas":25.39},"capex_per_year":19595558.0,"opex_per_year":1622644.3,"curtailment_pct":19.729,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,29.611,41.85,-0.0,57.168,59.221,34.326,51.325,41.85,29.611,15.319,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,120.389,108.15,150.0,92.832,90.779,115.674,98.675,108.15,110.031,115.674,124.608,136.364,150.0,150.0,150.0,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.358,19.008,25.392,13.636,-0.0,-0.0,-0.0,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,53.307,65.0,65.0,97.168,65.0,42.072,0.0,0.0,0.0]},{"wacc":0.01,"capex_scale":1.35,"lcoe":20.981,"caps":{"solar":76.48,"wind":428.57,"gas":36.43},"capex_per_year":24316988.7,"opex_per_year":3252400.3,"curtailment_pct":14.192,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,28.681,40.536,13.286,55.374,57.363,44.571,49.714,40.536,28.681,14.838,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,121.319,109.464,136.714,94.626,92.637,105.429,100.286,98.571,100.286,105.429,113.571,124.286,136.714,150.0,150.0,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.892,21.033,29.734,36.429,25.714,13.286,-0.0,-0.0,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,25.594,65.0,65.0,65.0,97.168,65.0,65.0,55.788,0.0,0.0]},{"wacc":0.01,"capex_scale":1.75,"lcoe":26.07,"caps":{"solar":82.87,"wind":365.85,"gas":53.05},"capex_per_year":27791254.2,"opex_per_year":6464926.6,"curtailment_pct":6.141,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,31.077,43.923,33.293,60.0,62.155,60.0,53.867,43.923,31.077,16.077,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,118.923,106.077,116.707,90.0,87.845,90.0,85.61,84.146,85.61,90.0,96.951,106.098,116.707,128.049,139.39,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.523,21.931,33.313,43.923,53.049,43.902,33.293,21.951,10.61,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.665,65.0,65.0,65.0,65.0,97.168,65.0,65.0,65.0,65.0,7.851]},{"wacc":0.04,"capex_scale":0.55,"lcoe":12.847,"caps":{"solar":58.56,"wind":517.24,"gas":12.93},"capex_per_year":16137765.1,"opex_per_year":743470.8,"curtailment_pct":23.72,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,21.958,31.034,-0.0,42.394,43.917,22.759,38.061,31.034,21.958,11.36,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,128.042,118.966,150.0,107.606,106.083,127.241,111.939,118.966,121.034,127.241,137.069,150.0,150.0,150.0,150.0,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,7.007,11.399,12.931,-0.0,-0.0,-0.0,-0.0,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,25.656,65.0,65.0,107.714,44.963,0.0,0.0,0.0,0.0]},{"wacc":0.04,"capex_scale":0.75,"lcoe":17.064,"caps":{"solar":78.96,"wind":470.22,"gas":25.39},"capex_per_year":20799211.3,"opex_per_year":1622644.3,"curtailment_pct":19.729,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,29.611,41.85,-0.0,57.168,59.221,34.326,51.325,41.85,29.611,15.319,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,120.389,108.15,150.0,92.832,90.779,115.674,98.675,108.15,110.031,115.674,124.608,136.364,150.0,150.0,150.0,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.358,19.008,25.392,13.636,-0.0,-0.0,-0.0,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,60.361,65.0,65.0,107.714,65.0,46.456,0.0,0.0,0.0]},{"wacc":0.04,"capex_scale":1.0,"lcoe":21.893,"caps":{"solar":76.48,"wind":428.57,"gas":36.43},"capex_per_year":25514446.5,"opex_per_year":3252400.3,"curtailment_pct":14.192,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,28.681,40.536,13.286,55.374,57.363,44.571,49.714,40.536,28.681,14.838,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,121.319,109.464,136.714,94.626,92.637,105.429,100.286,98.571,100.286,105.429,113.571,124.286,136.714,150.0,150.0,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.892,21.033,29.734,36.429,25.714,13.286,-0.0,-0.0,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,31.59,65.0,65.0,65.0,107.714,65.0,65.0,61.118,0.0,0.0]},{"wacc":0.04,"capex_scale":1.35,"lcoe":28.035,"caps":{"solar":82.87,"wind":365.85,"gas":53.05},"capex_per_year":30373164.8,"opex_per_year":6464926.6,"curtailment_pct":6.141,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,31.077,43.923,33.293,60.0,62.155,60.0,53.867,43.923,31.077,16.077,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,118.923,106.077,116.707,90.0,87.845,90.0,85.61,84.146,85.61,90.0,96.951,106.098,116.707,128.049,139.39,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.523,21.931,33.313,43.923,53.049,43.902,33.293,21.951,10.61,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,14.465,65.0,65.0,65.0,65.0,107.714,65.0,65.0,65.0,65.0,30.663]},{"wacc":0.04,"capex_scale":1.75,"lcoe":34.518,"caps":{"solar":78.16,"wind":344.83,"gas":58.62},"capex_per_year":37016241.5,"opex_per_year":8340182.9,"curtailment_pct":2.792,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,8.621,29.31,41.425,40.0,56.589,58.621,56.589,50.805,41.425,29.31,15.163,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,141.379,120.69,108.575,110.0,93.411,91.379,84.828,80.69,79.31,80.69,84.828,91.379,100.0,110.0,120.69,131.379,141.379],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,8.584,18.506,29.264,40.0,50.009,58.621,50.0,40.0,29.31,18.621,8.621],"lmp":[65.0,0.0,0.0,0.0,0.0,0.0,5.447,0.0,0.0,0.0,0.0,0.0,0.267,65.0,65.0,65.0,65.0,65.0,107.714,65.0,65.0,65.0,65.0,65.0]},{"wacc":0.07,"capex_scale":0.55,"lcoe":16.886,"caps":{"solar":78.96,"wind":470.22,"gas":25.39},"capex_per_year":20565579.3,"opex_per_year":1622644.3,"curtailment_pct":19.729,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,29.611,41.85,-0.0,57.168,59.221,34.326,51.325,41.85,29.611,15.319,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,120.389,108.15,150.0,92.832,90.779,115.674,98.675,108.15,110.031,115.674,124.608,136.364,150.0,150.0,150.0,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.358,19.008,25.392,13.636,-0.0,-0.0,-0.0,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,58.157,65.0,65.0,119.795,65.0,32.313,0.0,0.0,0.0]},{"wacc":0.07,"capex_scale":0.75,"lcoe":22.117,"caps":{"solar":76.48,"wind":428.57,"gas":36.43},"capex_per_year":25809890.1,"opex_per_year":3252400.3,"curtailment_pct":14.192,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,28.681,40.536,13.286,55.374,57.363,44.571,49.714,40.536,28.681,14.838,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,121.319,109.464,136.714,94.626,92.637,105.429,100.286,98.571,100.286,105.429,113.571,124.286,136.714,150.0,150.0,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.892,21.033,29.734,36.429,25.714,13.286,-0.0,-0.0,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,32.355,65.0,65.0,65.0,119.795,65.0,65.0,53.669,0.0,0.0]},{"wacc":0.07,"capex_scale":1.0,"lcoe":28.056,"caps":{"solar":82.87,"wind":365.85,"gas":53.05},"capex_per_year":30400013.5,"opex_per_year":6464926.6,"curtailment_pct":6.141,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,31.077,43.923,33.293,60.0,62.155,60.0,53.867,43.923,31.077,16.077,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,118.923,106.077,116.707,90.0,87.845,90.0,85.61,84.146,85.61,90.0,96.951,106.098,116.707,128.049,139.39,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.523,21.931,33.313,43.923,53.049,43.902,33.293,21.951,10.61,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,13.263,65.0,65.0,65.0,65.0,119.795,65.0,65.0,65.0,65.0,20.274]},{"wacc":0.07,"capex_scale":1.35,"lcoe":35.652,"caps":{"solar":78.16,"wind":344.83,"gas":58.62},"capex_per_year":38506896.6,"opex_per_year":8340182.9,"curtailment_pct":2.792,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,8.621,29.31,41.425,40.0,56.589,58.621,56.589,50.805,41.425,29.31,15.163,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,141.379,120.69,108.575,110.0,93.411,91.379,84.828,80.69,79.31,80.69,84.828,91.379,100.0,110.0,120.69,131.379,141.379],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,8.584,18.506,29.264,40.0,50.009,58.621,50.0,40.0,29.31,18.621,8.621],"lmp":[65.0,0.0,0.0,0.0,0.0,0.0,13.269,0.0,0.0,0.0,0.0,0.0,7.591,65.0,65.0,65.0,65.0,65.0,119.795,65.0,65.0,65.0,65.0,65.0]},{"wacc":0.07,"capex_scale":1.75,"lcoe":43.909,"caps":{"solar":74.94,"wind":330.4,"gas":62.44},"capex_per_year":47623620.5,"opex_per_year":10072754.3,"curtailment_pct":0.835,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,14.537,28.101,39.716,44.604,54.185,56.201,54.253,48.708,39.716,28.101,14.537,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[143.722,150.0,150.0,150.0,150.0,150.0,143.722,135.463,121.899,110.284,105.396,95.815,87.555,81.278,77.313,75.991,77.313,81.278,87.555,95.815,105.396,115.639,125.881,135.463],"gas":[6.278,-0.0,-0.0,-0.0,-0.0,-0.0,6.278,-0.0,-0.0,-0.0,-0.0,-0.0,6.243,14.469,23.979,34.293,44.586,54.185,62.445,54.185,44.604,34.361,24.119,14.537],"lmp":[65.0,0.0,0.0,0.0,0.0,56.761,65.0,32.26,0.0,0.0,0.0,0.0,65.0,65.0,65.0,65.0,65.0,65.0,119.795,65.0,65.0,65.0,65.0,65.0]},{"wacc":0.11,"capex_scale":0.55,"lcoe":22.582,"caps":{"solar":76.48,"wind":428.57,"gas":36.43},"capex_per_year":26420510.1,"opex_per_year":3252400.3,"curtailment_pct":14.192,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,28.681,40.536,13.286,55.374,57.363,44.571,49.714,40.536,28.681,14.838,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,121.319,109.464,136.714,94.626,92.637,105.429,100.286,98.571,100.286,105.429,113.571,124.286,136.714,150.0,150.0,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.892,21.033,29.734,36.429,25.714,13.286,-0.0,-0.0,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,34.453,65.0,65.0,65.0,137.896,65.0,65.0,44.622,0.0,0.0]},{"wacc":0.11,"capex_scale":0.75,"lcoe":29.167,"caps":{"solar":82.87,"wind":365.85,"gas":53.05},"capex_per_year":31859873.5,"opex_per_year":6464926.6,"curtailment_pct":6.141,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,31.077,43.923,33.293,60.0,62.155,60.0,53.867,43.923,31.077,16.077,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,118.923,106.077,116.707,90.0,87.845,90.0,85.61,84.146,85.61,90.0,96.951,106.098,116.707,128.049,139.39,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.523,21.931,33.313,43.923,53.049,43.902,33.293,21.951,10.61,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,19.702,65.0,65.0,65.0,65.0,137.896,65.0,65.0,65.0,65.0,22.398]},{"wacc":0.11,"capex_scale":1.0,"lcoe":36.657,"caps":{"solar":78.16,"wind":344.83,"gas":58.62},"capex_per_year":39827545.9,"opex_per_year":8340182.9,"curtailment_pct":2.792,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,8.621,29.31,41.425,40.0,56.589,58.621,56.589,50.805,41.425,29.31,15.163,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,141.379,120.69,108.575,110.0,93.411,91.379,84.828,80.69,79.31,80.69,84.828,91.379,100.0,110.0,120.69,131.379,141.379],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,8.584,18.506,29.264,40.0,50.009,58.621,50.0,40.0,29.31,18.621,8.621],"lmp":[65.0,0.0,0.0,0.0,0.0,0.0,13.741,0.0,0.0,0.0,0.0,0.0,13.139,65.0,65.0,65.0,65.0,65.0,137.896,65.0,65.0,65.0,65.0,65.0]},{"wacc":0.11,"capex_scale":1.35,"lcoe":46.604,"caps":{"solar":74.84,"wind":330.4,"gas":62.44},"capex_per_year":51156896.6,"opex_per_year":10080382.2,"curtailment_pct":0.828,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,14.519,28.065,39.666,44.604,54.185,56.131,54.185,48.647,39.666,28.065,14.519,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[143.722,150.0,150.0,150.0,150.0,150.0,143.722,135.463,121.935,110.334,105.396,95.815,87.555,81.278,77.313,75.991,77.313,81.278,87.555,95.815,105.396,115.639,125.881,135.463],"gas":[6.278,-0.0,-0.0,-0.0,-0.0,-0.0,6.278,0.018,-0.0,-0.0,-0.0,-0.0,6.314,14.537,24.04,34.343,44.622,54.203,62.445,54.185,44.604,34.361,24.119,14.537],"lmp":[65.0,0.0,0.0,0.0,0.0,59.262,65.0,65.0,0.0,0.0,0.0,11.331,65.0,65.0,65.0,65.0,65.0,65.0,137.896,65.0,65.0,65.0,65.0,65.0]},{"wacc":0.11,"capex_scale":1.75,"lcoe":57.611,"caps":{"solar":72.8,"wind":321.89,"gas":64.7},"capex_per_year":64217168.8,"opex_per_year":11483377.8,"curtailment_pct":0.081,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,14.122,27.299,38.582,47.318,52.705,54.597,52.705,47.318,38.582,27.299,14.122,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[140.021,146.137,150.0,150.0,150.0,146.137,140.021,131.974,122.639,111.418,102.682,93.348,85.3,79.185,75.322,74.034,75.322,79.185,85.3,93.348,102.682,112.661,122.639,131.974],"gas":[9.979,3.863,-0.0,-0.0,-0.0,3.863,9.979,3.903,0.062,-0.0,-0.0,3.948,10.102,18.111,27.361,37.384,47.379,56.693,64.7,56.652,47.318,37.339,27.361,18.026],"lmp":[65.0,65.0,2.057,0.0,65.0,65.0,65.0,65.0,65.0,0.0,7.706,65.0,65.0,65.0,65.0,65.0,65.0,65.0,137.896,65.0,65.0,65.0,65.0,65.0]},{"wacc":0.15,"capex_scale":0.55,"lcoe":28.403,"caps":{"solar":73.41,"wind":393.7,"gas":45.67},"capex_per_year":32147415.0,"opex_per_year":5173491.3,"curtailment_pct":9.215,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,27.529,38.908,24.409,53.15,55.058,53.15,47.717,38.908,27.529,14.242,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,122.471,111.092,125.591,96.85,94.942,96.85,92.126,90.551,92.126,96.85,104.331,114.173,125.591,137.795,150.0,150.0],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.157,20.541,30.345,38.908,45.669,35.827,24.409,12.205,-0.0,-0.0],"lmp":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,11.823,65.0,65.0,65.0,65.0,157.741,65.0,65.0,65.0,57.097,0.0]},{"wacc":0.15,"capex_scale":0.75,"lcoe":36.314,"caps":{"solar":78.16,"wind":344.83,"gas":58.62},"capex_per_year":39376935.7,"opex_per_year":8340182.9,"curtailment_pct":2.792,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,8.621,29.31,41.425,40.0,56.589,58.621,56.589,50.805,41.425,29.31,15.163,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,141.379,120.69,108.575,110.0,93.411,91.379,84.828,80.69,79.31,80.69,84.828,91.379,100.0,110.0,120.69,131.379,141.379],"gas":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,8.584,18.506,29.264,40.0,50.009,58.621,50.0,40.0,29.31,18.621,8.621],"lmp":[55.868,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,7.937,65.0,65.0,65.0,65.0,65.0,157.741,65.0,65.0,65.0,65.0,65.0]},{"wacc":0.15,"capex_scale":1.0,"lcoe":45.632,"caps":{"solar":74.84,"wind":330.4,"gas":62.44},"capex_per_year":49880122.5,"opex_per_year":10080382.2,"curtailment_pct":0.828,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,14.519,28.065,39.666,44.604,54.185,56.131,54.185,48.647,39.666,28.065,14.519,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[143.722,150.0,150.0,150.0,150.0,150.0,143.722,135.463,121.935,110.334,105.396,95.815,87.555,81.278,77.313,75.991,77.313,81.278,87.555,95.815,105.396,115.639,125.881,135.463],"gas":[6.278,-0.0,-0.0,-0.0,-0.0,-0.0,6.278,0.018,-0.0,-0.0,-0.0,-0.0,6.314,14.537,24.04,34.343,44.622,54.203,62.445,54.185,44.604,34.361,24.119,14.537],"lmp":[65.0,27.21,0.0,0.0,0.0,0.0,65.0,65.0,0.0,0.0,0.0,0.219,65.0,65.0,65.0,65.0,65.0,65.0,157.741,65.0,65.0,65.0,65.0,65.0]},{"wacc":0.15,"capex_scale":1.35,"lcoe":58.207,"caps":{"solar":72.8,"wind":321.89,"gas":64.7},"capex_per_year":65001231.1,"opex_per_year":11483377.8,"curtailment_pct":0.081,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,14.122,27.299,38.582,47.318,52.705,54.597,52.705,47.318,38.582,27.299,14.122,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[140.021,146.137,150.0,150.0,150.0,146.137,140.021,131.974,122.639,111.418,102.682,93.348,85.3,79.185,75.322,74.034,75.322,79.185,85.3,93.348,102.682,112.661,122.639,131.974],"gas":[9.979,3.863,-0.0,-0.0,-0.0,3.863,9.979,3.903,0.062,-0.0,-0.0,3.948,10.102,18.111,27.361,37.384,47.379,56.693,64.7,56.652,47.318,37.339,27.361,18.026],"lmp":[65.0,65.0,0.0,0.0,59.215,65.0,65.0,65.0,65.0,0.0,10.024,65.0,65.0,65.0,65.0,65.0,65.0,65.0,157.741,65.0,65.0,65.0,65.0,65.0]},{"wacc":0.15,"capex_scale":1.75,"lcoe":68.864,"caps":{"solar":0.0,"wind":0.0,"gas":150.0},"capex_per_year":5077545.9,"opex_per_year":85410000.0,"curtailment_pct":0.0,"load":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"gas":[150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0,150.0],"lmp":[65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,65.0,157.741,65.0,65.0,65.0,65.0]}],"duality_gap":1.4901161193847656e-08},"storage":{"durations":[0.0,3.0,6.0,8.0,9.0,12.0,18.0,24.0,48.0,72.0],"bess_only_lcoe":[24.0147,30.6473,30.8867,31.2131,32.1308,35.6597,41.4027,45.8302,66.2756,85.3098],"h2_only_lcoe":[26.5326,31.2508,31.3004,31.4984,31.9717,33.3606,36.1203,38.9294,51.9154,66.7632],"hybrid_lcoe":[24.0147,29.068,29.3587,29.6301,30.2444,32.0207,35.4381,38.199,51.2489,66.0597],"hybrid_bess_mwh":[264.19,362.81,406.06,379.97,264.51,207.74,91.6,118.62,207.23,167.22],"hybrid_h2_mwh_e_equiv":[0.0,848.79,863.18,909.04,1078.82,1449.84,2340.05,2871.78,5233.0,6934.36],"crossover_hours":8.64,"regimes":[{"id":0,"label":"VRE Only (0% Gas)","solar_mw":0.0,"wind_mw":5657.32,"gas_mw":0.0,"bess_mw":0.0,"bess_mwh":0.0,"h2_electrolyzer_mw_e":0.0,"h2_turbine_mw_e":0.0,"h2_store_mwh_h2":0.0,"system_lcoe_per_mwh":294.6977,"annual_curtailment_mwh":11684178.8},{"id":1,"label":"VRE + 4h BESS (0% Gas)","solar_mw":0.0,"wind_mw":599.45,"gas_mw":0.0,"bess_mw":1569.97,"bess_mwh":6279.87,"h2_electrolyzer_mw_e":0.0,"h2_turbine_mw_e":0.0,"h2_store_mwh_h2":0.0,"system_lcoe_per_mwh":66.2756,"annual_curtailment_mwh":0.0},{"id":2,"label":"VRE + Green H2 (0% Gas)","solar_mw":148.11,"wind_mw":707.95,"gas_mw":0.0,"bess_mw":0.0,"bess_mwh":0.0,"h2_electrolyzer_mw_e":176.32,"h2_turbine_mw_e":173.23,"h2_store_mwh_h2":10745.29,"system_lcoe_per_mwh":51.9154,"annual_curtailment_mwh":1400.1},{"id":3,"label":"Hybrid BESS + H2 (0% Gas)","solar_mw":180.24,"wind_mw":679.57,"gas_mw":0.0,"bess_mw":51.81,"bess_mwh":207.23,"h2_electrolyzer_mw_e":153.28,"h2_turbine_mw_e":132.81,"h2_store_mwh_h2":10466.0,"system_lcoe_per_mwh":51.2489,"annual_curtailment_mwh":0.0},{"id":4,"label":"Hybrid + Uncapped Gas","solar_mw":72.24,"wind_mw":375.84,"gas_mw":144.79,"bess_mw":58.49,"bess_mwh":233.94,"h2_electrolyzer_mw_e":5.13,"h2_turbine_mw_e":1.49,"h2_store_mwh_h2":214.99,"system_lcoe_per_mwh":43.4868,"annual_curtailment_mwh":0.0}],"dispatch":{"hours":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167],"load":[132.028,132.108,132.357,133.01,134.436,137.005,140.762,145.071,148.617,150.003,148.636,145.17,141.171,138.403,138.39,142.267,150.297,160.885,170.24,174.006,170.213,160.778,149.94,141.257,132.028,132.108,132.357,133.01,134.436,137.005,140.762,145.071,148.617,150.003,148.636,145.17,141.171,138.403,138.39,142.267,150.297,160.885,170.24,174.006,170.213,160.778,149.94,141.257,132.028,132.108,132.357,133.01,134.436,137.005,140.762,145.071,148.617,150.003,148.636,145.17,141.171,138.403,138.39,142.267,150.297,160.885,170.24,174.006,170.213,160.778,149.94,141.257,156.028,156.108,156.357,157.01,158.436,161.005,164.762,169.071,172.617,174.003,172.636,169.17,165.171,162.403,162.39,166.267,174.297,184.885,194.24,198.006,194.213,184.778,173.94,165.257,156.028,156.108,156.357,157.01,158.436,161.005,164.762,169.071,172.617,174.003,172.636,169.17,165.171,162.403,162.39,166.267,174.297,184.885,194.24,198.006,194.213,184.778,173.94,165.257,132.028,132.108,132.357,133.01,134.436,137.005,140.762,145.071,148.617,150.003,148.636,145.17,141.171,138.403,138.39,142.267,150.297,160.885,170.24,174.006,170.213,160.778,149.94,141.257,132.028,132.108,132.357,133.01,134.436,137.005,140.762,145.071,148.617,150.003,148.636,145.17,141.171,138.403,138.39,142.267,150.297,160.885,170.24,174.006,170.213,160.778,149.94,141.257],"solar":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,39.653,76.604,108.334,132.681,147.987,153.207,147.987,132.681,108.334,76.604,39.653,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,39.653,76.604,108.334,132.681,147.987,153.207,147.987,132.681,108.334,76.604,39.653,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,39.653,76.604,108.334,132.681,147.987,153.207,147.987,132.681,108.334,76.604,39.653,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,3.732,7.21,10.196,12.488,13.928,14.42,13.928,12.488,10.196,7.21,3.732,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,3.732,7.21,10.196,12.488,13.928,14.42,13.928,12.488,10.196,7.21,3.732,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,39.653,76.604,108.334,132.681,147.987,153.207,147.987,132.681,108.334,76.604,39.653,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,39.653,76.604,108.334,132.681,147.987,153.207,147.987,132.681,108.334,76.604,39.653,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"wind":[290.817,296.927,299.011,296.927,290.817,281.097,268.43,253.679,237.85,222.02,207.269,194.602,184.882,178.772,176.688,178.772,184.882,194.602,207.269,222.02,237.85,253.679,268.43,281.097,290.817,296.927,299.011,296.927,290.817,281.097,268.43,253.679,237.85,222.02,207.269,194.602,184.882,178.772,176.688,178.772,184.882,194.602,207.269,222.02,237.85,253.679,268.43,281.097,290.816,296.923,299.002,296.905,290.769,280.999,268.24,253.333,237.252,221.036,205.718,192.237,181.37,173.649,169.303,168.216,169.916,173.607,178.245,182.658,185.684,186.322,183.861,177.957,168.666,156.408,141.886,125.971,109.578,93.556,78.605,65.223,53.701,44.138,36.482,30.581,26.228,23.785,23.785,23.785,23.785,23.785,23.785,23.785,23.911,25.41,26.852,28.11,29.082,29.693,29.911,29.742,29.236,28.473,27.561,26.624,25.79,25.191,24.963,25.252,26.228,28.094,31.099,35.54,41.742,50.034,60.695,73.894,89.62,107.623,127.375,148.07,168.666,187.979,204.807,218.087,227.034,231.261,230.842,226.31,218.595,208.91,198.605,189.025,181.37,176.6,175.366,177.98,184.418,194.336,207.122,221.942,237.811,253.661,268.422,281.094,290.816,296.927,299.011,296.927,290.817,281.097,268.43,253.679,237.85,222.02,207.269,194.602,184.882,178.772,176.688,178.772,184.882,194.602,207.269,222.02,237.85,253.679,268.43,281.097],"gas":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"bess_charge":[5.51,11.54,13.37,10.63,3.1,-0.0,-0.0,-0.0,12.55,27.07,38.03,44.14,43.64,35.07,17.7,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,5.51,11.54,13.37,10.63,3.1,-0.0,-0.0,-0.0,12.55,27.07,38.03,44.14,43.64,35.07,17.7,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,5.51,11.53,13.36,10.61,3.05,-0.0,-0.0,-0.0,11.96,26.08,36.48,41.77,40.12,29.95,10.31,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,0.24,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,0.31,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,5.86,6.39,6.36,5.54,3.61,0.28,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,0.82,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,13.96,29.37,38.56,40.12,32.9,16.37,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,5.51,11.54,13.37,10.63,3.1,-0.0,-0.0,-0.0,12.55,27.07,38.03,44.14,43.64,35.07,17.7,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"bess_discharge":[-0.0,-0.0,-0.0,-0.0,-0.0,9.19,25.61,5.02,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,8.44,42.09,51.81,51.81,42.65,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,9.19,25.61,5.02,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,8.44,42.09,51.81,51.81,42.65,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,9.29,11.03,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,10.49,24.56,37.65,41.41,37.49,26.56,14.28,4.34,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,4.39,5.91,6.81,5.81,2.38,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,0.74,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,9.24,42.56,51.81,50.9,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,9.19,25.61,5.02,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,8.44,42.09,51.81,51.81,42.65,-0.0,-0.0,-0.0,-0.0],"bess_soc":[5.23,16.19,28.89,38.99,41.93,32.25,5.29,0.0,11.93,37.64,73.77,115.69,157.13,190.43,207.23,198.32,153.99,99.44,44.9,-0.0,-0.0,-0.0,-0.0,-0.0,5.23,16.19,28.89,38.99,41.93,32.25,5.29,-0.0,11.93,37.64,73.77,115.69,157.13,190.43,207.23,198.32,153.99,99.44,44.9,-0.0,-0.0,-0.0,-0.0,-0.0,5.23,16.19,28.88,38.96,41.85,32.07,20.46,20.45,31.81,56.59,91.24,130.91,169.02,197.45,207.23,207.21,207.19,207.17,207.14,207.12,207.1,207.08,207.06,207.04,207.02,207.23,207.21,207.19,207.17,207.14,207.12,207.1,207.08,207.06,207.04,207.02,207.0,206.98,206.96,207.23,196.16,170.29,130.64,87.04,47.56,19.6,4.57,-0.0,5.57,11.64,17.69,22.95,26.37,26.63,22.01,15.79,8.62,2.5,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,0.78,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,13.26,41.16,77.78,115.89,147.14,162.68,152.94,108.13,53.58,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,5.23,16.19,28.89,38.99,41.93,32.25,5.28,-0.0,11.93,37.64,73.77,115.69,157.13,190.43,207.23,198.32,153.99,99.44,44.9,-0.0,-0.0,-0.0,-0.0,-0.0],"h2_charge":[153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,125.18,88.84,90.66,67.64,92.9,118.49,139.84,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,125.18,88.84,90.66,67.64,92.9,118.49,139.84,153.28,153.28,153.28,153.28,153.28,153.28,138.51,147.92,153.28,153.28,153.28,153.28,153.28,153.28,153.28,134.28,96.22,52.37,8.01,8.65,15.47,25.54,33.92,36.7,12.64,0.06,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,36.64,55.87,72.45,85.08,92.6,94.26,90.08,120.89,146.58,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,124.91,87.78,47.94,67.6,92.88,118.48,139.84,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,153.28,125.18,88.84,90.66,67.64,92.9,118.49,139.84],"h2_discharge":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,14.47,31.04,48.86,67.45,86.16,100.12,111.71,119.67,123.67,124.66,124.52,124.69,126.12,132.59,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,132.81,129.99,124.52,120.38,118.8,120.53,125.34,131.94,132.81,124.11,104.59,77.15,46.56,17.19,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],"h2_soc":[4204.29,4308.52,4412.75,4516.98,4621.22,4725.45,4829.68,4933.91,5038.15,5142.38,5246.61,5350.84,5455.07,5559.31,5663.54,5767.77,5872.0,5957.12,6017.53,6079.18,6125.18,6188.35,6268.92,6364.01,6468.25,6572.48,6676.71,6780.94,6885.18,6989.41,7093.64,7197.87,7302.11,7406.34,7510.57,7614.8,7719.03,7823.27,7927.5,8031.73,8135.96,8221.08,8281.49,8343.14,8389.14,8452.31,8532.88,8627.97,8732.21,8836.44,8940.67,9044.9,9149.14,9253.37,9347.55,9448.14,9552.37,9656.6,9760.83,9865.06,9969.3,10073.53,10177.76,10269.07,10334.51,10370.12,10375.56,10381.45,10391.97,10409.34,10432.4,10457.36,10465.95,10466.0,10437.05,10374.97,10277.26,10142.36,9970.05,9769.82,9546.4,9307.07,9059.73,8810.41,8561.37,8311.99,8059.75,7794.57,7528.95,7263.34,6997.72,6732.1,6466.49,6200.87,5935.25,5669.64,5404.02,5138.4,4872.79,4607.17,4341.55,4075.94,3810.32,3544.71,3279.09,3013.47,2747.86,2487.88,2238.83,1998.07,1760.46,1519.4,1268.71,1004.84,739.22,491.0,281.81,127.5,34.37,-0.0,24.91,62.91,112.17,170.02,232.99,297.09,358.34,440.55,540.22,644.46,748.69,852.92,957.15,1061.39,1165.62,1269.85,1374.08,1459.02,1518.71,1551.31,1597.28,1660.44,1741.01,1836.09,1940.33,2044.56,2148.79,2253.02,2357.26,2461.49,2565.72,2669.95,2774.18,2878.42,2982.65,3086.88,3191.11,3295.35,3399.58,3503.81,3608.04,3693.16,3753.57,3815.22,3861.22,3924.39,4004.96,4100.05],"curtailment":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"lmp":[25.91,25.912,25.915,25.918,25.92,28.723,28.726,28.729,25.931,25.933,25.936,25.938,25.941,25.944,25.946,28.752,28.755,28.764,28.764,28.764,28.764,28.764,28.764,28.764,4.024,4.025,4.025,4.025,4.026,4.461,4.462,4.462,2.562,2.562,2.562,2.562,2.563,2.563,2.563,28.752,28.755,28.764,28.764,28.764,28.764,28.764,28.764,28.764,25.944,25.946,25.949,25.951,25.954,28.761,28.764,28.764,25.964,25.967,25.97,25.972,25.975,25.977,25.98,28.764,28.764,28.764,28.764,28.764,28.764,28.764,28.764,28.764,28.764,28.764,98.023,98.023,98.023,98.023,98.023,98.023,98.023,98.023,98.023,98.023,98.023,98.023,98.023,98.023,154.478,154.494,154.509,154.525,154.54,154.556,154.571,154.587,103.145,103.156,103.166,103.176,103.187,103.197,114.357,114.369,114.38,114.391,114.403,98.023,98.023,98.023,98.023,98.023,98.023,98.023,108.624,98.023,98.023,98.023,98.023,98.023,28.764,28.764,28.764,28.764,28.764,28.764,28.764,28.764,28.764,25.936,25.938,25.941,25.944,25.946,25.949,28.755,28.758,28.764,28.764,28.764,28.764,28.764,28.764,28.764,25.941,25.944,25.946,25.949,25.951,28.758,28.761,28.764,25.931,25.933,25.936,25.938,25.941,25.944,25.946,28.752,28.755,28.764,28.764,28.764,28.764,28.764,28.764,28.764]},"duality_gap":0.0,"bess_cycles_per_year":278.67,"h2_cycles_per_year":52.14},"carbon":{"targets_pct":[0.0,15.0,30.0,45.0,60.0,75.0,85.0,92.0,96.0,98.5,99.5,100.0],"emissions_tco2":[1206958.1,1025914.4,844870.7,663826.9,482783.2,301739.5,181043.7,96556.6,48278.3,18104.4,6034.8,0.0],"cap_tco2":[1206958.1,1025914.4,844870.7,663826.9,482783.2,301739.5,181043.7,96556.6,48278.3,18104.4,6034.8,0.0],"resource_lcoe_per_mwh":[24.3398,25.0198,25.8258,26.6861,27.7503,29.6131,31.6247,33.3187,34.7867,35.9969,36.6681,37.8087],"shadow_price_per_tco2":[0.0,5.989,6.5896,6.9859,10.4397,18.6108,27.2196,29.4601,52.7711,72.4338,104.125,418.2546],"average_cost_per_tco2":[0.0,5.3498,5.8457,6.153,6.7079,8.2973,10.1139,11.5173,12.842,13.966,14.6217,15.8946],"grid_intensity_kgco2_per_mwh":[847.39,720.281,593.173,466.064,338.956,211.847,127.108,67.791,33.896,12.711,4.237,0.0],"total_cost_per_year":[34667740.3,35636288.9,36784383.3,38009641.3,39525462.8,42178615.8,45043784.3,47456594.3,49547527.8,51271255.2,52227306.9,53851802.1],"mix":{"coal_mw":[181.76,159.7,145.29,130.23,111.56,74.05,27.92,0.85,0.0,0.0,0.0,0.0],"ccgt_mw":[7.54,9.5,7.02,7.92,11.71,36.15,74.98,92.88,58.11,21.61,0.0,0.0],"ocgt_mw":[0.0,11.62,23.4,28.41,34.23,35.77,29.19,20.15,0.0,0.0,0.0,0.0],"gas_ccs_mw":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,14.47,35.57,49.37,0.0],"solar_mw":[0.0,0.0,0.0,0.0,6.14,61.65,79.49,94.82,92.62,94.7,95.27,110.49],"wind_mw":[0.0,73.3,146.71,219.98,292.49,343.73,370.99,384.95,429.0,444.3,451.46,544.53],"bess_mwh":[9.97,8.88,0.68,1.03,1.36,12.41,19.33,16.05,40.54,37.32,40.58,18.55],"h2_mwh":[0.0,0.0,0.0,0.0,0.0,0.0,166.38,469.01,1035.64,1445.37,1654.69,3822.94]},"bau_emissions_tco2":1206958.1,"bau_lcoe_per_mwh":24.3398,"net_zero_shadow_price_per_tco2":418.2546,"net_zero_lcoe_per_mwh":37.8087,"max_saddle_gap":2.2351741790771484e-08,"saddle_identity_gap":2.2351741790771484e-08},"flexibility":{"hours":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47],"regimes":[{"regime":"1_Relaxed_NoReserves","system_lcoe_per_mwh":31.5572,"total_annual_cost":42457639.4,"load_weighted_lmp_per_mwh":31.5572,"load_weighted_reserve_price_per_mw_h":0.0,"max_lmp_per_mwh":187.589,"max_reserve_price_per_mw_h":0.0,"baseload_mw":80.57,"ccgt_mw":94.11,"ocgt_mw":17.05,"solar_mw":102.75,"wind_mw":195.83,"vre_total_mw":298.58,"bess_e_nom_mwh":0.0,"vre_curtailment_pct":0.565,"max_evening_net_load_ramp_mw_per_h":45.36,"strong_duality_revenue_gap":0.0},{"regime":"2_MustRun_And_Ramping","system_lcoe_per_mwh":33.609,"total_annual_cost":45218258.1,"load_weighted_lmp_per_mwh":33.609,"load_weighted_reserve_price_per_mw_h":0.0,"max_lmp_per_mwh":187.589,"max_reserve_price_per_mw_h":0.0,"baseload_mw":148.23,"ccgt_mw":35.98,"ocgt_mw":24.96,"solar_mw":39.17,"wind_mw":28.15,"vre_total_mw":67.32,"bess_e_nom_mwh":0.0,"vre_curtailment_pct":1.332,"max_evening_net_load_ramp_mw_per_h":26.67,"strong_duality_revenue_gap":0.0},{"regime":"3_Inflexible_With_Reserves","system_lcoe_per_mwh":33.8033,"total_annual_cost":45479662.2,"load_weighted_lmp_per_mwh":33.6142,"load_weighted_reserve_price_per_mw_h":3.1529,"max_lmp_per_mwh":187.589,"max_reserve_price_per_mw_h":109.589,"baseload_mw":146.02,"ccgt_mw":40.77,"ocgt_mw":36.46,"solar_mw":42.54,"wind_mw":17.16,"vre_total_mw":59.7,"bess_e_nom_mwh":0.0,"vre_curtailment_pct":0.921,"max_evening_net_load_ramp_mw_per_h":27.14,"strong_duality_revenue_gap":7.450580596923828e-09},{"regime":"4_Flexible_BESS_CoOptimized","system_lcoe_per_mwh":32.9649,"total_annual_cost":44351611.2,"load_weighted_lmp_per_mwh":32.8105,"load_weighted_reserve_price_per_mw_h":2.5728,"max_lmp_per_mwh":122.872,"max_reserve_price_per_mw_h":46.516,"baseload_mw":111.11,"ccgt_mw":21.72,"ocgt_mw":5.87,"solar_mw":88.78,"wind_mw":100.14,"vre_total_mw":188.92,"bess_e_nom_mwh":254.28,"vre_curtailment_pct":0.282,"max_evening_net_load_ramp_mw_per_h":39.72,"strong_duality_revenue_gap":7.450580596923828e-09}],"series":[{"regime":"1_Relaxed_NoReserves","net_load":[22.9,12.51,3.88,0.0,3.72,16.17,35.55,36.16,28.95,15.17,0.0,0.0,0.0,0.0,15.99,44.65,84.11,129.47,166.8,166.5,144.84,110.07,75.77,50.66,69.59,60.27,51.97,47.81,50.85,62.38,80.57,86.04,83.83,73.74,60.61,51.14,48.9,54.19,66.95,88.4,119.53,156.94,188.9,191.73,174.67,145.05,115.58,94.44],"lmp":[20.0,20.0,20.0,13.883,20.0,20.0,20.0,20.0,20.0,20.0,4.751,0.0,0.0,0.0,20.0,20.0,38.0,38.0,38.0,38.0,38.0,38.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.849,38.0,38.0,20.0,20.0,20.0,20.0,20.0,20.0,38.0,38.0,38.0,78.0,187.589,45.671,38.0,38.0,38.0],"reserve_price":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"bess_discharge":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"reserve_requirement":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},{"regime":"2_MustRun_And_Ramping","net_load":[122.02,107.2,100.47,96.59,98.41,107.18,121.36,128.23,128.22,120.27,108.5,98.96,96.13,96.13,102.7,117.52,136.12,162.8,187.37,193.44,184.21,164.85,145.26,131.8,128.53,121.59,114.52,110.37,112.17,121.32,136.14,146.08,149.01,143.14,132.56,123.5,119.21,119.72,124.79,135.65,154.11,178.94,202.21,209.17,200.17,180.53,160.58,146.99],"lmp":[0.0,16.453,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,0.0,14.69,4.0,0.0,38.0,38.0,78.0,78.0,61.238,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,2.493,37.507,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,56.0,78.0,187.589,78.0,50.453,25.547,38.0],"reserve_price":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"bess_discharge":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"reserve_requirement":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},{"regime":"3_Inflexible_With_Reserves","net_load":[123.99,113.41,106.8,102.92,104.61,113.15,126.99,132.77,131.54,122.4,109.61,99.28,95.77,95.77,102.38,116.98,136.34,163.48,188.72,195.2,186.79,168.44,149.81,137.12,132.39,125.61,118.62,114.47,116.19,125.18,139.78,149.0,151.11,144.45,133.18,123.61,118.99,119.38,124.49,135.51,154.21,179.36,203.09,210.31,201.84,182.85,163.53,150.43],"lmp":[0.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,0.0,14.69,4.0,0.0,38.0,38.0,78.0,78.0,58.795,20.251,20.0,20.0,20.0,20.0,20.0,20.0,20.0,5.394,34.606,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,56.0,78.0,187.589,78.0,54.0,22.0,38.0],"reserve_price":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,109.589,0.0,0.0,0.0,0.0],"bess_discharge":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"reserve_requirement":[8.38,8.55,8.19,7.96,8.02,8.47,9.2,10.95,12.47,13.37,13.74,13.82,13.58,13.41,12.91,12.14,11.89,11.71,11.7,12.21,11.93,11.12,10.27,9.72,9.03,8.67,8.27,8.02,8.1,8.6,9.41,10.92,12.14,12.73,12.83,12.74,12.59,12.36,12.05,11.79,11.76,12.04,12.43,12.94,12.58,11.62,10.64,9.99]},{"regime":"4_Flexible_BESS_CoOptimized","net_load":[74.84,66.55,59.0,55.12,57.75,68.11,84.52,84.27,76.15,61.07,44.14,33.8,33.8,33.8,47.69,71.03,104.34,144.06,178.54,181.87,167.31,141.33,115.43,96.96,103.22,95.27,87.67,83.51,85.85,96.01,112.28,117.29,114.59,103.76,89.56,78.71,74.74,77.86,87.85,105.78,132.83,166.47,196.5,201.68,189.22,165.29,141.26,124.43],"lmp":[16.33,16.33,16.33,16.33,16.33,16.33,18.094,18.094,18.094,16.33,16.33,0.0,0.0,10.633,16.33,16.33,16.78,33.605,33.605,33.605,33.605,33.605,24.102,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,22.161,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,67.645,84.516,84.516,122.872,84.516,84.516,84.516,38.0],"reserve_price":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,7.342,4.102,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,38.356,0.0,0.0,46.516,6.989],"bess_discharge":[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,13.51,13.26,5.14,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,28.61,63.09,66.42,51.86,25.88,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,1.83,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,27.78,57.8,62.99,50.53,26.6,11.22,4.66],"reserve_requirement":[14.27,14.17,13.92,13.69,13.64,13.87,14.3,16.77,19.11,20.73,21.6,21.68,21.02,20.85,19.47,17.65,15.73,14.04,12.92,13.81,14.27,14.37,14.4,14.54,12.53,12.31,11.98,11.74,11.74,12.1,12.71,14.73,16.52,17.61,18.07,18.13,17.9,17.34,16.45,15.35,14.32,13.59,13.22,13.98,14.09,13.73,13.31,13.11]}],"negative_lmp_proof":{"min_generator_marginal_cost":0.0,"trough_lmp_per_mwh":-138.0,"analytical_trough_lmp_per_mwh":-138.0,"formula_error":0.0,"lmp_series":[76.0,76.0,-138.0,0.0,76.0,76.0]},"max_duality_gap":7.450580596923828e-09},"grid":{"zones":["North_Wind","West_Solar","South_Hub","East_Metro"],"hours":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47],"corridors":[{"name":"L1_North_West","bus0":"North_Wind","bus1":"West_Solar","length_km":110.0,"x_ohm":26.0,"s_nom_mw":85.0,"capital_cost_per_mw_yr":8500.0},{"name":"L2_North_East","bus0":"North_Wind","bus1":"East_Metro","length_km":150.0,"x_ohm":36.0,"s_nom_mw":75.0,"capital_cost_per_mw_yr":11500.0},{"name":"L3_West_South","bus0":"West_Solar","bus1":"South_Hub","length_km":100.0,"x_ohm":24.0,"s_nom_mw":80.0,"capital_cost_per_mw_yr":8000.0},{"name":"L4_South_East","bus0":"South_Hub","bus1":"East_Metro","length_km":85.0,"x_ohm":20.0,"s_nom_mw":90.0,"capital_cost_per_mw_yr":9500.0},{"name":"L5_North_South","bus0":"North_Wind","bus1":"South_Hub","length_km":130.0,"x_ohm":31.0,"s_nom_mw":70.0,"capital_cost_per_mw_yr":10000.0}],"ptdf":[[0.1834,-0.445,-0.1019,0.0],[0.5209,0.3884,0.2662,0.0],[0.1834,0.555,-0.1019,0.0],[0.4791,0.6116,0.7338,0.0],[0.2958,0.0565,-0.1643,0.0]],"regimes":[{"regime":"1_CopperPlate_SingleBus","system_lcoe_per_mwh":19.8804,"mean_lmp_spread_per_mwh":0.0,"max_lmp_spread_per_mwh":0.0,"north_wind_mw":836.91,"west_solar_mw":353.5,"east_ocgt_mw":0.0,"total_line_mw":0.0,"added_line_mw":0.0,"annual_congestion_rent":-0.0,"annual_line_capex_cost":0.0,"vre_curtailment_pct":20.259,"gen_revenue_adequacy_gap":0.0,"merchandising_surplus_gap":7.275957614183426e-12},{"regime":"2_Congested_AC_KVL_FixedGrid","system_lcoe_per_mwh":30.7397,"mean_lmp_spread_per_mwh":52.8982,"max_lmp_spread_per_mwh":84.0,"north_wind_mw":385.51,"west_solar_mw":246.18,"east_ocgt_mw":154.47,"total_line_mw":400.0,"added_line_mw":0.0,"annual_congestion_rent":67585264.9,"annual_line_capex_cost":0.0,"vre_curtailment_pct":11.733,"gen_revenue_adequacy_gap":1.4901161193847656e-08,"merchandising_surplus_gap":5.4569682106375694e-12},{"regime":"3_Controllable_HVDC_Transport","system_lcoe_per_mwh":28.4368,"mean_lmp_spread_per_mwh":50.9018,"max_lmp_spread_per_mwh":84.0,"north_wind_mw":489.75,"west_solar_mw":291.06,"east_ocgt_mw":131.4,"total_line_mw":400.0,"added_line_mw":0.0,"annual_congestion_rent":81148385.6,"annual_line_capex_cost":0.0,"vre_curtailment_pct":12.399,"gen_revenue_adequacy_gap":1.4901161193847656e-08,"merchandising_surplus_gap":4.092726157978177e-12},{"regime":"4_CoOptimized_AC_TEP","system_lcoe_per_mwh":21.5915,"mean_lmp_spread_per_mwh":2.7033,"max_lmp_spread_per_mwh":48.219,"north_wind_mw":835.53,"west_solar_mw":334.13,"east_ocgt_mw":7.98,"total_line_mw":737.06,"added_line_mw":337.06,"annual_congestion_rent":7088134.2,"annual_line_capex_cost":7088134.2,"vre_curtailment_pct":19.759,"gen_revenue_adequacy_gap":1.4901161193847656e-08,"merchandising_surplus_gap":2.1827872842550278e-11}],"flows":[{"regime":"1_CopperPlate_SingleBus","corridor":["L1_North_West","L2_North_East","L3_West_South","L4_South_East","L5_North_South"],"mw":[[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]]},{"regime":"2_Congested_AC_KVL_FixedGrid","corridor":["L1_North_West","L2_North_East","L3_West_South","L4_South_East","L5_North_South"],"mw":[[52.38,50.98,49.43,48.39,48.39,49.44,51.01,29.85,6.02,-16.28,-29.24,-68.17,-73.6,-58.36,-48.23,-20.16,-5.71,12.51,32.61,52.15,55.89,54.84,54.32,54.11,52.38,50.98,49.43,48.39,48.39,49.44,51.01,33.9,14.54,-3.6,-19.07,-39.2,-34.98,-36.15,-33.39,-26.69,-13.87,1.73,9.21,22.23,40.03,46.18,51.95,54.11],[75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,69.95,36.73,30.01,39.96,44.9,66.52,75.0,71.06,68.16,67.32,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,70.51,51.67,52.22,47.43,47.02,49.19,46.06,44.26,48.48,51.93,54.43,62.98,71.71,75.0],[-19.24,-17.73,-16.05,-14.92,-14.92,-16.06,-17.76,5.16,30.97,55.13,80.0,66.13,70.52,80.0,70.46,67.86,43.69,18.05,-8.09,-30.51,-23.05,-21.91,-21.35,-21.11,-19.24,-17.73,-16.05,-14.92,-14.92,-16.06,-17.76,0.77,21.75,41.39,56.52,56.27,67.63,60.7,46.49,27.69,9.12,-10.47,-12.27,-21.2,-36.72,-30.56,-23.72,-21.11],[90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,67.93,75.39,65.07,51.8,58.97,64.51,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,83.89,76.44,58.32,59.53,72.25,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0],[29.03,29.03,29.03,29.03,29.03,29.03,29.03,29.03,29.03,29.03,37.41,-5.98,-7.13,12.99,14.1,35.63,29.03,24.46,21.09,20.12,29.03,29.03,29.03,29.03,29.03,29.03,29.03,29.03,29.03,29.03,29.03,29.03,29.03,29.03,27.76,10.69,23.02,16.68,7.99,-0.94,-4.57,-6.66,-1.77,2.24,5.14,15.07,25.21,29.03]]},{"regime":"3_Controllable_HVDC_Transport","corridor":["L1_North_West","L2_North_East","L3_West_South","L4_South_East","L5_North_South"],"mw":[[85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,36.97,85.0,-63.52,-85.0,-85.0,-85.0,-78.25,-42.3,3.68,56.39,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,85.0,57.95,30.55,-6.89,-47.95,-57.33,-51.58,-32.35,-2.52,34.91,60.81,-58.47,85.0,85.0,85.0,85.0,85.0],[75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,58.47,75.0,72.67,71.08,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,68.8,34.38,34.57,41.98,67.66,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0],[13.39,16.29,19.51,21.69,21.69,19.5,16.23,30.64,80.0,46.33,80.0,80.0,80.0,80.0,80.0,80.0,80.0,80.0,52.89,2.34,6.07,8.26,9.33,9.78,13.39,16.29,19.51,21.69,21.69,19.5,16.23,58.93,80.0,80.0,80.0,80.0,80.0,80.0,80.0,80.0,80.0,65.71,-70.45,44.52,6.07,8.26,9.33,9.78],[90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,49.84,36.26,34.52,41.59,66.62,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,72.03,90.0,86.24,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0,90.0],[70.0,70.0,70.0,70.0,70.0,70.0,70.0,70.0,28.59,70.0,43.93,70.0,70.0,70.0,70.0,70.0,63.56,21.7,10.3,32.56,58.23,70.0,70.0,70.0,70.0,70.0,70.0,70.0,70.0,70.0,70.0,47.11,45.11,42.02,49.66,70.0,65.31,70.0,35.01,-21.0,-58.54,-70.0,70.0,-47.71,-18.4,12.79,44.03,70.0]]},{"regime":"4_CoOptimized_AC_TEP","corridor":["L1_North_West","L2_North_East","L3_West_South","L4_South_East","L5_North_South"],"mw":[[111.78,107.42,102.4,98.73,98.41,101.91,107.85,73.93,34.55,-3.82,-29.42,-32.68,-35.69,-36.0,-32.16,-21.27,16.86,46.26,75.06,105.25,116.96,127.03,126.51,121.86,115.94,111.42,106.21,102.4,102.07,105.71,111.91,85.46,54.25,23.4,-3.44,-20.37,-35.4,-40.81,-38.02,-27.9,-11.51,5.0,21.25,45.56,77.68,93.7,110.47,126.29],[138.44,132.86,126.52,122.07,122.13,127.46,136.59,138.28,137.14,132.41,126.1,121.91,117.88,116.55,119.2,126.86,143.5,149.97,153.36,157.28,167.17,171.64,165.17,155.79,147.16,141.23,134.48,129.75,129.83,135.51,145.24,149.13,150.22,147.31,140.66,133.34,123.53,114.97,109.23,107.11,108.91,115.85,124.26,132.51,139.07,148.46,156.96,165.47],[40.16,38.71,36.91,35.43,35.11,36.4,39.08,66.08,94.92,120.33,135.25,135.25,135.25,135.25,135.25,133.93,119.01,87.22,51.19,22.6,38.02,50.28,50.84,46.64,44.32,42.71,40.72,39.1,38.76,40.2,43.13,66.16,90.54,111.69,127.31,135.25,135.25,124.09,105.49,81.64,54.78,36.96,31.97,19.48,-1.25,16.96,34.8,51.07],[55.68,53.05,50.33,48.87,49.77,53.27,58.76,73.5,88.05,98.91,102.92,99.62,96.28,94.28,94.08,95.3,93.57,105.15,117.04,119.17,103.23,83.47,71.84,66.05,60.98,58.1,55.14,53.52,54.47,58.26,64.2,77.93,91.22,100.71,104.88,104.18,106.08,111.08,119.45,131.09,145.27,157.68,157.68,155.91,150.84,125.06,97.15,72.38],[124.84,120.07,114.46,110.23,109.72,113.65,120.71,113.16,102.46,89.96,80.04,77.3,74.78,74.52,77.73,85.84,106.28,106.32,102.58,105.77,127.53,145.46,145.46,138.31,131.55,126.52,120.6,116.15,115.62,119.78,127.25,122.9,115.59,106.09,95.68,87.63,75.02,61.85,49.78,39.81,32.75,32.81,42.57,53.29,64.18,91.71,119.6,145.46]]}],"prices":[{"regime":"1_CopperPlate_SingleBus","zone":["North_Wind","West_Solar","South_Hub","East_Metro"],"per_mwh":[[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,40.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,24.84,40.0,40.0,40.0,40.0,68.0,68.0,188.548,43.671,40.0,40.0,1.917],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,40.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,24.84,40.0,40.0,40.0,40.0,68.0,68.0,188.548,43.671,40.0,40.0,1.917],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,40.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,24.84,40.0,40.0,40.0,40.0,68.0,68.0,188.548,43.671,40.0,40.0,1.917],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,40.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,24.84,40.0,40.0,40.0,40.0,68.0,68.0,188.548,43.671,40.0,40.0,1.917]]},{"regime":"2_Congested_AC_KVL_FixedGrid","zone":["North_Wind","West_Solar","South_Hub","East_Metro"],"per_mwh":[[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,55.271,55.271,55.271,2.449,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,32.752,40.0,55.271,55.271,63.218,71.465,190.826,71.465,55.271,55.271,0.0],[20.8,20.8,20.8,20.8,0.0,0.0,20.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,20.8,47.33,47.33,47.33,21.976,20.8,20.8,20.8,20.8,20.8,20.8,20.8,14.983,20.8,20.8,20.8,0.0,0.0,0.0,0.0,0.0,32.752,40.0,47.33,47.33,57.473,68.0,188.548,68.0,47.33,47.33,20.8],[40.0,40.0,40.0,40.0,0.0,0.0,40.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,28.814,40.0,40.0,40.0,0.0,0.0,0.0,0.0,0.0,32.752,40.0,40.0,40.0,52.171,64.802,186.445,64.802,40.0,40.0,40.0],[84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,50.713,0.0,0.0,0.0,0.0,0.0,0.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,0.0,0.0,0.0,32.752,40.0,84.0,84.0,84.0,84.0,199.068,84.0,84.0,84.0,84.0]]},{"regime":"3_Controllable_HVDC_Transport","zone":["North_Wind","West_Solar","South_Hub","East_Metro"],"per_mwh":[[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,40.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.296,0.0,0.0,0.0,0.0,0.0,26.661,40.0,40.0,40.0,68.0,68.0,188.548,43.671,40.0,40.0,0.0],[40.0,40.0,40.0,38.558,0.0,0.0,40.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,35.296,0.0,0.0,0.0,0.0,0.0,26.661,40.0,40.0,40.0,68.0,68.0,188.548,43.671,40.0,40.0,40.0],[40.0,40.0,40.0,38.558,0.0,0.0,40.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,35.296,0.0,0.0,0.0,0.0,0.0,26.661,40.0,40.0,40.0,68.0,68.0,188.548,43.671,40.0,40.0,40.0],[84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,0.0,0.0,0.0,0.0,0.0,0.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,84.0,27.734,0.0,0.0,26.661,40.0,40.0,84.0,84.0,84.0,199.068,84.0,84.0,84.0,84.0]]},{"regime":"4_CoOptimized_AC_TEP","zone":["North_Wind","West_Solar","South_Hub","East_Metro"],"per_mwh":[[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,7.715,33.417,40.0,40.0,40.0,40.0,69.151,73.743,188.548,50.035,40.0,40.0,27.774],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,43.156,1.205,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,24.84,40.0,40.0,40.0,40.0,68.0,68.0,188.548,50.035,40.0,40.0,34.132],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,40.0,2.318,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,13.636,40.0,40.0,40.0,40.0,40.0,66.938,62.699,188.548,50.035,40.0,40.0,40.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,40.0,40.0,40.0,40.0,48.219,1.49,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,11.522,37.649,40.0,40.0,40.0,40.0,73.314,94.521,188.548,50.035,40.0,40.0,35.634]]}],"scale_sweep":{"scale":[0.5,0.75,1.0,1.5,2.5],"total_corridor_mw":[200.0,300.0,400.0,600.0,1000.0],"lcoe_per_mwh":[38.8407,34.7366,30.7397,24.2134,19.8804],"mean_spread_per_mwh":[53.0614,53.4002,52.8982,39.1765,0.0],"congestion_rent":[39336532.7,51285919.1,67585264.9,72102890.0,0.0],"north_wind_mw":[273.75,345.8,385.51,518.74,836.91],"east_ocgt_mw":[229.75,190.65,154.47,71.61,0.0]},"braess":{"base_cost_per_h":4800.0,"ac_bridge_cost_per_h":7800.0,"hvdc_cost_per_h":1600.0,"base_transfer_mw":120.0,"ac_bridge_transfer_mw":82.5,"hvdc_transfer_mw":160.0,"cost_increase_pct":62.5},"max_merchandising_gap":2.1827872842550278e-11},"risk":{"alpha":0.95,"betas":[0.0,0.1,0.2,0.35,0.5,0.65,0.8,0.9,1.0],"hours":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],"expected_cost_per_year":[40140418.7,40410495.2,40783087.5,42075093.8,42411161.4,48554071.3,59412118.2,60752225.4,61230613.0],"cvar_per_year":[105240332.2,99673797.3,97574649.8,94858602.0,94380241.4,90305788.0,86404751.7,86165170.4,86120273.9],"var_per_year":[160640255.2,53537168.2,52535613.5,46575798.2,48231392.2,47182362.2,58321654.6,59414702.0,59920630.9],"risk_adjusted_cost_per_year":[40140418.7,46336825.4,52141400.0,60549321.6,68395701.4,75692687.2,81006225.0,83623875.9,86120273.9],"lcoe_per_mwh":[28.7901,28.9839,29.2511,30.1778,30.4188,34.8247,42.6125,43.5737,43.9168],"cvar_lcoe_per_mwh":[75.4821,71.4896,69.984,68.036,67.6929,64.7705,61.9726,61.8007,61.7685],"risk_premium_per_mwh":[0.0,0.1937,0.4609,1.3876,1.6287,6.0346,13.8224,14.7835,15.1266],"cvar_reduction_pct":[0.0,5.289,7.284,9.865,10.319,14.191,17.898,18.125,18.168],"eens_mwh_per_year":[167.48,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"capacities_mw":{"solar":[78.66,91.31,51.09,60.68,30.22,0.0,0.0,0.0,0.0],"wind":[308.87,315.07,374.03,412.56,436.9,571.06,752.39,772.49,779.3],"gas":[192.24,192.25,188.72,214.77,214.6,172.02,215.59,202.68,197.71],"bess":[69.1,99.07,96.71,66.8,64.54,93.7,31.99,42.9,47.19]},"duality_gap_max":7.450580596923828e-08,"risk_weight_sum_error_max":0.0,"regimes":[{"name":"WY1_Windy_Equinox","probability":0.18,"load_adder_mw":0.0,"solar_scale":1.0,"wind_cap_cf":0.92,"wind_floor_cf":0.12,"envelope_cap":3.6,"profiles":{"load":[142.08,136.46,130.02,124.71,122.64,124.71,130.02,136.46,142.08,145.92,148.06,149.03,149.41,149.53,149.56,149.65,151.09,161.6,191.12,212.38,191.12,161.6,151.09,149.65],"solar_cf":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.207,0.43,0.636,0.807,0.929,0.992,0.992,0.929,0.807,0.636,0.43,0.207,0.0,0.0,0.0,0.0,0.0],"wind_cf":[0.67,0.697,0.72,0.736,0.745,0.747,0.742,0.73,0.713,0.692,0.668,0.644,0.62,0.599,0.582,0.57,0.563,0.563,0.569,0.58,0.595,0.613,0.633,0.652]}},{"name":"WY2_Sunny_Anticyclone","probability":0.17,"load_adder_mw":4.0,"solar_scale":1.12,"wind_cap_cf":0.8,"wind_floor_cf":0.05,"envelope_cap":3.4,"profiles":{"load":[145.87,140.1,133.48,128.04,125.92,128.04,133.48,140.1,145.87,149.81,152.0,153.01,153.39,153.51,153.55,153.64,155.12,165.91,196.22,218.05,196.22,165.91,155.12,153.64],"solar_cf":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.232,0.482,0.713,0.904,1.0,1.0,1.0,1.0,0.904,0.713,0.482,0.232,0.0,0.0,0.0,0.0,0.0],"wind_cf":[0.39,0.417,0.44,0.456,0.465,0.467,0.462,0.45,0.433,0.412,0.388,0.364,0.34,0.319,0.302,0.29,0.283,0.283,0.289,0.3,0.315,0.333,0.353,0.372]}},{"name":"WY3_Temperate_Normal","probability":0.25,"load_adder_mw":0.0,"solar_scale":0.86,"wind_cap_cf":0.88,"wind_floor_cf":0.08,"envelope_cap":5.0,"profiles":{"load":[142.08,136.46,130.02,124.71,122.64,124.71,130.02,136.46,142.08,145.92,148.06,149.03,149.41,149.53,149.56,149.65,151.09,161.6,191.12,212.38,191.12,161.6,151.09,149.65],"solar_cf":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.178,0.37,0.547,0.694,0.799,0.853,0.853,0.799,0.694,0.547,0.37,0.178,0.0,0.0,0.0,0.0,0.0],"wind_cf":[0.53,0.557,0.58,0.596,0.605,0.607,0.602,0.59,0.573,0.552,0.528,0.504,0.48,0.459,0.442,0.43,0.423,0.423,0.429,0.44,0.455,0.473,0.493,0.512]}},{"name":"WY4_Cloudy_Maritime","probability":0.16,"load_adder_mw":10.0,"solar_scale":0.46,"wind_cap_cf":0.9,"wind_floor_cf":0.1,"envelope_cap":3.2,"profiles":{"load":[151.55,145.56,138.69,133.03,130.82,133.03,138.69,145.56,151.55,155.65,157.93,158.97,159.37,159.49,159.53,159.63,161.16,172.37,203.86,226.54,203.86,172.37,161.16,159.63],"solar_cf":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.095,0.198,0.293,0.371,0.427,0.456,0.456,0.427,0.371,0.293,0.198,0.095,0.0,0.0,0.0,0.0,0.0],"wind_cf":[0.6,0.627,0.65,0.666,0.675,0.677,0.672,0.66,0.643,0.622,0.598,0.574,0.55,0.529,0.512,0.5,0.493,0.493,0.499,0.51,0.525,0.543,0.563,0.582]}},{"name":"WY5_Summer_Heat_Wave","probability":0.14,"load_adder_mw":22.0,"solar_scale":1.05,"wind_cap_cf":0.75,"wind_floor_cf":0.04,"envelope_cap":2.8,"profiles":{"load":[162.92,156.48,149.09,143.01,140.63,143.01,149.09,156.48,162.92,167.33,169.77,170.89,171.32,171.46,171.5,171.6,173.25,185.3,219.15,243.53,219.15,185.3,173.25,171.6],"solar_cf":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.218,0.452,0.668,0.847,0.975,1.0,1.0,0.975,0.847,0.668,0.452,0.218,0.0,0.0,0.0,0.0,0.0],"wind_cf":[0.35,0.377,0.4,0.416,0.425,0.427,0.422,0.41,0.393,0.372,0.348,0.324,0.3,0.279,0.262,0.25,0.243,0.243,0.249,0.26,0.275,0.293,0.313,0.332]}},{"name":"WY6_Winter_Cloud_Trough","probability":0.06,"load_adder_mw":28.0,"solar_scale":0.34,"wind_cap_cf":0.7,"wind_floor_cf":0.06,"envelope_cap":1.2,"profiles":{"load":[168.6,161.94,154.29,147.99,145.54,147.99,154.29,161.94,168.6,173.16,175.69,176.85,177.29,177.44,177.48,177.58,179.29,191.76,226.8,252.03,226.8,191.76,179.29,177.59],"solar_cf":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.071,0.146,0.216,0.274,0.316,0.337,0.337,0.316,0.274,0.216,0.146,0.071,0.0,0.0,0.0,0.0,0.0],"wind_cf":[0.47,0.497,0.52,0.536,0.545,0.547,0.542,0.53,0.513,0.492,0.468,0.444,0.42,0.399,0.382,0.37,0.363,0.363,0.369,0.38,0.395,0.413,0.433,0.452]}},{"name":"WY7_Polar_Vortex_Freeze","probability":0.025,"load_adder_mw":38.0,"solar_scale":0.26,"wind_cap_cf":0.24,"wind_floor_cf":0.06,"envelope_cap":0.5,"profiles":{"load":[178.08,171.03,162.96,156.31,153.71,156.31,162.96,171.03,178.08,182.89,185.56,186.79,187.26,187.41,187.45,187.56,189.37,202.53,239.54,266.19,239.54,202.53,189.37,187.56],"solar_cf":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.054,0.112,0.165,0.21,0.241,0.258,0.258,0.241,0.21,0.165,0.112,0.054,0.0,0.0,0.0,0.0,0.0],"wind_cf":[0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24]}},{"name":"WY8_Severe_Dunkelflaute","probability":0.015,"load_adder_mw":78.0,"solar_scale":0.18,"wind_cap_cf":0.1,"wind_floor_cf":0.04,"envelope_cap":0.3,"profiles":{"load":[215.96,207.42,197.63,189.57,186.42,189.57,197.63,207.42,215.96,221.8,225.04,226.53,227.1,227.28,227.33,227.47,229.66,245.63,290.51,322.82,290.51,245.63,229.66,227.47],"solar_cf":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.037,0.077,0.115,0.145,0.167,0.179,0.179,0.167,0.145,0.115,0.077,0.037,0.0,0.0,0.0,0.0,0.0],"wind_cf":[0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]}}],"risk_weights":[{"beta":0.0,"weights":[0.18,0.17,0.25,0.16,0.14,0.06,0.025,0.015],"var_per_year":160640255.2},{"beta":0.5,"weights":[0.09,0.085,0.125,0.08,0.17,0.03,0.2625,0.1575],"var_per_year":48231392.2},{"beta":1.0,"weights":[0.0,0.2,0.0,0.0,0.0,0.0,0.5,0.3],"var_per_year":59920630.9}],"dispatch":{"beta":0.35,"scenario":["WY1_Windy_Equinox","WY2_Sunny_Anticyclone","WY3_Temperate_Normal","WY4_Cloudy_Maritime","WY5_Summer_Heat_Wave","WY6_Winter_Cloud_Trough","WY7_Polar_Vortex_Freeze","WY8_Severe_Dunkelflaute"],"solar":[[0.0,0.0,0.0,0.0,0.0,0.0,0.0,12.59,0.0,38.62,48.98,56.36,60.2,60.2,56.36,48.98,38.62,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,29.25,43.26,54.86,60.68,60.68,60.68,60.68,54.86,43.26,29.25,14.1,-0.0,-0.0,-0.0,-0.0,-0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.83,22.46,33.21,42.12,48.47,51.77,51.77,48.47,42.12,33.21,22.46,10.83,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,12.02,17.77,22.53,0.0,27.69,0.0,25.93,0.0,0.0,12.02,5.79,0.0,0.0,0.0,0.0,0.0],[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,13.22,27.43,40.55,51.43,59.18,60.68,60.68,59.18,51.43,40.55,27.43,13.22,-0.0,-0.0,-0.0,-0.0,-0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.28,8.88,13.13,16.65,19.16,20.47,20.47,19.16,16.65,13.13,8.88,4.28,-0.0,-0.0,-0.0,-0.0,0.0],[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,3.27,6.79,10.04,12.73,14.65,15.65,15.65,14.65,12.73,10.04,6.79,3.27,-0.0,-0.0,-0.0,-0.0,-0.0],[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,2.27,4.7,6.95,8.82,10.14,10.84,10.84,10.14,8.82,6.95,4.7,2.27,-0.0,-0.0,-0.0,-0.0,-0.0]],"wind":[[142.08,136.46,130.02,124.71,122.64,124.71,130.02,123.87,142.08,107.3,99.08,92.67,89.21,89.33,93.2,100.67,112.47,161.6,191.12,212.38,191.12,161.6,151.09,149.65],[145.87,140.1,133.48,128.04,125.92,128.04,133.48,140.1,178.76,106.56,114.95,150.05,140.27,131.55,124.47,119.48,116.88,116.79,119.13,123.66,129.96,137.49,145.61,153.64],[142.08,136.46,130.02,124.71,122.64,124.71,130.02,125.64,119.62,112.71,105.93,100.56,97.64,97.76,101.09,113.98,117.88,174.55,176.89,181.42,187.72,161.6,151.09,149.65],[151.55,145.56,138.69,133.03,130.82,133.03,138.69,145.56,139.54,137.89,135.4,158.97,131.68,159.49,133.6,159.63,171.47,160.35,205.77,210.29,203.86,172.37,161.16,159.63],[144.4,155.63,164.84,171.51,175.34,176.18,174.08,169.31,162.26,153.5,143.69,133.54,123.77,115.05,107.97,102.98,100.38,100.28,102.63,107.15,113.45,120.99,129.11,137.14],[168.6,161.94,154.29,147.99,145.54,147.99,195.81,218.81,211.77,203.01,193.2,183.05,173.28,164.56,157.47,152.48,149.88,149.79,152.13,156.66,162.96,170.49,178.62,177.59],[99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02,99.02],[41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26,41.26]],"gas":[[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,27.59,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.84,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.35,17.2,32.32,0.0,103.31,69.58,105.7,0.0,31.98,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.58,31.5,0.0,21.27,0.0,0.0],[79.06,72.02,63.94,57.29,54.7,57.29,63.94,68.74,72.27,73.83,73.81,73.12,72.59,72.74,73.78,75.81,80.31,96.73,137.25,167.17,140.52,103.52,90.35,88.55],[174.71,166.17,156.37,148.31,145.16,148.31,156.37,163.9,170.01,173.6,174.97,175.13,196.09,214.77,214.77,177.39,214.77,214.77,214.77,214.77,214.77,204.37,188.4,186.21]],"discharge":[[-0.0,0.0,0.0,-0.0,0.0,-0.0,0.0,-0.0,0.0,-0.0,-0.0,-0.0,0.0,0.0,0.0,-0.0,-0.0,-0.0,-0.0,-0.0,0.0,-0.0,-0.0,0.0],[-0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,19.86,62.99,66.8,66.26,28.42,9.51,0.0],[-0.0,0.0,-0.0,-0.0,0.0,0.0,0.0,-0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.41,30.97,3.41,-0.0,0.0,-0.0],[-0.0,-0.0,0.0,-0.0,-0.0,-0.0,0.0,-0.0,0.0,0.0,-0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,16.25,-0.0,0.0,-0.0,0.0],[18.52,-0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.0,0.0,-0.0,57.59,0.0,66.8,0.0,64.31,12.16,34.46],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.84,8.45,16.28,33.09,66.8,63.87,63.84,0.0,0.68,0.0],[0.0,0.0,-0.0,0.0,0.0,-0.0,0.0,0.0,0.0,-0.0,0.0,0.0,0.0,0.0,-0.0,0.0,0.0,0.0,0.0,-0.0,-0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,32.22,66.8,34.48,0.0,0.0,0.0]],"shed":[[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]],"lmp":[[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,1598.748,1598.748,2621.613,1598.748,1598.748,1598.748,1007.873],[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],[3819.725,3819.725,3383.606,3383.606,3383.606,3383.606,3383.606,3383.606,3383.606,3383.606,3383.606,3383.606,3383.606,3383.606,3819.725,3819.725,3819.725,3819.725,3819.725,3819.725,3819.725,3819.725,3819.725,3819.725],[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,925.275,925.275,925.275,925.275,925.275,925.275,925.275,925.275,925.275,-0.0],[4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406,4537.406],[2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,2722.444,3016.558,22134.215,3016.558,2722.444,2722.444,2722.444]]},"birge_louveaux":{"wait_and_see_per_year":28619391.0,"recourse_per_year":40140418.7,"expected_ev_per_year":345079695.1,"evpi_per_year":11521027.8,"vss_per_year":304939276.3,"ordering_ok":true,"expected_value_plan_mw":{"solar":23.67,"wind":319.55,"gas":0.0,"bess":93.24},"recourse_plan_mw":{"solar":78.66,"wind":308.87,"gas":192.24,"bess":69.1}},"kernel_size":{"variables":1357,"constraints":1352},"weight_envelope_excess_max":0.0},"surrogate":{"holdout_wacc":[0.025,0.055,0.09,0.13],"holdout_capex_scale":[0.65,0.875,1.175,1.55],"samples":[{"wacc":0.025,"capex_scale":0.65,"exact_lcoe":12.852606847344939,"surrogate_lcoe":12.899425},{"wacc":0.025,"capex_scale":0.875,"exact_lcoe":16.857798432914635,"surrogate_lcoe":16.879224999999998},{"wacc":0.025,"capex_scale":1.175,"exact_lcoe":21.76664265248413,"surrogate_lcoe":21.764200000000002},{"wacc":0.025,"capex_scale":1.55,"exact_lcoe":27.35890904796794,"surrogate_lcoe":27.401100000000003},{"wacc":0.055,"capex_scale":0.65,"exact_lcoe":17.250092916307484,"surrogate_lcoe":17.2286},{"wacc":0.055,"capex_scale":0.875,"exact_lcoe":22.313348822354147,"surrogate_lcoe":22.282325},{"wacc":0.055,"capex_scale":1.175,"exact_lcoe":28.42831831018071,"surrogate_lcoe":28.408875},{"wacc":0.055,"capex_scale":1.55,"exact_lcoe":35.47920715222772,"surrogate_lcoe":35.528549999999996},{"wacc":0.09,"capex_scale":0.65,"exact_lcoe":22.74508827816565,"surrogate_lcoe":22.688},{"wacc":0.09,"capex_scale":0.875,"exact_lcoe":29.035980609337088,"surrogate_lcoe":28.999175},{"wacc":0.09,"capex_scale":1.175,"exact_lcoe":36.72216365819441,"surrogate_lcoe":36.7422},{"wacc":0.09,"capex_scale":1.55,"exact_lcoe":45.85493842432769,"surrogate_lcoe":45.94395},{"wacc":0.13,"capex_scale":0.65,"exact_lcoe":29.21159363340574,"surrogate_lcoe":29.116374999999998},{"wacc":0.13,"capex_scale":0.875,"exact_lcoe":36.97104138510424,"surrogate_lcoe":36.942550000000004},{"wacc":0.13,"capex_scale":1.175,"exact_lcoe":46.77292194888385,"surrogate_lcoe":46.775125},{"wacc":0.13,"capex_scale":1.55,"exact_lcoe":58.62461986403357,"surrogate_lcoe":57.82155}],"max_abs_error_per_mwh":0.8030698640335672,"rmse_per_mwh":0.20561142192657483,"r2":0.9997048081037222,"max_rel_error_pct":1.3698508679392796,"n_solves":16},"verification":[{"module":"M1 KKT duality","identity":"System LCOE = load-weighted LMP","residual":1.4901161193847656e-08,"unit":"currency/MWh","tolerance":1e-06},{"module":"M2 storage duality","identity":"Capital + fuel = energy market revenue","residual":0.0,"unit":"currency/yr","tolerance":0.0001},{"module":"M3 carbon saddle point","identity":"J_tax(mu*) = J_cap(E) + mu* E","residual":2.2351741790771484e-08,"unit":"currency/yr","tolerance":0.001},{"module":"M4 reserve adequacy","identity":"LCOE = energy + reserve revenue","residual":7.450580596923828e-09,"unit":"currency/yr","tolerance":0.0001},{"module":"M5 merchandising surplus","identity":"Congestion rent = line CapEx","residual":2.1827872842550278e-11,"unit":"currency/yr","tolerance":0.0001},{"module":"M7 CVaR duality","identity":"objective = sum(q* Z)","residual":7.450580596923828e-08,"unit":"currency/yr","tolerance":0.001},{"module":"M7 risk kernel","identity":"sum(q*) = 1 and q* \u003c= pi/(1-alpha)","residual":0.0,"unit":"probability","tolerance":1e-09}],"tests":[{"file":"test_costs.py","tests":7},{"file":"test_dispatch.py","tests":16},{"file":"test_emissions_and_macc.py","tests":19},{"file":"test_flexibility_and_reserves.py","tests":14},{"file":"test_governance_and_economics.py","tests":11},{"file":"test_profiles.py","tests":20},{"file":"test_regressions.py","tests":12},{"file":"test_reproducibility.py","tests":5},{"file":"test_sensitivity_and_cvar.py","tests":14},{"file":"test_storage_and_dunkelflaute.py","tests":12},{"file":"test_transmission_and_dcopf.py","tests":11},{"file":"test_workbench_and_cvar.py","tests":61}]}</script>
+<script>
+/* Workbench runtime: pure ES2019, no dependencies. */
+(function(){
+"use strict";
+var DATA = JSON.parse(document.getElementById('etm-data').textContent);
+var META = DATA.meta, SURF = DATA.surface, STO = DATA.storage, CAR = DATA.carbon,
+    FLX = DATA.flexibility, GRID = DATA.grid, RSK = DATA.risk, SUR = DATA.surrogate;
+var C = {green:'var(--green)', cyan:'var(--cyan)', amber:'var(--amber)', red:'var(--red)',
+         violet:'var(--violet)', slate:'var(--slate)', text:'var(--text)', muted:'var(--muted)', line:'var(--line)'};
+var NS = 'http://www.w3.org/2000/svg';
+var S = {view:'overview', wacc:0.07, capex:1, lull:7, cap:8, flex:3, grid:3, scale:2, hour:0, beta:3};
+
+/* ---------- small utils ---------- */
+function $(id){ return document.getElementById(id); }
+function fmt(v,d){ if(v===null||v===undefined||isNaN(v)) return '—';
+  return Number(v).toLocaleString('en-US',{minimumFractionDigits:d===undefined?2:d,maximumFractionDigits:d===undefined?2:d}); }
+function money(v){ return fmt(v,0); }
+function pct(v,d){ return fmt(v,d===undefined?1:d)+'%'; }
+function clamp(v,a,b){ return Math.min(b,Math.max(a,v)); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function el(tag,attrs,text){ var n=document.createElement(tag); if(attrs) for(var k in attrs){ if(k==='class') n.className=attrs[k]; else n.setAttribute(k,attrs[k]); } if(text!==undefined) n.textContent=text; return n; }
+function sEl(tag,attrs,text){ var n=document.createElementNS(NS,tag); if(attrs) for(var k in attrs) n.setAttribute(k,attrs[k]); if(text!==undefined) n.textContent=text; return n; }
+function clear(node){ while(node.firstChild) node.removeChild(node.firstChild); }
+function reduced(){ return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+function announce(msg){ $('live').textContent = msg; }
+
+/* nearest-index lookup used by every interpolated control */
+function bracket(axis, v){
+  if(v<=axis[0]) return {i0:0,i1:1,t:0};
+  var n=axis.length; if(v>=axis[n-1]) return {i0:n-2,i1:n-1,t:1};
+  var i1=1; while(i1<axis.length && axis[i1]<v) i1++; var i0=i1-1;
+  return {i0:i0,i1:i1,t:(v-axis[i0])/(axis[i1]-axis[i0])};
+}
+function surfaceAt(key,wacc,capex){
+  var bx=bracket(SURF.wacc_grid,wacc), by=bracket(SURF.capex_grid,capex), g=SURF[key];
+  var lo=lerp(g[bx.i0][by.i0], g[bx.i0][by.i1], by.t), hi=lerp(g[bx.i1][by.i0], g[bx.i1][by.i1], by.t);
+  return lerp(lo,hi,bx.t);
+}
+function caseFor(wacc,capex){
+  var best=SURF.cases[0], bd=1e9;
+  SURF.cases.forEach(function(c){ var d=Math.abs(c.wacc-wacc)+Math.abs(c.capex_scale-capex); if(d<bd){bd=d;best=c;} });
+  return best;
+}
+
+/* ---------- chart scaffold ---------- */
+function chart(host, opts){
+  var width=720, height=opts.height||300, pad={l:52,r:opts.padR||18,t:16,b:34};
+  var svg=sEl('svg',{role:'img',viewBox:'0 0 '+width+' '+height,width:'100%',height:height});
+  if(opts.label){ svg.appendChild(sEl('title',{},opts.label)); svg.appendChild(sEl('desc',{},opts.desc||opts.label)); }
+  clear(host); host.appendChild(svg);
+  function measure(){
+    var w=host.clientWidth||720; if(Math.abs(w-width)>2){ width=w; svg.setAttribute('viewBox','0 0 '+width+' '+height); return true; }
+    return false;
+  }
+  measure();
+  var api={svg:svg,get w(){return width;},get h(){return height;},pad:pad,
+    x:function(a,b){ return function(v){ return pad.l+(v-a)/(b-a)*(width-pad.l-pad.r); }; },
+    y:function(a,b){ return function(v){ return height-pad.b-(v-a)/(b-a)*(height-pad.t-pad.b); }; },
+    resize:measure, clear:function(){ clear(svg); }};
+  return api;
+}
+function niceTicks(min,max,count){
+  if(!(max>min)) return [min];
+  var span=max-min, step=Math.pow(10,Math.floor(Math.log(span/count)/Math.LN10)), err=span/count/step;
+  if(err>=7.5) step*=10; else if(err>=3.5) step*=5; else if(err>=1.5) step*=2;
+  var out=[], v=Math.ceil(min/step)*step;
+  for(; v<=max+step*1e-6; v+=step) out.push(Math.abs(v)<step*1e-9?0:v);
+  return out;
+}
+function axes(c, frame, o){
+  o=o||{};
+  var xv=niceTicks(frame.x0,frame.x1,o.xTicks||5), yv=niceTicks(frame.y0,frame.y1,o.yTicks||5);
+  var g=sEl('g',{});
+  yv.forEach(function(v){ var y=c.y(frame.y0,frame.y1)(v);
+    g.appendChild(sEl('line',{x1:c.pad.l,x2:c.w-c.pad.r,y1:y,y2:y,stroke:C.line,'stroke-width':1,'stroke-dasharray':v===0?'':'2 4',opacity:.7}));
+    g.appendChild(sEl('text',{x:c.pad.l-8,y:y+4,'text-anchor':'end',fill:C.muted,'font-size':10.5,'font-family':'var(--mono)'},o.yFmt?o.yFmt(v):fmt(v,0)));
+  });
+  xv.forEach(function(v){ var x=c.x(frame.x0,frame.x1)(v);
+    g.appendChild(sEl('text',{x:x,y:c.h-c.pad.b+16,'text-anchor':'middle',fill:C.muted,'font-size':10.5,'font-family':'var(--mono)'},o.xFmt?o.xFmt(v):fmt(v,0)));
+  });
+  if(o.xLabel) g.appendChild(sEl('text',{x:(c.pad.l+c.w-c.pad.r)/2,y:c.h-4,'text-anchor':'middle',fill:C.muted,'font-size':10.5},o.xLabel));
+  if(o.yLabel) g.appendChild(sEl('text',{x:12,y:c.pad.t+2,'text-anchor':'start',fill:C.muted,'font-size':10.5,transform:'rotate(-90 12 '+(c.pad.t+2)+') translate(-'+(c.h/2)+' 0)'},o.yLabel));
+  if(o.right){
+    var rf=o.right.frame, span=(frame.y1-frame.y0)||1;
+    yv.forEach(function(v){
+      var y=c.y(frame.y0,frame.y1)(v), rv=rf[0]+(v-frame.y0)/span*(rf[1]-rf[0]);
+      g.appendChild(sEl('text',{x:c.w-c.pad.r+7,y:y+4,'text-anchor':'start',fill:o.right.color||C.muted,'font-size':10,'font-family':'var(--mono)'},o.right.fmt(rv)));
+    });
+    g.appendChild(sEl('text',{x:c.w-2,y:c.pad.t-3,'text-anchor':'end',fill:o.right.color||C.muted,'font-size':10},o.right.label||''));
+  }
+  c.svg.appendChild(g);
+  return {x:function(v){return c.x(frame.x0,frame.x1)(v);}, y:function(v){return c.y(frame.y0,frame.y1)(v);}};
+}
+function pathOf(pts,close,baseY){
+  if(!pts.length) return '';
+  var d='M'+pts[0][0].toFixed(2)+' '+pts[0][1].toFixed(2);
+  for(var i=1;i<pts.length;i++) d+='L'+pts[i][0].toFixed(2)+' '+pts[i][1].toFixed(2);
+  if(close) d+='L'+pts[pts.length-1][0].toFixed(2)+' '+(baseY||pts[pts.length-1][1]).toFixed(2)+'L'+pts[0][0].toFixed(2)+' '+(baseY||pts[0][1]).toFixed(2)+'Z';
+  return d;
+}
+/* tooltip + hover capture */
+var tip=$('tip'), tipOn=false;
+function showTip(evt,html){ tip.innerHTML=html; tip.classList.add('on'); tipOn=true; moveTip(evt); }
+function moveTip(evt){
+  if(!tipOn) return;
+  var x=evt.clientX+14, y=evt.clientY+14, r=tip.getBoundingClientRect();
+  if(x+r.width>window.innerWidth-8) x=evt.clientX-r.width-14;
+  if(y+r.height>window.innerHeight-8) y=evt.clientY-r.height-14;
+  tip.style.left=x+'px'; tip.style.top=y+'px';
+}
+function hideTip(){ tip.classList.remove('on'); tipOn=false; }
+window.addEventListener('scroll',hideTip,{passive:true});
+function hoverLayer(c, onMove, onLeave){
+  var rect=sEl('rect',{x:c.pad.l,y:c.pad.t,width:Math.max(0,c.w-c.pad.l-c.pad.r),height:Math.max(0,c.h-c.pad.t-c.pad.b),fill:'transparent',style:'cursor:crosshair'});
+  rect.addEventListener('mousemove',onMove);
+  rect.addEventListener('mouseleave',function(){ hideTip(); if(onLeave) onLeave(); });
+  c.svg.appendChild(rect);
+  return rect;
+}
+
+/* ---------- view: overview ---------- */
+function renderOverview(){
+  $('ov-lcoe').innerHTML = fmt(DATA.kpi.lcoe_at_reference_per_mwh,2)+' <small>/MWh</small>';
+  $('ov-lcoe-m').textContent = 'reference case · VRE CapEx ×1.00 · '+fmt(META.reference_wacc*100,0)+'% WACC';
+  $('ov-vre').innerHTML = pct(DATA.kpi.vre_share_at_reference_pct,1);
+  $('ov-co2').innerHTML = fmt(DATA.kpi.net_zero_carbon_price_per_tco2,2)+' <small>/tCO₂</small>';
+  $('ov-r2').innerHTML = SUR.r2===null?'—':'R² '+fmt(SUR.r2,4);
+  $('ov-r2-m').textContent = SUR.max_abs_error_per_mwh===null?'no holdout run':'max error '+fmt(SUR.max_abs_error_per_mwh,2)+' /MWh on '+SUR.n_solves+' unseen nodes';
+
+  /* heatmap */
+  var host=$('heat'), c=chart(host,{height:300,label:'System LCOE across discount rate and VRE capital cost'}), W=c.w;
+  var g=SURF.lcoe.flat(), lo=Math.min.apply(null,g), hi=Math.max.apply(null,g);
+  var x0=78,y0=18,cellW=(W-x0-54)/SURF.capex_grid.length,cellH=(c.h-y0-58)/SURF.wacc_grid.length;
+  var grad=document.createElementNS(NS,'defs');
+  c.svg.appendChild(grad);
+  var pal=['var(--green)','var(--cyan)','var(--amber)','var(--red)'];
+  function col(t){ // piecewise green -> cyan -> amber -> red
+    var stops=[[0,74,222,128],[.38,56,189,248],[.68,251,191,36],[1,248,113,113]];
+    for(var i=1;i<stops.length;i++){ if(t<=stops[i][0]){ var a=stops[i-1],b=stops[i],u=(t-a[0])/(b[0]-a[0]);
+      return 'rgb('+Math.round(lerp(a[1],b[1],u))+','+Math.round(lerp(a[2],b[2],u))+','+Math.round(lerp(a[3],b[3],u))+')'; } }
+    return 'rgb(248,113,113)';
+  }
+  SURF.wacc_grid.forEach(function(w,i){
+    c.svg.appendChild(sEl('text',{x:x0-10,y:y0+cellH*(i+.55),'text-anchor':'end',fill:C.muted,'font-size':11,'font-family':'var(--mono)'},(w*100).toFixed(1)+'%'));
+    SURF.capex_grid.forEach(function(k,j){
+      var v=SURF.lcoe[i][j], t=(v-lo)/(hi-lo||1), x=x0+cellW*j, y=y0+cellH*i;
+      var r=sEl('rect',{x:x+1.5,y:y+1.5,width:cellW-3,height:cellH-3,rx:7,fill:col(t),opacity:.9,style:'cursor:pointer'});
+      r.addEventListener('mouseenter',function(e){ showTip(e,'<div class="k">WACC '+(w*100).toFixed(1)+'% · CapEx ×'+k.toFixed(2)+'</div><b>'+fmt(v,2)+' /MWh</b><div class="k">VRE '+hexpct(i,j)+'</div>'); });
+      r.addEventListener('mouseleave',hideTip);
+      r.addEventListener('click',function(){ S.wacc=w; S.capex=k; syncControls(); go('dispatch'); });
+      c.svg.appendChild(r);
+      c.svg.appendChild(sEl('text',{x:x+cellW/2,y:y+cellH/2+4,'text-anchor':'middle',fill:t>0.62?'#ffffff':t>0.42?'#2a1a05':'#08110c','font-size':11.5,'font-weight':700,'font-family':'var(--mono)','pointer-events':'none'},fmt(v,1)));
+    });
+  });
+  SURF.capex_grid.forEach(function(k,j){
+    c.svg.appendChild(sEl('text',{x:x0+cellW*(j+.5),y:c.h-36,'text-anchor':'middle',fill:C.muted,'font-size':11,'font-family':'var(--mono)'},'×'+k.toFixed(2)));
+  });
+  c.svg.appendChild(sEl('text',{x:x0+cellW*SURF.capex_grid.length/2,y:c.h-16,'text-anchor':'middle',fill:C.muted,'font-size':11},'VRE capital-cost multiplier'));
+  c.svg.appendChild(sEl('text',{x:14,y:c.h/2,'text-anchor':'middle',fill:C.muted,'font-size':11,transform:'rotate(-90 14 '+(c.h/2)+')'},'discount rate (WACC)'));
+
+  /* module map */
+  var mm=$('module-map'); clear(mm);
+  var items=[
+    {t:'01 · Capacity & dispatch', v:DATA.kpi.lcoe_at_reference_per_mwh, d:2, u:'/MWh LCOE', go:'dispatch', w:1},
+    {t:'02 · Storage hybrid', v:Math.min.apply(null,STO.hybrid_lcoe), d:2, u:'/MWh (best)', go:'storage', w:.7},
+    {t:'03 · Net-zero carbon', v:CAR.net_zero_shadow_price_per_tco2, d:2, u:'/tCO₂', go:'carbon', w:.55},
+    {t:'04 · Flexible reserves', v:Math.min.apply(null,FLX.regimes.map(function(r){return r.system_lcoe_per_mwh;})), d:2, u:'/MWh (best)', go:'flex', w:.8},
+    {t:'05 · Co-optimised grid', v:GRID.regimes[3].system_lcoe_per_mwh, d:2, u:'/MWh AC-TEP', go:'grid', w:.65},
+    {t:'07 · Risk premium at β=1', v:RSK.risk_premium_per_mwh[RSK.risk_premium_per_mwh.length-1], d:2, u:'/MWh', go:'risk', w:.35}
+  ];
+  items.forEach(function(it){
+    var row=el('div',{class:'b'});
+    row.appendChild(el('span',{},it.t));
+    var track=el('div',{class:'track'}), fill=el('div',{class:'fill'});
+    fill.style.background=C.green; fill.style.width=(clamp(it.w,0,1)*100)+'%'; track.appendChild(fill);
+    row.appendChild(track);
+    row.appendChild(el('span',{class:'mono'},fmt(it.v,it.d)+' '+it.u));
+    row.style.cursor='pointer'; row.addEventListener('click',function(){ go(it.go); });
+    mm.appendChild(row);
+  });
+
+  var facts=$('ov-facts'); clear(facts);
+  [['Engine','PyPSA '+META.pypsa+' · HiGHS'],['Solver runs',fmt(META.n_solves,0)],
+   ['Build time',fmt(META.runtime_seconds,1)+' s'],['Surrogate nodes',SURF.wacc_grid.length+' × '+SURF.capex_grid.length],
+   ['CVaR kernel',fmt(RSK.kernel_size.variables,0)+' vars'],['Data digest',DATA_DIGEST.slice(0,12)+'…']].forEach(function(p){
+    facts.appendChild(el('dt',{},p[0])); facts.appendChild(el('dd',{},p[1]));
+  });
+
+  var body=$('ov-verif').querySelector('tbody'); clear(body);
+  DATA.verification.forEach(function(v){
+    var tr=el('tr');
+    tr.appendChild(el('td',{},v.module));
+    tr.appendChild(el('td',{class:'mono',style:'text-align:left;font-size:11.5px'},v.identity));
+    tr.appendChild(el('td',{class:'mono'},v.residual===0?'0':v.residual.toExponential(2)));
+    tr.appendChild(el('td',{class:'mono'},v.tolerance.toExponential(0)));
+    var td=el('td'); var ok=v.residual<=v.tolerance;
+    td.appendChild(el('span',{class:'tag '+(ok?'ok':'warn')},ok?'pass':'review')); tr.appendChild(td);
+    body.appendChild(tr);
+  });
+  function hexpct(i,j){ return pct(SURF.vre_share_pct[i][j],0); }
+}
+
+/* ---------- view: dispatch ---------- */
+function renderDispatch(){
+  var kp={lcoe:surfaceAt('lcoe',S.wacc,S.capex), vre:surfaceAt('vre_share_pct',S.wacc,S.capex),
+          peak:surfaceAt('peak_lmp_per_mwh',S.wacc,S.capex), curt:surfaceAt('curtailment_pct',S.wacc,S.capex)};
+  $('wacc-out').textContent=(S.wacc*100).toFixed(1)+'%';
+  $('capex-out').textContent='×'+S.capex.toFixed(2);
+  $('d-lcoe').innerHTML=fmt(kp.lcoe,2)+' <small>/MWh</small>';
+  $('d-vre').innerHTML=pct(kp.vre,1);
+  $('d-peak').innerHTML=fmt(kp.peak,1)+' <small>/MWh</small>';
+  var cs=caseFor(S.wacc,S.capex);
+  $('d-case').textContent='node '+(cs.wacc*100).toFixed(1)+'% × '+cs.capex_scale.toFixed(2);
+  $('d-note').textContent = (Math.abs(cs.wacc-S.wacc)<1e-9 && Math.abs(cs.capex_scale-S.capex)<1e-9)
+    ? 'Sliders sit on an exactly solved node; every value is a raw LP result.'
+    : 'Sliders are between solved nodes: KPIs are bilinearly interpolated, the hourly chart shows the nearest solved node.';
+
+  var host=$('dispatchChart'), c=chart(host,{height:300,padR:46,label:'Hourly dispatch stacked by technology with demand line'});
+  var hours=cs.load.length, xs=cs.load.map(function(_,i){return i;});
+  var maxY=Math.max.apply(null,cs.load.concat(cs.solar.map(function(v,i){return v+cs.wind[i]+cs.gas[i];})));
+  var lmpHi=Math.max(1,Math.max.apply(null,cs.lmp)), lmpLo=Math.min(0,Math.min.apply(null,cs.lmp));
+  var ax=axes(c,{x0:0,x1:hours-1,y0:0,y1:maxY*1.12},{xLabel:'hour of day',yLabel:'MW',xFmt:function(v){return v+'h';},
+    right:{frame:[lmpLo,lmpHi*1.12],label:'/MWh',color:C.violet,fmt:function(v){return fmt(v,0);}}});
+  var series=[{k:'gas',col:C.amber,fill:.9},{k:'wind',col:C.cyan,fill:.82},{k:'solar',col:C.green,fill:.9}];
+  var base=new Array(hours).fill(0);
+  series.forEach(function(s){ // stack from bottom: gas, wind, solar
+    var top=cs[s.k].map(function(v,i){ return base[i]+v; });
+    var d='M'+base.map(function(v,i){return ax.x(i).toFixed(1)+' '+ax.y(v).toFixed(1);}).join('L')
+        +'L'+top.map(function(v,i){return ax.x(i).toFixed(1)+' '+ax.y(v).toFixed(1);}).reverse().join('L')+'Z';
+    c.svg.appendChild(sEl('path',{d:d,fill:s.col,opacity:s.fill,stroke:'var(--bg)','stroke-width':1}));
+    base=top;
+  });
+  c.svg.appendChild(sEl('path',{d:pathOf(cs.load.map(function(v,i){return [ax.x(i),ax.y(v)];})),fill:'none',stroke:C.text,'stroke-width':2,'stroke-dasharray':'5 4'}));
+  var lmpY=function(v){ return ax.y(clamp(v,lmpLo,lmpHi*1.12)/Math.max(lmpHi*1.12,1e-9)*maxY*1.12); };
+  c.svg.appendChild(sEl('path',{d:pathOf(cs.lmp.map(function(v,i){return [ax.x(i),lmpY(v)];})),fill:'none',stroke:C.violet,'stroke-width':1.7,opacity:.95}));
+  hoverLayer(c,function(e){
+    var i=clamp(Math.round((e.offsetX-c.pad.l)/((c.w-c.pad.l-c.pad.r)/(hours-1))),0,hours-1);
+    showTip(e,'<div class="k">hour '+String(i).padStart(2,'0')+':00</div>'+
+      '<b>'+fmt(cs.load[i],1)+' MW demand</b><br>solar '+fmt(cs.solar[i],1)+' · wind '+fmt(cs.wind[i],1)+
+      ' · gas '+fmt(cs.gas[i],1)+'<br><span class="k">LMP '+fmt(cs.lmp[i],2)+' /MWh</span>');
+  });
+  $('dispatchLegend').innerHTML='<span><i style="background:'+C.green+'"></i>Solar</span><span><i style="background:'+C.cyan+'"></i>Wind</span>'+
+    '<span><i style="background:'+C.amber+'"></i>Gas</span><span><i class="ln" style="background:'+C.text+'"></i>Demand</span>'+
+    '<span><i class="ln" style="background:'+C.violet+'"></i>Nodal LMP (right axis)</span>';
+
+  /* cost stack */
+  var cc=chart($('costChart'),{height:190,label:'Annual capital versus operating cost'}), cap=cs.capex_per_year||0, opx=cs.opex_per_year||0, tot=cap+opx||1;
+  var yBar=[34,86], barH=30;
+  [['Annualised capital',cap,C.cyan],['Fuel & variable O&M',opx,C.amber]].forEach(function(b,i){
+    var w=(b[1]/tot)*(cc.w-190);
+    cc.svg.appendChild(sEl('rect',{x:132,y:yBar[i],width:Math.max(2,w),height:barH,rx:6,fill:b[2],opacity:.85}));
+    cc.svg.appendChild(sEl('text',{x:124,y:yBar[i]+20,'text-anchor':'end',fill:C.muted,'font-size':11},b[0]));
+    cc.svg.appendChild(sEl('text',{x:138+w+8,y:yBar[i]+20,fill:C.text,'font-size':11.5,'font-family':'var(--mono)'},money(b[1])));
+  });
+  cc.svg.appendChild(sEl('text',{x:132,y:150,fill:C.muted,'font-size':11},'total '+money(tot)+' currency/yr · '+pct(100*cap/tot,1)+' capital'));
+
+  /* lmp chart */
+  var lc=chart($('lmpChart'),{height:190,label:'Hourly nodal price'});
+  var lo=Math.min.apply(null,cs.lmp), hi=Math.max.apply(null,cs.lmp);
+  var lax=axes(lc,{x0:0,x1:hours-1,y0:Math.min(0,lo),y1:hi*1.05},{yLabel:'/MWh',xLabel:'hour',xFmt:function(v){return v+'h';}});
+  lc.svg.appendChild(sEl('path',{d:pathOf(cs.lmp.map(function(v,i){return [lax.x(i),lax.y(v)];})),fill:'none',stroke:C.violet,'stroke-width':2}));
+  lc.svg.appendChild(sEl('line',{x1:lc.pad.l,x2:lc.w-lc.pad.r,y1:lax.y(0),y2:lax.y(0),stroke:C.line,'stroke-dasharray':'3 4'}));
+
+  /* mix bars */
+  var mix=$('d-mix'); clear(mix);
+  [['Solar',cs.caps.solar,C.green],['Wind',cs.caps.wind,C.cyan],['Gas',cs.caps.gas,C.amber]].forEach(function(m){
+    var mx=Math.max(cs.caps.solar,cs.caps.wind,cs.caps.gas)||1, row=el('div',{class:'b'});
+    row.appendChild(el('span',{},m[0]));
+    var t=el('div',{class:'track'}), f=el('div',{class:'fill'}); f.style.background=m[2]; f.style.width=(100*m[1]/mx)+'%'; t.appendChild(f);
+    row.appendChild(t); row.appendChild(el('span',{class:'mono'},fmt(m[1],0)+' MW'));
+    mix.appendChild(row);
+  });
+}
+
+/* ---------- view: storage ---------- */
+function renderStorage(){
+  var i=clamp(Math.round(S.lull),0,STO.durations.length-1);
+  $('lull-out').textContent=STO.durations[i]+' h';
+  var host=$('storageChart'), c=chart(host,{height:300,label:'Storage LCOE versus lull duration'});
+  var xs=STO.durations, all=STO.bess_only_lcoe.concat(STO.h2_only_lcoe,STO.hybrid_lcoe);
+  var ax=axes(c,{x0:0,x1:Math.max.apply(null,xs),y0:Math.min.apply(null,all)*.92,y1:Math.max.apply(null,all)*1.06},
+    {xLabel:'Dunkelflaute lull (hours)',yLabel:'/MWh',xFmt:function(v){return v+'h';}});
+  [['bess_only_lcoe',C.amber],['h2_only_lcoe',C.cyan],['hybrid_lcoe',C.green]].forEach(function(s){
+    c.svg.appendChild(sEl('path',{d:pathOf(STO[s[0]].map(function(v,k){return [ax.x(xs[k]),ax.y(v)];})),fill:'none',stroke:s[1],'stroke-width':s[0]==='hybrid_lcoe'?2.6:1.8,opacity:s[0]==='hybrid_lcoe'?1:.85}));
+    STO[s[0]].forEach(function(v,k){ c.svg.appendChild(sEl('circle',{cx:ax.x(xs[k]),cy:ax.y(v),r:2.6,fill:s[1]})); });
+  });
+  var mx=ax.x(xs[i]);
+  c.svg.appendChild(sEl('line',{x1:mx,x2:mx,y1:c.pad.t,y2:c.h-c.pad.b,stroke:C.violet,'stroke-dasharray':'4 4','stroke-width':1.4}));
+  c.svg.appendChild(sEl('text',{x:mx+6,y:c.pad.t+12,fill:C.violet,'font-size':10.5,'font-family':'var(--mono)'},STO.durations[i]+' h'));
+  if(STO.crossover_hours){
+    var cx=ax.x(STO.crossover_hours);
+    var j=0; STO.durations.forEach(function(v,k){ if(v<=STO.crossover_hours) j=k; });
+    var t=(STO.crossover_hours-STO.durations[j])/Math.max(STO.durations[j+1]-STO.durations[j],1e-9);
+    var cy=ax.y(lerp(STO.bess_only_lcoe[j],STO.bess_only_lcoe[j+1],t));
+    c.svg.appendChild(sEl('line',{x1:cx,x2:cx,y1:c.pad.t,y2:c.h-c.pad.b,stroke:C.red,'stroke-dasharray':'2 4','stroke-width':1,opacity:.6}));
+    c.svg.appendChild(sEl('circle',{cx:cx,cy:cy,r:4.5,fill:'none',stroke:C.red,'stroke-width':1.6}));
+    c.svg.appendChild(sEl('text',{x:cx+9,y:c.pad.t+24,fill:C.red,'font-size':10.5,'font-family':'var(--mono)'},'crossover '+fmt(STO.crossover_hours,1)+' h'));
+  }
+  hoverLayer(c,function(e){
+    var k=Math.round((e.offsetX-c.pad.l)/((c.w-c.pad.l-c.pad.r)/Math.max(xs[xs.length-1],1))), best=0, bd=1e9;
+    xs.forEach(function(v,j){ var d=Math.abs(v-k); if(d<bd){bd=d;best=j;} });
+    showTip(e,'<div class="k">'+xs[best]+' h lull</div>BESS '+fmt(STO.bess_only_lcoe[best],2)+
+      '<br>H₂ '+fmt(STO.h2_only_lcoe[best],2)+'<br><b>hybrid '+fmt(STO.hybrid_lcoe[best],2)+' /MWh</b>');
+  });
+  var facts=$('s-facts'); clear(facts);
+  [['Hybrid LCOE',fmt(STO.hybrid_lcoe[i],2)+' /MWh'],
+   ['BESS energy',fmt(STO.hybrid_bess_mwh[i],0)+' MWh'],
+   ['H₂ energy (e-equiv)',fmt(STO.hybrid_h2_mwh_e_equiv[i],0)+' MWh'],
+   ['BESS cycles / yr',fmt(STO.bess_cycles_per_year,1)],
+   ['H₂ cycles / yr',fmt(STO.h2_cycles_per_year,1)],
+   ['Duality gap',STO.duality_gap?STO.duality_gap.toExponential(1):'0']].forEach(function(p){
+    facts.appendChild(el('dt',{},p[0])); facts.appendChild(el('dd',{},p[1]));
+  });
+  $('s-callout').innerHTML = 'At <b>'+STO.durations[i]+' h</b> the hybrid portfolio costs <b>'+fmt(STO.hybrid_lcoe[i],2)+
+    ' /MWh</b>, '+(STO.hybrid_lcoe[i]<=Math.min(STO.bess_only_lcoe[i],STO.h2_only_lcoe[i])+1e-9?
+      'matching the cheaper single technology':'above the cheaper single technology')+
+    '. Power-dense batteries win short lulls; energy-dense cavern hydrogen wins long ones.';
+
+  var body=$('s-table').querySelector('tbody'); clear(body);
+  STO.regimes.forEach(function(r){
+    var tr=el('tr');
+    tr.appendChild(el('td',{},r.label));
+    [r.solar_mw,r.wind_mw,r.bess_mwh,r.h2_store_mwh_h2,r.system_lcoe_per_mwh].forEach(function(v,k){
+      tr.appendChild(el('td',{class:'mono'},fmt(v,k===4?2:0)));
+    });
+    body.appendChild(tr);
+  });
+
+  /* 168 h dispatch */
+  var host2=$('storageDispatch'), c2=chart(host2,{height:260,label:'168 hour storage dispatch'}), d=STO.dispatch, n=d.load.length;
+  var maxV=0;
+  function g(k,t){ var a=d[k]; return (a&&a.length>t)?a[t]:0; }
+  for(var t=0;t<n;t++){ maxV=Math.max(maxV,g('load',t), g('gas',t)+g('bess_discharge',t)+g('h2_discharge',t)+g('wind',t)+g('solar',t), g('load',t)+g('bess_charge',t)); }
+  var a2=axes(c2,{x0:0,x1:n-1,y0:0,y1:maxV*1.06},{yLabel:'MW',xLabel:'hour of week',xFmt:function(v){return v+'h';}});
+  var base=new Array(n).fill(0);
+  var layers=[['gas',C.amber,.9],['solar',C.green,.9],['wind',C.cyan,.8],['bess_discharge',C.violet,.95],['h2_discharge',C.red,.9]];
+  layers.forEach(function(L){
+    var vals=Array.from({length:n},function(_,t){return g(L[0],t);}), top=vals.map(function(v,k){return base[k]+v;});
+    var dd='M'+base.map(function(v,k){return a2.x(k).toFixed(1)+' '+a2.y(v).toFixed(1);}).join('L')+
+           'L'+top.map(function(v,k){return a2.x(k).toFixed(1)+' '+a2.y(v).toFixed(1);}).reverse().join('L')+'Z';
+    c2.svg.appendChild(sEl('path',{d:dd,fill:L[1],opacity:L[2],stroke:'var(--bg)','stroke-width':1}));
+    base=top;
+  });
+  c2.svg.appendChild(sEl('path',{d:pathOf(Array.from({length:n},function(_,k){return [a2.x(k),a2.y(g('load',k))];})),fill:'none',stroke:C.text,'stroke-width':1.6,'stroke-dasharray':'4 3'}));
+  hoverLayer(c2,function(e){
+    var k=clamp(Math.round((e.offsetX-c2.pad.l)/((c2.w-c2.pad.l-c2.pad.r)/(n-1))),0,n-1);
+    showTip(e,'<div class="k">hour '+k+'</div>load '+fmt(g('load',k),0)+' MW<br>solar '+fmt(g('solar',k),0)+' · wind '+fmt(g('wind',k),0)+
+      '<br>BESS discharge '+fmt(g('bess_discharge',k),0)+' · H₂ '+fmt(g('h2_discharge',k),0)+' · gas '+fmt(g('gas',k),0)+
+      '<br><span class="k">SoC BESS '+fmt(g('bess_soc',k),0)+' MWh · LMP '+fmt(g('lmp',k),1)+'</span>');
+  });
+}
+
+/* ---------- view: carbon ---------- */
+function renderCarbon(){
+  var i=clamp(Math.round(S.cap),0,CAR.targets_pct.length-1);
+  $('cap-out').textContent=pct(CAR.targets_pct[i],1);
+  $('c-price').innerHTML=fmt(CAR.shadow_price_per_tco2[i],2)+' <small>/t</small>';
+  $('c-co2').innerHTML=fmt(CAR.emissions_tco2[i]/1e6,2)+' <small>Mt</small>';
+  $('c-lcoe').innerHTML=fmt(CAR.resource_lcoe_per_mwh[i],2)+' <small>/MWh</small>';
+
+  var c=chart($('paretoChart'),{height:300,label:'CO2 Pareto frontier'});
+  var x0=Math.min(0,Math.min.apply(null,CAR.emissions_tco2)), x1=Math.max.apply(null,CAR.emissions_tco2);
+  var y0c=Math.min.apply(null,CAR.resource_lcoe_per_mwh)*.95, y1c=Math.max.apply(null,CAR.resource_lcoe_per_mwh)*1.05;
+  var ax=axes(c,{x0:x0,x1:x1,y0:y0c,y1:y1c},
+    {xLabel:'residual CO₂ (tCO₂/yr)',yLabel:'resource LCOE (/MWh)',xFmt:function(v){return (v/1e6).toFixed(2)+'M';},
+     right:{frame:[0,Math.max.apply(null,CAR.shadow_price_per_tco2)*1.05],label:'/tCO₂',color:C.amber,fmt:function(v){return fmt(v,0);}}});
+  var maxP=Math.max.apply(null,CAR.shadow_price_per_tco2)||1;
+  c.svg.appendChild(sEl('path',{d:pathOf(CAR.resource_lcoe_per_mwh.map(function(v,k){return [ax.x(CAR.emissions_tco2[k]),ax.y(v)];})),
+    fill:'none',stroke:C.green,'stroke-width':2.4}));
+  var pMap=function(v){ return y0c+(v/(maxP*1.05))*(y1c-y0c); };
+  c.svg.appendChild(sEl('path',{d:pathOf(CAR.shadow_price_per_tco2.map(function(v,k){
+    return [ax.x(CAR.emissions_tco2[k]), ax.y(pMap(v))];})),
+    fill:'none',stroke:C.amber,'stroke-width':1.7,'stroke-dasharray':'4 3'}));
+  var px=ax.x(CAR.emissions_tco2[i]), py=ax.y(CAR.resource_lcoe_per_mwh[i]);
+  c.svg.appendChild(sEl('line',{x1:px,x2:px,y1:c.pad.t,y2:c.h-c.pad.b,stroke:C.violet,'stroke-dasharray':'3 4'}));
+  c.svg.appendChild(sEl('circle',{cx:px,cy:py,r:5,fill:C.violet,stroke:'#fff','stroke-width':1.4}));
+  hoverLayer(c,function(e){
+    var k=0,bd=1e9; CAR.emissions_tco2.forEach(function(v,j){var d=Math.abs(ax.x(v)-(e.offsetX)) ; if(d<bd){bd=d;k=j;}});
+    showTip(e,'<div class="k">'+pct(CAR.targets_pct[k],1)+' abatement</div><b>'+fmt(CAR.resource_lcoe_per_mwh[k],2)+' /MWh</b><br>'+
+      fmt(CAR.emissions_tco2[k]/1e6,3)+' MtCO₂<br><span class="k">μ* '+fmt(CAR.shadow_price_per_tco2[k],2)+' /tCO₂</span>');
+  });
+
+  /* MACC */
+  var mc=chart($('maccChart'),{height:250,label:'Marginal abatement cost curve'});
+  var maxM=Math.max.apply(null,CAR.shadow_price_per_tco2)||1;
+  var a2=axes(mc,{x0:0,x1:100,y0:0,y1:maxM*1.08},{xLabel:'abatement (%)',yLabel:'/tCO₂'});
+  var bw=(mc.w-mc.pad.l-mc.pad.r)/CAR.targets_pct.length;
+  CAR.shadow_price_per_tco2.forEach(function(v,k){
+    var h=mc.h-mc.pad.b-a2.y(v);
+    mc.svg.appendChild(sEl('rect',{x:a2.x(CAR.targets_pct[k])-bw*0.36,y:a2.y(v),width:bw*0.72,height:Math.max(1,h),rx:3,
+      fill:k===i?C.violet:'color-mix(in srgb,var(--amber) 70%,transparent)'}));
+  });
+  mc.svg.appendChild(sEl('path',{d:pathOf(CAR.average_cost_per_tco2.map(function(v,k){return [a2.x(CAR.targets_pct[k]),a2.y(v)];})),
+    fill:'none',stroke:C.cyan,'stroke-width':1.8,'stroke-dasharray':'5 4'}));
+  mc.svg.appendChild(sEl('text',{x:mc.w-mc.pad.r,y:mc.pad.t+12,'text-anchor':'end',fill:C.cyan,'font-size':10.5},'average cost (dashed)'));
+
+  /* mix stack */
+  var mixc=chart($('mixChart'),{height:250,label:'Installed capacity mix by abatement target'});
+  var keys=[['coal_mw',C.slate],['ccgt_mw',C.amber],['ocgt_mw',C.red],['gas_ccs_mw',C.violet],['solar_mw',C.green],['wind_mw',C.cyan]];
+  var maxCap=0; CAR.targets_pct.forEach(function(_,k){ var s=0; keys.forEach(function(K){s+=CAR.mix[K[0]][k];}); maxCap=Math.max(maxCap,s); });
+  var a3=axes(mixc,{x0:0,x1:100,y0:0,y1:maxCap*1.08},{xLabel:'abatement (%)',yLabel:'MW'});
+  var bw2=(mixc.w-mixc.pad.l-mixc.pad.r)/CAR.targets_pct.length;
+  CAR.targets_pct.forEach(function(t,k){
+    var base=0, x=a3.x(t)-bw2*0.34;
+    keys.forEach(function(K){
+      var v=CAR.mix[K[0]][k]||0, h=(v/Math.max(maxCap,1))*(mixc.h-mixc.pad.t-mixc.pad.b);
+      if(h>0.4){ mixc.svg.appendChild(sEl('rect',{x:x,y:a3.y(base+v),width:bw2*0.68,height:h,fill:K[1],opacity:.88})); }
+      base+=v;
+    });
+  });
+  mixc.svg.appendChild(sEl('line',{x1:a3.x(CAR.targets_pct[i]),x2:a3.x(CAR.targets_pct[i]),y1:mixc.pad.t,y2:mixc.h-mixc.pad.b,stroke:C.violet,'stroke-width':1.4,'stroke-dasharray':'3 3'}));
+  var lg=$('mixLegend'); lg.innerHTML=keys.map(function(K){
+    return '<span><i style="background:'+K[1]+'"></i>'+K[0].replace('_mw','').replace('gas_ccs','gas+CCS').replace('_',' ')+'</span>';}).join('');
+
+  var mix=$('c-mix'); clear(mix);
+  var shares=[['Coal',CAR.mix.coal_mw[i],C.slate],['Gas (unabated)',CAR.mix.ccgt_mw[i]+CAR.mix.ocgt_mw[i],C.amber],
+              ['Gas + CCS',CAR.mix.gas_ccs_mw[i],C.violet],['Solar',CAR.mix.solar_mw[i],C.green],['Wind',CAR.mix.wind_mw[i],C.cyan]];
+  var mx=Math.max.apply(null,shares.map(function(s){return s[1];}))||1;
+  shares.forEach(function(s){
+    var row=el('div',{class:'b'}); row.appendChild(el('span',{},s[0]));
+    var t=el('div',{class:'track'}), f=el('div',{class:'fill'}); f.style.background=s[2]; f.style.width=(100*s[1]/mx)+'%'; t.appendChild(f);
+    row.appendChild(t); row.appendChild(el('span',{class:'mono'},fmt(s[1],0)+' MW')); mix.appendChild(row);
+  });
+  $('c-callout').innerHTML = i===CAR.targets_pct.length-1
+    ? '<b>Net zero.</b> Every tonne is abated at a shadow price of '+fmt(CAR.net_zero_shadow_price_per_tco2,2)+' /tCO₂ — the right-hand limit of the dual as the cap goes to zero.'
+    : 'Shadow price <b>'+fmt(CAR.shadow_price_per_tco2[i],2)+' /tCO₂</b>; average abatement cost '+fmt(CAR.average_cost_per_tco2[i],2)+
+      ' /tCO₂. Saddle-point residual '+CAR.saddle_identity_gap.toExponential(1)+' currency/yr.';
+}
+
+/* ---------- view: flexibility ---------- */
+function renderFlex(){
+  var seg=$('flex-seg'); clear(seg);
+  FLX.regimes.forEach(function(r,k){
+    var b=el('button',{type:'button','aria-pressed':String(k===S.flex)},String(k+1)+' · '+r.regime.split('_').slice(1).join(' '));
+    b.addEventListener('click',function(){ S.flex=k; renderFlex(); route(true); }); seg.appendChild(b);
+  });
+  var r=FLX.regimes[S.flex], s=FLX.series[S.flex], n=s.net_load.length;
+  var facts=$('f-facts'); clear(facts);
+  [['System LCOE',fmt(r.system_lcoe_per_mwh,2)+' /MWh'],['Annual cost',money(r.total_annual_cost)],
+   ['Load-weighted LMP',fmt(r.load_weighted_lmp_per_mwh,2)],['Reserve price (load-wtd)',fmt(r.load_weighted_reserve_price_per_mw_h,2)],
+   ['Peak LMP',fmt(r.max_lmp_per_mwh,2)],['VRE capacity',fmt(r.vre_total_mw,0)+' MW'],
+   ['BESS energy',fmt(r.bess_e_nom_mwh,0)+' MWh'],['Evening ramp',fmt(r.max_evening_net_load_ramp_mw_per_h,0)+' MW/h'],
+   ['Revenue gap',r.strong_duality_revenue_gap.toExponential(1)]].forEach(function(p){
+    facts.appendChild(el('dt',{},p[0])); facts.appendChild(el('dd',{},p[1]));
+  });
+  $('f-callout').innerHTML = S.flex===3
+    ? '<b>Co-optimised BESS.</b> Storage supplies both energy and upward reserves, cutting the peak price from '+fmt(FLX.regimes[2].max_lmp_per_mwh,1)+' to '+fmt(r.max_lmp_per_mwh,1)+' /MWh while keeping revenue adequacy at '+r.strong_duality_revenue_gap.toExponential(1)+'.'
+    : 'Reserve requirement priced at '+fmt(r.max_reserve_price_per_mw_h,2)+' /MW-h at the peak; strong duality gap '+r.strong_duality_revenue_gap.toExponential(1)+' currency/yr.';
+
+  var c=chart($('flexChart'),{height:290,padR:46,label:'Net load and nodal price over 48 hours'});
+  var nlHi=Math.max.apply(null,s.net_load), lHi=Math.max.apply(null,s.lmp), lLo=Math.min(0,Math.min.apply(null,s.lmp));
+  var ax=axes(c,{x0:0,x1:47,y0:Math.min(0,Math.min.apply(null,s.net_load)),y1:nlHi*1.08},
+    {xLabel:'hour',yLabel:'MW',xFmt:function(v){return v+'h';},
+     right:{frame:[lLo,lHi*1.08],label:'/MWh',color:C.amber,fmt:function(v){return fmt(v,0);}}});
+  c.svg.appendChild(sEl('path',{d:pathOf(s.net_load.map(function(v,k){return [ax.x(k),ax.y(v)];})),fill:'none',stroke:C.cyan,'stroke-width':2.2}));
+  c.svg.appendChild(sEl('line',{x1:c.pad.l,x2:c.w-c.pad.r,y1:ax.y(0),y2:ax.y(0),stroke:C.line,'stroke-dasharray':'3 4'}));
+  c.svg.appendChild(sEl('path',{d:pathOf(s.lmp.map(function(v,k){
+    return [ax.x(k), ax.y(clamp(v,lLo,lHi*1.08)/Math.max(lHi*1.08,1e-9)*nlHi*1.08)];})),fill:'none',stroke:C.amber,'stroke-width':1.6,'stroke-dasharray':'4 3'}));
+  hoverLayer(c,function(e){
+    var k=clamp(Math.round((e.offsetX-c.pad.l)/((c.w-c.pad.l-c.pad.r)/47)),0,n-1);
+    showTip(e,'<div class="k">hour '+k+'</div>net load '+fmt(s.net_load[k],0)+' MW<br>LMP '+fmt(s.lmp[k],2)+' /MWh'+
+      '<br><span class="k">reserve '+fmt(s.reserve_price[k],1)+' /MW-h · req '+fmt(s.reserve_requirement[k],0)+' MW</span>');
+  });
+  $('flexChart').parentNode.insertAdjacentHTML('beforeend',
+    '<div class="legend"><span><i class="ln" style="background:'+C.cyan+'"></i>Net load (left)</span><span><i class="ln" style="background:'+C.amber+'"></i>Nodal LMP (right)</span></div>');
+
+  var c2=chart($('reserveChart'),{height:250,padR:48,label:'Reserve requirement and reserve price'});
+  var reqHi=Math.max.apply(null,s.reserve_requirement)*1.1, rpHi=Math.max.apply(null,s.reserve_price)*1.1||1;
+  var a2=axes(c2,{x0:0,x1:47,y0:0,y1:reqHi},{xLabel:'hour',yLabel:'MW',
+    right:{frame:[0,rpHi],label:'/MW-h',color:C.amber,fmt:function(v){return fmt(v,0);}}});
+  c2.svg.appendChild(sEl('path',{d:'M'+s.reserve_requirement.map(function(v,k){return a2.x(k).toFixed(1)+' '+a2.y(v).toFixed(1);}).join('L')+
+    'L'+a2.x(47).toFixed(1)+' '+a2.y(0).toFixed(1)+'L'+a2.x(0).toFixed(1)+' '+a2.y(0).toFixed(1)+'Z',
+    fill:C.violet,opacity:.18,stroke:C.violet,'stroke-width':1.4}));
+  c2.svg.appendChild(sEl('path',{d:pathOf(s.reserve_price.map(function(v,k){
+    return [a2.x(k), a2.y((v/rpHi)*reqHi)];})),fill:'none',stroke:C.amber,'stroke-width':1.7}));
+
+  var body=$('f-table').querySelector('tbody'); clear(body);
+  FLX.regimes.forEach(function(r2,k){
+    var tr=el('tr',{style:'cursor:pointer'});
+    tr.appendChild(el('td',{},(k+1)+' · '+r2.regime.split('_').slice(1).join(' ')));
+    [r2.system_lcoe_per_mwh,r2.max_lmp_per_mwh,r2.max_reserve_price_per_mw_h,r2.bess_e_nom_mwh].forEach(function(v,j){
+      tr.appendChild(el('td',{class:'mono'},fmt(v,j===3?0:2)));
+    });
+    tr.addEventListener('click',function(){ S.flex=k; renderFlex(); route(true); });
+    body.appendChild(tr);
+  });
+}
+
+/* ---------- view: grid ---------- */
+var ZONE_POS={North_Wind:[.30,.14],West_Solar:[.09,.52],South_Hub:[.44,.87],East_Metro:[.86,.44]};
+function renderGrid(){
+  var seg=$('grid-seg'); clear(seg);
+  GRID.regimes.forEach(function(r,k){
+    var b=el('button',{type:'button','aria-pressed':String(k===S.grid)},String(k+1)+' · '+r.regime.split('_').slice(1).join(' '));
+    b.addEventListener('click',function(){ S.grid=k; renderGrid(); route(true); }); seg.appendChild(b);
+  });
+  var reg=GRID.regimes[S.grid], flows=GRID.flows[S.grid], prices=GRID.prices[S.grid];
+  var h=clamp(Math.round(S.hour),0,GRID.hours.length-1);
+  $('hour-out').textContent=String(h).padStart(2,'0')+':00';
+  $('g-hour-tag').textContent=String(h).padStart(2,'0')+':00';
+  $('gridscale-out').textContent='×'+GRID.scale_sweep.scale[clamp(S.scale,0,4)].toFixed(2);
+
+  var host=$('network'), c=chart(host,{height:340,label:'Four-zone network with flows and zonal prices',padR:14});
+  var W=c.w, H=c.h, pad=26;
+  function pos(name){ var p=ZONE_POS[name]||[.5,.5]; return [pad+p[0]*(W-2*pad), pad+p[1]*(H-2*pad-24)]; }
+  var zmax=0; prices.per_mwh.forEach(function(a){ a.forEach(function(v){ zmax=Math.max(zmax,Math.abs(v)); }); });
+  zmax=zmax||1;
+
+  GRID.corridors.forEach(function(corr){
+    var a=pos(corr.bus0), b=pos(corr.bus1);
+    var idx=flows.corridor.indexOf(corr.name);
+    var series=idx>=0?flows.mw[idx]:null;
+    var mw=series?series[h]:0;
+    var share=Math.min(1,Math.abs(mw)/Math.max(corr.s_nom_mw,1));
+    var wpx=1.4+2.6*share;
+    c.svg.appendChild(sEl('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:C.line,'stroke-width':wpx+3,opacity:.55,'stroke-linecap':'round'}));
+    c.svg.appendChild(sEl('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:Math.abs(mw)>1?(mw>0?C.cyan:C.amber):C.slate,
+      'stroke-width':wpx,opacity:.95,'stroke-linecap':'round','stroke-dasharray':Math.abs(mw)>1?'':'2 4'}));
+    var mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2;
+    c.svg.appendChild(sEl('rect',{x:mx-27,y:my-15,width:54,height:30,rx:7,fill:'var(--panel)','fill-opacity':.92,stroke:C.line}));
+    c.svg.appendChild(sEl('text',{x:mx,y:my-3,'text-anchor':'middle',fill:C.muted,'font-size':9,'font-family':'var(--mono)'},corr.name.split('_')[0]+' · '+corr.s_nom_mw.toFixed(0)));
+    c.svg.appendChild(sEl('text',{x:mx,y:my+11,'text-anchor':'middle',fill:Math.abs(mw)>1?C.text:C.slate,'font-size':10.5,'font-family':'var(--mono)'},fmt(mw,0)+' MW'));
+  });
+  GRID.zones.forEach(function(z){
+    var p=pos(z), i=prices.zone.indexOf(z), lmp=i>=0?prices.per_mwh[i][h]:0;
+    var rad=15+9*Math.min(1,Math.abs(lmp)/zmax);
+    c.svg.appendChild(sEl('circle',{cx:p[0],cy:p[1],r:rad,fill:'color-mix(in srgb,'+C.green+' 24%,transparent)',stroke:C.green,'stroke-width':1.8}));
+    c.svg.appendChild(sEl('circle',{cx:p[0],cy:p[1],r:rad-6,fill:'none',stroke:C.green,'stroke-width':.8,opacity:.5}));
+    c.svg.appendChild(sEl('text',{x:p[0],y:p[1]-rad-11,'text-anchor':'middle',fill:C.text,'font-size':11.5,'font-weight':600},z.replace(/_/g,' ')));
+    c.svg.appendChild(sEl('text',{x:p[0],y:p[1]+5,'text-anchor':'middle',fill:C.text,'font-size':12.5,'font-weight':700,'font-family':'var(--mono)'},fmt(lmp,0)));
+    c.svg.appendChild(sEl('text',{x:p[0],y:p[1]+rad+13,'text-anchor':'middle',fill:C.muted,'font-size':9},'LMP'));
+  });
+  c.svg.appendChild(sEl('text',{x:pad,y:H-8,fill:C.muted,'font-size':10.5},'line width ∝ |flow| / rating · colour = direction · circle = zonal LMP'));
+
+  var facts=$('g-facts'); clear(facts);
+  [['System LCOE',fmt(reg.system_lcoe_per_mwh,2)+' /MWh'],['Mean LMP spread',fmt(reg.mean_lmp_spread_per_mwh,2)+' /MWh'],
+   ['Max LMP spread',fmt(reg.max_lmp_spread_per_mwh,2)+' /MWh'],['Total corridor',fmt(reg.total_line_mw,0)+' MW'],
+   ['Added lines',fmt(reg.added_line_mw,0)+' MW'],['Congestion rent',money(reg.annual_congestion_rent)],
+   ['Line CapEx',money(reg.annual_line_capex_cost)],['Merchandising gap',reg.merchandising_surplus_gap.toExponential(1)]].forEach(function(p){
+    facts.appendChild(el('dt',{},p[0])); facts.appendChild(el('dd',{},p[1]));
+  });
+  $('g-callout').innerHTML = S.grid===3
+    ? '<b>Co-optimised TEP.</b> The planner builds '+fmt(reg.added_line_mw,0)+' MW of new corridor and the annual congestion rent ('+money(reg.annual_congestion_rent)+') recovers the line CapEx to '+reg.merchandising_surplus_gap.toExponential(1)+' currency/yr.'
+    : (S.grid===1 ? '<b>Braess trap.</b> Adding a passive bridge to this topology raises dispatch cost by '+fmt(GRID.braess.cost_increase_pct,1)+'% ('+money(GRID.braess.base_cost_per_h)+' → '+money(GRID.braess.ac_bridge_cost_per_h)+' /h) because KVL forces counter-price loop flow.'
+       : 'Congestion rent is ISO merchandising surplus: it equals the price-spread rent on every corridor, hour by hour.');
+
+  var c2=chart($('gridscaleChart'),{height:250,padR:56,label:'LCOE and congestion rent versus corridor capacity'});
+  var ss=GRID.scale_sweep, sL0=Math.min.apply(null,ss.lcoe_per_mwh)*.95, sL1=Math.max.apply(null,ss.lcoe_per_mwh)*1.05;
+  var a2=axes(c2,{x0:ss.scale[0],x1:ss.scale[ss.scale.length-1],y0:sL0,y1:sL1},
+    {xLabel:'corridor capacity multiplier',yLabel:'LCOE /MWh',xFmt:function(v){return '×'+v.toFixed(2);},
+     right:{frame:[0,Math.max.apply(null,ss.congestion_rent)*1.05],label:'rent /yr',color:C.amber,fmt:function(v){return (v/1e6).toFixed(0)+'M';}}});
+  c2.svg.appendChild(sEl('path',{d:pathOf(ss.lcoe_per_mwh.map(function(v,k){return [a2.x(ss.scale[k]),a2.y(v)];})),fill:'none',stroke:C.green,'stroke-width':2.4}));
+  ss.lcoe_per_mwh.forEach(function(v,k){ c2.svg.appendChild(sEl('circle',{cx:a2.x(ss.scale[k]),cy:a2.y(v),r:3.4,fill:C.green})); });
+  var rmax2=Math.max.apply(null,ss.congestion_rent)*1.05||1;
+  c2.svg.appendChild(sEl('path',{d:pathOf(ss.congestion_rent.map(function(v,k){
+    return [a2.x(ss.scale[k]), a2.y(sL0+(v/rmax2)*(sL1-sL0))];})),fill:'none',stroke:C.amber,'stroke-width':1.7,'stroke-dasharray':'5 4'}));
+  c2.svg.appendChild(sEl('circle',{cx:c2.w-c2.pad.r-6,cy:c2.pad.t-3,r:3,fill:C.amber}));
+  var cur=clamp(S.scale,0,4);
+  c2.svg.appendChild(sEl('line',{x1:a2.x(ss.scale[cur]),x2:a2.x(ss.scale[cur]),y1:c2.pad.t,y2:c2.h-c2.pad.b,stroke:C.violet,'stroke-dasharray':'3 3'}));
+
+  var head=$('ptdf-table').querySelector('thead tr'); clear(head);
+  head.appendChild(el('th',{},'Corridor'));
+  GRID.zones.forEach(function(z){ head.appendChild(el('th',{},z.replace(/_/g,' '))); });
+  var body=$('ptdf-table').querySelector('tbody'); clear(body);
+  GRID.corridors.forEach(function(corr,i){
+    var tr=el('tr'); tr.appendChild(el('td',{class:'mono'},corr.name));
+    GRID.ptdf[i].forEach(function(v){ tr.appendChild(el('td',{class:'mono'},fmt(v,3))); });
+    body.appendChild(tr);
+  });
+}
+
+/* ---------- view: risk ---------- */
+function renderRisk(){
+  var i=clamp(Math.round(S.beta),0,RSK.betas.length-1), beta=RSK.betas[i];
+  $('beta-out').textContent=beta.toFixed(2);
+  $('r-lcoe').innerHTML=fmt(RSK.lcoe_per_mwh[i],2)+' <small>/MWh</small>';
+  $('r-cvar').innerHTML=fmt(RSK.cvar_per_year[i]/1e6,1)+' <small>M/yr</small>';
+  $('r-eens').innerHTML='<span style="font-size:18px">'+fmt(RSK.eens_mwh_per_year[i],1)+'</span> <small>MWh</small>';
+  $('r-note').textContent = 'Risk premium '+fmt(RSK.risk_premium_per_mwh[i],2)+
+    ' /MWh buys a '+fmt(RSK.cvar_reduction_pct[i],1)+'% reduction in tail cost versus the risk-neutral plan.';
+
+  var c=chart($('frontierChart'),{height:300,label:'Mean CVaR efficient frontier'});
+  var ez=RSK.expected_cost_per_year, cv=RSK.cvar_per_year;
+  var ax=axes(c,{x0:Math.min.apply(null,ez)*.96,x1:Math.max.apply(null,ez)*1.03,
+    y0:Math.min.apply(null,cv)*.98,y1:Math.max.apply(null,cv)*1.03},
+    {xLabel:'expected annual cost E[Z]',yLabel:'CVaR 95% [Z]',xFmt:function(v){return (v/1e6).toFixed(0)+'M';},yFmt:function(v){return (v/1e6).toFixed(0)+'M';}});
+  c.svg.appendChild(sEl('path',{d:pathOf(ez.map(function(v,k){return [ax.x(v),ax.y(cv[k])];})),fill:'none',stroke:C.green,'stroke-width':2.2}));
+  RSK.betas.forEach(function(b,k){
+    c.svg.appendChild(sEl('circle',{cx:ax.x(ez[k]),cy:ax.y(cv[k]),r:k===i?6.5:3.4,
+      fill:k===i?C.violet:C.green,stroke:k===i?'#fff':C.green,'stroke-width':k===i?1.6:0}));
+    if(k===0||k===RSK.betas.length-1||k===i){
+      c.svg.appendChild(sEl('text',{x:ax.x(ez[k])+8,y:ax.y(cv[k])-8,fill:k===i?C.violet:C.muted,'font-size':10.5,'font-family':'var(--mono)'},'β='+b.toFixed(2)));
+    }
+  });
+  hoverLayer(c,function(e){
+    var k=0,bd=1e9; ez.forEach(function(v,j){var d=Math.abs(ax.x(v)-e.offsetX)+Math.abs(ax.y(cv[j])-e.offsetY); if(d<bd){bd=d;k=j;}});
+    showTip(e,'<div class="k">β = '+RSK.betas[k].toFixed(2)+'</div><b>E[Z] '+money(ez[k])+'</b><br>CVaR '+money(cv[k])+
+      '<br><span class="k">LCOE '+fmt(RSK.lcoe_per_mwh[k],2)+' /MWh · solar '+fmt(RSK.capacities_mw.solar[k],0)+' MW</span>');
+  });
+
+  var kw=RSK.risk_weights.filter(function(w){return Math.abs(w.beta-beta)<1e-9;})[0]||RSK.risk_weights[1];
+  var c2=chart($('kernelChart'),{height:280,padR:52,label:'Dual risk weights q star'});
+  var names=RSK.regimes.map(function(r){return r.name;});
+  var maxQ=Math.max.apply(null,kw.weights)*1.35||0.1;
+  var maxCap=Math.max.apply(null,RSK.regimes.map(function(r){return r.envelope_cap;}))*1.08;
+  var a2=axes(c2,{x0:0,x1:names.length-1,y0:0,y1:maxQ},
+    {yLabel:'q* (risk weight)',xFmt:function(v){return 'WY'+Math.round(v)+1;},yFmt:function(v){return fmt(v,2);},
+     right:{frame:[0,maxCap],label:'ceiling π/(1−α)',color:C.red,fmt:function(v){return fmt(v,2);}}});
+  var bw=(c2.w-c2.pad.l-c2.pad.r)/names.length;
+  RSK.regimes.forEach(function(r,k){
+    var q=kw.weights[k];
+    c2.svg.appendChild(sEl('rect',{x:a2.x(k)-bw*.28,y:a2.y(q),width:bw*.56,height:Math.max(1,c2.h-c2.pad.b-a2.y(q)),rx:3,
+      fill:r.envelope_cap>r.probability*1.5?C.violet:C.green,opacity:.92}));
+    c2.svg.appendChild(sEl('circle',{cx:a2.x(k),cy:a2.y(r.probability),r:3.2,fill:'none',stroke:C.amber,'stroke-width':1.5}));
+    var capY=a2.y((r.envelope_cap/maxCap)*maxQ);
+    c2.svg.appendChild(sEl('line',{x1:a2.x(k)-bw*.34,x2:a2.x(k)+bw*.34,y1:capY,y2:capY,stroke:C.red,'stroke-width':1.3,'stroke-dasharray':'3 3'}));
+    c2.svg.appendChild(sEl('text',{x:a2.x(k),y:c2.h-c2.pad.b+14,'text-anchor':'middle',fill:C.muted,'font-size':9},'WY'+(k+1)));
+  });
+
+  hoverLayer(c2,function(e){
+    var k=clamp(Math.floor((e.offsetX-c2.pad.l)/bw),0,names.length-1), r=RSK.regimes[k];
+    showTip(e,'<div class="k">'+r.name.replace(/_/g,' ')+'</div>π '+fmt(r.probability,3)+' → q* '+fmt(kw.weights[k],3)+
+      '<br><span class="k">ceiling '+fmt(r.envelope_cap,2)+' · load +'+fmt(r.load_adder_mw,0)+' MW · wind cap '+fmt(r.wind_cap_cf*100,0)+'%</span>');
+  });
+
+  var mix=$('r-mix'); clear(mix);
+  var caps=[['Solar',RSK.capacities_mw.solar[i],C.green],['Wind',RSK.capacities_mw.wind[i],C.cyan],
+            ['Gas',RSK.capacities_mw.gas[i],C.amber],['BESS',RSK.capacities_mw.bess[i],C.violet]];
+  var mx=Math.max.apply(null,caps.map(function(x){return x[1];}))||1;
+  caps.forEach(function(m){
+    var row=el('div',{class:'b'}); row.appendChild(el('span',{},m[0]));
+    var t=el('div',{class:'track'}), f=el('div',{class:'fill'}); f.style.background=m[2]; f.style.width=(100*m[1]/mx)+'%'; t.appendChild(f);
+    row.appendChild(t); row.appendChild(el('span',{class:'mono'},fmt(m[1],0)+' MW')); mix.appendChild(row);
+  });
+
+  var bl=RSK.birge_louveaux;
+  var c3=chart($('boundsChart'),{height:250,label:'Wait and see, recourse and expected value bounds'});
+  var vals=[['WS',bl.wait_and_see_per_year,C.green],['RP',bl.recourse_per_year,C.cyan],['EEV',bl.expected_ev_per_year,C.red]];
+  var mxv=Math.max.apply(null,vals.map(function(v){return v[1];}));
+  var a3=axes(c3,{x0:0,x1:2,y0:0,y1:mxv*1.12},
+    {yLabel:'currency/yr (millions)',yFmt:function(v){return (v/1e6).toFixed(0)+'M';},
+     xFmt:function(v){return vals[Math.round(v)]?vals[Math.round(v)][0]:'';}});
+  vals.forEach(function(v,k){
+    c3.svg.appendChild(sEl('rect',{x:a3.x(k)-22,y:a3.y(v[1]),width:44,height:c3.h-c3.pad.b-a3.y(v[1]),rx:5,fill:v[2],opacity:.85}));
+    c3.svg.appendChild(sEl('text',{x:a3.x(k),y:a3.y(v[1])-8,'text-anchor':'middle',fill:C.text,'font-size':10.5,'font-family':'var(--mono)'},(v[1]/1e6).toFixed(0)+'M'));
+    c3.svg.appendChild(sEl('text',{x:a3.x(k),y:c3.h-c3.pad.b+16,'text-anchor':'middle',fill:C.muted,'font-size':10.5},v[0]));
+  });
+  c3.svg.appendChild(sEl('line',{x1:c3.pad.l,x2:c3.w-c3.pad.r,y1:c3.pad.t+6,y2:c3.pad.t+6,stroke:C.line}));
+  $('r-callout').innerHTML = '<b>EVPI '+money(bl.evpi_per_year)+'</b> · <b>VSS '+money(bl.vss_per_year)+
+    '</b>. The expected-value plan builds '+fmt(bl.expected_value_plan_mw.solar,0)+' MW solar, '+fmt(bl.expected_value_plan_mw.wind,0)+
+    ' MW wind and <b>'+fmt(bl.expected_value_plan_mw.gas,0)+' MW gas</b>; averaged over the eight futures it costs '+
+    fmt(bl.expected_ev_per_year/bl.recourse_per_year,1)+'× the hedged plan. Ordering WS ≤ RP ≤ EEV: '+(bl.ordering_ok?'holds':'fails')+'.';
+}
+
+/* ---------- view: method ---------- */
+function renderMethod(){
+  var c=chart($('surrogateChart'),{height:280,label:'Surrogate versus exact LCOE on holdout nodes'});
+  var pts=SUR.samples;
+  if(pts.length){
+    var vals=pts.map(function(p){return p.exact_lcoe;}).concat(pts.map(function(p){return p.surrogate_lcoe;}));
+    var lo=Math.min.apply(null,vals)*.97, hi=Math.max.apply(null,vals)*1.03;
+    var ax=axes(c,{x0:lo,x1:hi,y0:lo,y1:hi},{xLabel:'exact LP /MWh',yLabel:'surrogate /MWh'});
+    c.svg.appendChild(sEl('line',{x1:ax.x(lo),y1:ax.y(lo),x2:ax.x(hi),y2:ax.y(hi),stroke:C.muted,'stroke-width':1.2,'stroke-dasharray':'5 4'}));
+    pts.forEach(function(p){
+      c.svg.appendChild(sEl('circle',{cx:ax.x(p.exact_lcoe),cy:ax.y(p.surrogate_lcoe),r:4,fill:C.cyan,opacity:.85}));
+    });
+    c.svg.appendChild(sEl('text',{x:c.pad.l+6,y:c.pad.t+12,fill:C.muted,'font-size':10.5,'font-family':'var(--mono)'},
+      'R² '+fmt(SUR.r2,4)+' · RMSE '+fmt(SUR.rmse_per_mwh,3)+' · max '+fmt(SUR.max_abs_error_per_mwh,2)+' /MWh'));
+  } else { c.svg.appendChild(sEl('text',{x:20,y:40,fill:C.muted,'font-size':12},'no holdout run')); }
+
+  var meta=$('m-meta'); clear(meta);
+  [['Package',META.package_version],['Generated (UTC)',META.generated_utc],['Python',META.python],
+   ['PyPSA',META.pypsa],['NumPy / SciPy',META.numpy+' / '+META.scipy],['Pandas',META.pandas],
+   ['Solver runs',fmt(META.n_solves,0)],['Build time',fmt(META.runtime_seconds,1)+' s'],
+   ['Data digest',DATA_DIGEST.slice(0,16)+'…']].forEach(function(p){
+    meta.appendChild(el('dt',{},p[0])); meta.appendChild(el('dd',{},p[1]));
+  });
+  var body=$('m-tests').querySelector('tbody'); clear(body);
+  var total=0;
+  DATA.tests.forEach(function(t){
+    var tr=el('tr'); tr.appendChild(el('td',{class:'mono'},t.file)); tr.appendChild(el('td',{class:'mono'},fmt(t.tests,0)));
+    body.appendChild(tr); total+=t.tests;
+  });
+  $('m-total').textContent='Static inventory of '+total+' test functions across '+DATA.tests.length+
+    ' modules; the CI matrix runs the full pytest suite on Python 3.11, 3.12 and 3.13.';
+}
+
+/* ---------- routing, controls, exports ---------- */
+var VIEWS={overview:['Overview','One page, six solved modules, no network calls.',renderOverview],
+  dispatch:['Dispatch & LCOE','Representative day, cost stack and nodal prices.',renderDispatch],
+  storage:['Storage & lulls','Battery versus hydrogen across Dunkelflaute lengths.',renderStorage],
+  carbon:['Carbon & MACC','Cap-and-trade duality, abatement cost and fuel switching.',renderCarbon],
+  flex:['Flexibility','Ramping, must-run floors and co-optimised reserves.',renderFlex],
+  grid:['Meshed grid','4-zone DC-OPF, loop flows and transmission expansion.',renderGrid],
+  risk:['Risk & CVaR','Mean-CVaR frontier, dual risk kernel and stochastic bounds.',renderRisk],
+  method:['Method & checks','Surrogate validation, provenance and limits.',renderMethod]};
+function go(id,silent){
+  if(!VIEWS[id]) id='overview';
+  S.view=id;
+  document.querySelectorAll('section[data-view]').forEach(function(s){ s.classList.toggle('on',s.getAttribute('data-view')===id); });
+  document.querySelectorAll('.navlink').forEach(function(b){ if(b.getAttribute('data-go')===id) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  $('view-title').textContent=VIEWS[id][0]; $('view-sub').textContent=VIEWS[id][1];
+  VIEWS[id][2]();
+  if(!silent) window.scrollTo({top:0,behavior:reduced()?'auto':'smooth'});
+  route(true);
+}
+function stateParams(){
+  var p=[];
+  if(S.view==='dispatch'){ p.push('wacc='+S.wacc.toFixed(3),'capex='+S.capex.toFixed(2)); }
+  if(S.view==='storage') p.push('lull='+S.lull);
+  if(S.view==='carbon') p.push('cap='+S.cap);
+  if(S.view==='flex') p.push('flex='+S.flex);
+  if(S.view==='grid') p.push('grid='+S.grid,'scale='+S.scale,'hour='+S.hour);
+  if(S.view==='risk') p.push('beta='+S.beta);
+  return p.length?'?'+p.join('&'):'';
+}
+function route(push){
+  var h='#/'+S.view+stateParams();
+  if(location.hash!==h){ try{ history.replaceState(null,'',h); }catch(e){ location.hash=h; } }
+}
+function parseHash(){
+  var raw=(location.hash||'').replace(/^#\/?/,'');
+  var parts=raw.split('?'), id=parts[0]||'overview', q={};
+  (parts[1]||'').split('&').forEach(function(kv){ var a=kv.split('='); if(a[0]) q[a[0]]=a[1]; });
+  if(q.wacc!==undefined) S.wacc=clamp(parseFloat(q.wacc),0.01,0.15);
+  if(q.capex!==undefined) S.capex=clamp(parseFloat(q.capex),0.55,1.75);
+  if(q.lull!==undefined) S.lull=clamp(parseInt(q.lull,10),0,STO.durations.length-1);
+  if(q.cap!==undefined) S.cap=clamp(parseInt(q.cap,10),0,CAR.targets_pct.length-1);
+  if(q.flex!==undefined) S.flex=clamp(parseInt(q.flex,10),0,FLX.regimes.length-1);
+  if(q.grid!==undefined) S.grid=clamp(parseInt(q.grid,10),0,GRID.regimes.length-1);
+  if(q.scale!==undefined) S.scale=clamp(parseInt(q.scale,10),0,4);
+  if(q.hour!==undefined) S.hour=clamp(parseInt(q.hour,10),0,GRID.hours.length-1);
+  if(q.beta!==undefined) S.beta=clamp(parseInt(q.beta,10),0,RSK.betas.length-1);
+  return VIEWS[id]?id:'overview';
+}
+function syncControls(){
+  $('wacc').value=S.wacc*100; $('capex').value=S.capex;
+  $('lull').value=S.lull; $('cap').value=S.cap; $('hour').value=S.hour;
+  $('gridscale').value=S.scale; $('beta').value=S.beta;
+}
+function renderActive(){ VIEWS[S.view][2](); }
+function bind(){
+  document.querySelectorAll('.navlink').forEach(function(b){ b.addEventListener('click',function(){ go(b.getAttribute('data-go')); }); });
+  $('wacc').addEventListener('input',function(e){ S.wacc=parseFloat(e.target.value)/100; renderActive(); route(true); });
+  $('capex').addEventListener('input',function(e){ S.capex=parseFloat(e.target.value); renderActive(); route(true); });
+  $('lull').addEventListener('input',function(e){ S.lull=parseFloat(e.target.value); renderActive(); route(true); });
+  $('cap').addEventListener('input',function(e){ S.cap=parseFloat(e.target.value); renderActive(); route(true); });
+  $('hour').addEventListener('input',function(e){ S.hour=parseFloat(e.target.value); renderActive(); route(true); });
+  $('gridscale').addEventListener('input',function(e){ S.scale=parseFloat(e.target.value); renderActive(); route(true); });
+  $('beta').addEventListener('input',function(e){ S.beta=parseFloat(e.target.value); renderActive(); route(true); });
+
+  $('btn-theme').addEventListener('click',function(){
+    var next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',next);
+    this.setAttribute('aria-pressed',String(next==='light'));
+    try{ localStorage.setItem('etm-theme',next); }catch(e){}
+    renderActive();
+  });
+  $('btn-link').addEventListener('click',function(){
+    var url=location.href;
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(function(){ announce('Link copied'); }); }
+    else{ announce(url); }
+    this.textContent='Copied'; var self=this; setTimeout(function(){ self.textContent='Copy link'; },1400);
+  });
+  $('btn-csv').addEventListener('click',function(){
+    var rows=csvFor(S.view);
+    if(!rows.length){ announce('nothing to export'); return; }
+    download('etm-'+S.view+'.csv',rows.map(function(r){return r.join(',');}).join('\n'),'text/csv');
+    announce('CSV exported');
+  });
+  $('btn-svg').addEventListener('click',function(){
+    var host=document.querySelector('section[data-view].on .chart svg');
+    if(!host){ announce('no chart'); return; }
+    var clone=host.cloneNode(true);
+    clone.setAttribute('xmlns',NS);
+    var css='text{font-family:DejaVu Sans,sans-serif}';
+    var style=document.createElementNS(NS,'style'); style.textContent=css; clone.insertBefore(style,clone.firstChild);
+    download('etm-'+S.view+'.svg',new XMLSerializer().serializeToString(clone),'image/svg+xml');
+    announce('SVG exported');
+  });
+  window.addEventListener('hashchange',function(){
+    var id=parseHash(); syncControls(); go(id,true);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.metaKey||e.ctrlKey) return;
+    var keys=Object.keys(VIEWS);
+    if(e.key>='1'&&e.key<='8'){ go(keys[parseInt(e.key,10)-1]); }
+    if(e.key==='['||e.key===']'){
+      var k=keys.indexOf(S.view)+(e.key===']'?1:-1); go(keys[(k+keys.length)%keys.length]);
+    }
+  });
+  var t=null;
+  window.addEventListener('resize',function(){ clearTimeout(t); t=setTimeout(renderActive,140); });
+}
+function csvFor(view){
+  var rows=[];
+  if(view==='dispatch'){ var cs=caseFor(S.wacc,S.capex);
+    rows.push(['hour','load_mw','solar_mw','wind_mw','gas_mw','lmp_per_mwh']);
+    cs.load.forEach(function(v,i){ rows.push([i,v,cs.solar[i],cs.wind[i],cs.gas[i],cs.lmp[i]]); }); return rows; }
+  if(view==='storage'){ rows.push(['lull_hours','bess_only_lcoe','h2_only_lcoe','hybrid_lcoe']);
+    STO.durations.forEach(function(d,i){ rows.push([d,STO.bess_only_lcoe[i],STO.h2_only_lcoe[i],STO.hybrid_lcoe[i]]); }); return rows; }
+  if(view==='carbon'){ rows.push(['abatement_pct','emissions_tco2','lcoe_per_mwh','shadow_price','average_cost']);
+    CAR.targets_pct.forEach(function(t,i){ rows.push([t,CAR.emissions_tco2[i],CAR.resource_lcoe_per_mwh[i],CAR.shadow_price_per_tco2[i],CAR.average_cost_per_tco2[i]]); }); return rows; }
+  if(view==='flex'){ rows.push(['hour','net_load_mw','lmp','reserve_price']);
+    FLX.series[S.flex].net_load.forEach(function(v,i){ rows.push([i,v,FLX.series[S.flex].lmp[i],FLX.series[S.flex].reserve_price[i]]); }); return rows; }
+  if(view==='grid'){ var f=GRID.flows[S.grid]; rows.push(['hour'].concat(f.corridor));
+    GRID.hours.forEach(function(h,i){ rows.push([h].concat(f.corridor.map(function(_,j){return f.mw[j][i];}))); }); return rows; }
+  if(view==='risk'){ rows.push(['beta','expected_cost','cvar','lcoe','eens','solar_mw','wind_mw','gas_mw','bess_mw']);
+    RSK.betas.forEach(function(b,i){ rows.push([b,RSK.expected_cost_per_year[i],RSK.cvar_per_year[i],RSK.lcoe_per_mwh[i],RSK.eens_mwh_per_year[i],
+      RSK.capacities_mw.solar[i],RSK.capacities_mw.wind[i],RSK.capacities_mw.gas[i],RSK.capacities_mw.bess[i]]); }); return rows; }
+  if(view==='method'){ rows.push(['wacc','capex_scale','exact_lcoe','surrogate_lcoe']);
+    SUR.samples.forEach(function(p){ rows.push([p.wacc,p.capex_scale,p.exact_lcoe,p.surrogate_lcoe]); }); return rows; }
+  rows.push(['module','identity','residual','tolerance']);
+  DATA.verification.forEach(function(v){ rows.push([v.module,v.identity,v.residual,v.tolerance]); });
+  return rows;
+}
+function download(name,text,mime){
+  var blob=new Blob([text],{type:mime+';charset=utf-8'}), url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); },600);
+}
+
+/* ---------- boot ---------- */
+var DATA_DIGEST=(document.querySelector('meta[name="etm-data-digest"]')||{content:''}).content;
+(function init(){
+  try{ var saved=localStorage.getItem('etm-theme'); if(saved) document.documentElement.setAttribute('data-theme',saved); }catch(e){}
+  $('side-digest').textContent=DATA_DIGEST.slice(0,10)+'…';
+  $('foot-digest').textContent='dataset sha256 '+DATA_DIGEST.slice(0,16)+'… · '+META.package_version;
+  $('side-version').textContent='data '+META.generated_utc.slice(0,10);
+  /* open the grid view on the hour with the widest zonal price spread */
+  (function pickHour(){
+    var reg=GRID.prices[S.grid], best=0, bestSpread=-1;
+    for(var h=0; h<GRID.hours.length; h++){
+      var vals=reg.per_mwh.map(function(a){return a[h];});
+      var sp=Math.max.apply(null,vals)-Math.min.apply(null,vals);
+      if(sp>bestSpread){ bestSpread=sp; best=h; }
+    }
+    S.hour=best;
+  })();
+  bind(); syncControls();
+  go(parseHash(),true);
+})();
+})();
+</script>
+</body>
+</html>

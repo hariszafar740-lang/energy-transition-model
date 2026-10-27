@@ -40,6 +40,9 @@ jobs:
       - name: Format check
         run: ruff format --check .
 
+      - name: Workbench artifact freshness (committed page == committed dataset)
+        run: etm-workbench check
+
       - name: Test suite
         run: pytest -v
 
@@ -48,7 +51,10 @@ jobs:
           python main.py
           python main.py --duality-report --save-plot /tmp/etm_ci_smoke.png
           python main.py --dunkelflaute-report --save-storage-plot /tmp/etm_ci_storage.png
-          rm -f /tmp/etm_ci_smoke.png /tmp/etm_ci_storage.png
+          python -c "from energy_model.workbench import plot_risk_frontier_and_kernel; \
+            plot_risk_frontier_and_kernel('/tmp/etm_ci_risk.png')"
+          test -s /tmp/etm_ci_risk.png
+          rm -f /tmp/etm_ci_smoke.png /tmp/etm_ci_storage.png /tmp/etm_ci_risk.png
 
       - name: Build sdist and wheel
         run: |
