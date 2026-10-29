@@ -28,7 +28,7 @@ Every figure further down is asserted against the code that produces it: `tests/
 
 ## Quickstart & verification
 
-Four commands from clone to first result. No data download, no API key, nothing to configure:
+Four commands. The first one downloads PyPSA, HiGHS, SciPy and Matplotlib and builds the package; after that the full duality report below runs in ≈ 10 s on a laptop. No data download, no API key, nothing to configure:
 
 ~~~bash
 git clone --depth 1 https://github.com/hariszafar740-lang/energy-transition-model.git
@@ -46,7 +46,7 @@ Max built zero-profit residual:         4.6566e-10
 
 That is the solver's price of energy for a representative day, the demand-weighted dual price, and the gap between them — the identity asserted in the first row of the table above. Add `--dunkelflaute-report` for the 168 h storage study, `--macc-report` for the CO₂ abatement curve, `--cvar-report` for the risk-averse plan.
 
-Full suite: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest -v` — 285 tests, about 7 minutes.
+Full suite: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest -v` — 285 tests, several minutes on a laptop.
 
 ## Deep dive
 
