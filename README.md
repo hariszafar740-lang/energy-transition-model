@@ -7,6 +7,51 @@
 [![Offline workbench](https://img.shields.io/badge/workbench-offline%20%C2%B7%20zero%20requests-0e7490)](https://hariszafar740-lang.github.io/energy-transition-model/workbench/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+**Capacity expansion, multi-duration storage and CO₂ pricing for a 100 % renewable grid — built with PyPSA and HiGHS, with every headline number cross-checked against a solver that shares no code with it.**
+
+285 tests · Python 3.11–3.13 · MIT · no data download, no API key, no network at run time.
+
+**[▸ Open the workbench](https://hariszafar740-lang.github.io/energy-transition-model/workbench/)** — the whole model solved and in one self-contained HTML file, offline · **[Quickstart](#quickstart--verification)** · **[Validation](#validation--six-independent-cross-checks-not-claims)**
+
+## Validation — six independent cross-checks, not claims
+
+| Check | This model | Independent reference | Residual | Reproduce with |
+| :--- | :--- | :--- | :---: | :--- |
+| LP strong duality | system LCOE = demand-weighted LMP = `28.0555` /MWh | KKT dual of the same LP | `7.45e-09` /yr | `test_kkt_strong_duality_and_zero_profit_equilibrium` |
+| Nodal LMP | hourly λ_t and capacities from PyPSA/linopy | standalone sparse `scipy.optimize.linprog` (HiGHS) primal + dual | rel. objective `< 1e-10` | `test_primal_dual_crosscheck_matches_independent_scipy_linprog` |
+| CO₂ cap ↔ tax | `J*_tax(μ*) = J*_cap(Ē) + μ*Ē` | Lagrangian saddle point | rel. gap `< 1e-12` | `test_tax_to_cap_primal_and_saddle_point_equivalence` |
+| Meshed DC-OPF | congestion rents from PyPSA PTDF flows | cycle-KVL / B-θ OPF on the same network | rel. objective `< 1e-11` | `test_scipy_btheta_matches_pypsa_cycle_kvl_to_machine_precision` |
+| Mean-CVaR plan | risk-averse objective, CVaR, first-stage capacities | independent 1,357-variable matrix LP | rel. CVaR `< 1e-11` | `test_scipy_matrix_matches_pypsa_stochastic_cvar_to_machine_precision` |
+| Offline workbench | `workbench/index.html` served by Pages | committed `workbench/data/etm_workbench_data.json` | byte-identical | `etm-workbench check`, re-run by CI on every push |
+
+Every figure further down is asserted against the code that produces it: `tests/test_workbench_and_cvar.py` fails the build if a README number drifts from the committed dataset.
+
+## Quickstart & verification
+
+Four commands from clone to first result. No data download, no API key, nothing to configure:
+
+~~~bash
+git clone --depth 1 https://github.com/hariszafar740-lang/energy-transition-model.git
+cd energy-transition-model
+python3 -m venv .venv && .venv/bin/pip install -e .
+.venv/bin/etm-sim --duality-report
+~~~
+
+~~~
+System LCOE (currency/MWh):                28.0555
+Demand-weighted LMP (currency/MWh):        28.0555
+Strong-duality gap (currency/yr):      -7.4506e-09
+Max built zero-profit residual:         4.6566e-10
+~~~
+
+That is the solver's price of energy for a representative day, the demand-weighted dual price, and the gap between them — the identity asserted in the first row of the table above. Add `--dunkelflaute-report` for the 168 h storage study, `--macc-report` for the CO₂ abatement curve, `--cvar-report` for the risk-averse plan.
+
+Full suite: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest -v` — 285 tests, about 7 minutes.
+
+## Deep dive
+
+Formulations, assumptions, sensitivities and figures, module by module.
+
 An open-source energy-system capacity-expansion, chronological multi-duration energy storage (`Li-Ion BESS` + `Green H2` Power-to-X), discounted cash-flow (`WACC` / `CRF` / `LCOE`), KKT nodal shadow-price (`LMP`) duality, CO2 cap-and-trade, ramp/reserve adequacy, meshed `DC-OPF`/`AC-TEP` and mean-CVaR stochastic model built with **PyPSA** (Python for Power System Analysis) and the **HiGHS** linear-programming solver — plus a **single-file, offline, zero-dependency interactive workbench** that renders every solved module in the browser.
 
 [![Open the offline workbench](https://img.shields.io/badge/%E2%96%B6%20open%20the%20workbench-interactive%20%C2%B7%20no%20network-0e7490?style=for-the-badge)](https://hariszafar740-lang.github.io/energy-transition-model/workbench/)
