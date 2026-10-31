@@ -139,7 +139,7 @@ def plot_baseline_dispatch_and_lmp_duality(
 
     ax1 = axes[0, 1]
     lmp_vals = res.lmp_per_mwh.to_numpy(dtype=float)
-    ax1.step(hours, lmp_vals, where="mid", color="#7c3aed", lw=2.2, label=r"Nodal LMP $\lambda_t$")
+    ax1.step(hours, lmp_vals, where="mid", color="#7c3aed", lw=2.2, label=r"Nodal LMP λ_t")
     ax1.fill_between(hours, 0.0, lmp_vals, step="mid", color="#7c3aed", alpha=0.14)
     ax1.axhline(
         65.0,
@@ -160,7 +160,7 @@ def plot_baseline_dispatch_and_lmp_duality(
     ax1.annotate(
         (
             f"Scarcity Hour {peak_idx:02d}:00\n"
-            f"$\\lambda_{{18}}$ = {lmp_vals[peak_idx]:.2f} /MWh\n"
+            f"λ_{{18}} = {lmp_vals[peak_idx]:.2f} /MWh\n"
             "(= 65 + 20,000/365)"
         ),
         xy=(hours[peak_idx], lmp_vals[peak_idx]),
@@ -169,7 +169,7 @@ def plot_baseline_dispatch_and_lmp_duality(
         bbox={"boxstyle": "round,pad=0.3", "fc": "white", "ec": "#cbd5e1"},
         arrowprops={"arrowstyle": "->", "color": "#475569", "lw": 1.0},
     )
-    ax1.set_title(r"(b) KKT Nodal Shadow Price $\lambda_t$ & Scarcity-Rent Regimes")
+    ax1.set_title(r"(b) KKT Nodal Shadow Price λ_t & Scarcity-Rent Regimes")
     ax1.set_xlabel("Representative-Day Hour (h)")
     ax1.set_ylabel("Shadow Price (currency / MWh)")
     ax1.set_xlim(0, 23)
@@ -549,7 +549,7 @@ def plot_co2_pareto_frontier_and_macc(
         t_priv_m,
         color="#a855f7",
         alpha=0.17,
-        label=r"Recycled Tax Transfer $\tau \cdot E^*(\tau)$",
+        label=r"Recycled Tax Transfer τ ·E^*(τ)",
     )
     ax0.plot(
         t_e_kt,
@@ -557,7 +557,7 @@ def plot_co2_pareto_frontier_and_macc(
         color="#7e22ce",
         lw=1.8,
         ls="--",
-        label=r"Private Cost under Tax $J_{\mathrm{tax}}^*(\tau)$",
+        label=r"Private Cost under Tax J_{tax}^*(τ)",
     )
     ax0.plot(
         e_kt,
@@ -566,7 +566,7 @@ def plot_co2_pareto_frontier_and_macc(
         lw=2.4,
         marker="o",
         ms=5.2,
-        label=r"Cap Resource Cost $J_{\mathrm{cap}}^*(\bar{E})$",
+        label=r"Cap Resource Cost J_{cap}^*(Ē)",
     )
     ax0.scatter(
         t_e_kt,
@@ -577,7 +577,7 @@ def plot_co2_pareto_frontier_and_macc(
         edgecolors="#dc2626",
         linewidths=1.5,
         zorder=5,
-        label=r"Tax Resource Cost $J_{\mathrm{res}}^*(\tau)$ (Duality)",
+        label=r"Tax Resource Cost J_{res}^*(τ) (Duality)",
     )
 
     # Annotate BAU, 75% tangent point, and Net-Zero
@@ -588,7 +588,7 @@ def plot_co2_pareto_frontier_and_macc(
     ax0.annotate(
         (
             f"75% Abatement\n$E^*$ = {e75:.0f} ktCO$_2$/yr\n"
-            f"$-\\partial J^*/\\partial \\bar{{E}}$ = {mu75:.2f} /tCO$_2$"
+            f"-∂ J^*/∂ Ē = {mu75:.2f} /tCO$_2$"
         ),
         xy=(e75, c75),
         xytext=(55.0, 35.0),
@@ -613,7 +613,7 @@ def plot_co2_pareto_frontier_and_macc(
         arrowprops={"arrowstyle": "->", "color": "#c2410c", "lw": 1.0},
     )
     ax0.set_title("(a) Cost-Emissions Pareto Frontier & Cap-Tax Duality")
-    ax0.set_xlabel(r"Annual $\mathrm{CO_2}$ Emissions ($10^3\ \mathrm{tCO_2 / yr}$)")
+    ax0.set_xlabel(r"Annual CO_2 Emissions (10^3tCO_2 / yr)")
     ax0.set_ylabel("Annual System Cost (M currency / yr)")
     ax0.set_xlim(-35.0, float(e_kt.max()) * 1.07)
     ax0.set_ylim(float(c_res_m.min()) * 0.92, float(max(c_res_m.max(), t_priv_m.max())) * 1.11)
@@ -632,7 +632,7 @@ def plot_co2_pareto_frontier_and_macc(
         where="post",
         color="#dc2626",
         lw=2.3,
-        label=r"Marginal Abatement Cost $\mu_{\mathrm{CO_2}}^*$",
+        label=r"Marginal Abatement Cost μ_{CO_2}^*",
     )
     ax1.scatter(ab_pct, mac, color="#dc2626", s=26, zorder=4)
     ax1.fill_between(ab_pct, 0.0, mac, step="post", color="#ef4444", alpha=0.12)
@@ -649,7 +649,7 @@ def plot_co2_pareto_frontier_and_macc(
 
     # Annotate physical abatement stages cleanly
     ax1.annotate(
-        "Stage I: Wind Entry\n(~6-10 /tCO$_2$)",
+        "Stage I: Wind Entry\n(~6-10 /tCO_2)",
         xy=(
             30.0,
             float(
@@ -665,7 +665,7 @@ def plot_co2_pareto_frontier_and_macc(
         arrowprops={"arrowstyle": "->", "color": "#475569", "lw": 0.9},
     )
     ax1.annotate(
-        "Stage II: Coal -> CCGT\n+ Solar (~19-29 /tCO$_2$)",
+        "Stage II: Coal -> CCGT\n+ Solar (~19-29 /tCO_2)",
         xy=(85.0, float(mac[np.argmin(np.abs(ab_pct - 85.0))])),
         xytext=(42.0, 48.0),
         fontsize=7.7,
@@ -673,7 +673,7 @@ def plot_co2_pareto_frontier_and_macc(
         arrowprops={"arrowstyle": "->", "color": "#475569", "lw": 0.9},
     )
     ax1.annotate(
-        "Stage III: 90% Gas CCS\n+ BESS (~53-104 /tCO$_2$)",
+        "Stage III: 90% Gas CCS\n+ BESS (~53-104 /tCO_2)",
         xy=(98.5, float(mac[np.argmin(np.abs(ab_pct - 98.5))])),
         xytext=(47.0, 145.0),
         fontsize=7.7,
@@ -695,8 +695,8 @@ def plot_co2_pareto_frontier_and_macc(
     ax1.set_xlim(0.0, 102.5)
     ax1.set_ylim(0.0, 620.0)
     ax1.set_title("(b) Marginal Abatement Cost Curve (MACC) & Regime Staircase")
-    ax1.set_xlabel(r"Cumulative $\mathrm{CO_2}$ Abatement (% of BAU)")
-    ax1.set_ylabel(r"Carbon Price / Cost (currency / $\mathrm{tCO_2}$, symlog)")
+    ax1.set_xlabel(r"Cumulative CO_2 Abatement (% of BAU)")
+    ax1.set_ylabel(r"Carbon Price / Cost (currency / tCO_2, symlog)")
     ax1.legend(loc="upper left", fontsize=7.8, framealpha=0.93)
 
     # --- Panel (c): Generation Energy Mix (%) & Multi-Duration Storage Trajectory ---
@@ -728,7 +728,7 @@ def plot_co2_pareto_frontier_and_macc(
     ax2.set_ylim(0.0, 127.0)
     ax2.set_yticks([0, 20, 40, 60, 80, 100])
     ax2.set_title("(c) Generation Share (%) & Storage Capacity Across Abatement")
-    ax2.set_xlabel(r"Cumulative $\mathrm{CO_2}$ Abatement (% of BAU)")
+    ax2.set_xlabel(r"Cumulative CO_2 Abatement (% of BAU)")
     ax2.set_ylabel("Annual Generation Share (%)")
 
     ax2_r = ax2.twinx()
@@ -742,7 +742,7 @@ def plot_co2_pareto_frontier_and_macc(
         lw=2.2,
         marker="^",
         ms=4.8,
-        label=r"Green $\mathrm{H_2}$ Cavern ($\mathrm{GWh_{H2}}$)",
+        label=r"Green H_2 Cavern (GWh_{H2})",
     )
     ax2_r.plot(
         ab_pct,
@@ -754,7 +754,7 @@ def plot_co2_pareto_frontier_and_macc(
         ms=4.0,
         label="Li-Ion BESS ($10^1$ MWh)",
     )
-    ax2_r.set_ylabel(r"Storage Capacity ($\mathrm{GWh_{H2}}$ or $10^1$ MWh BESS)", color="#9f1239")
+    ax2_r.set_ylabel(r"Storage Capacity (GWh_{H2} or 10^1 MWh BESS)", color="#9f1239")
     ax2_r.set_ylim(0.0, max(5.2, float(max(h2_gwh.max(), bess_10mwh.max())) * 1.32))
 
     h_l, l_l = ax2.get_legend_handles_labels()
@@ -811,7 +811,7 @@ def plot_co2_pareto_frontier_and_macc(
         edgecolor="#7e22ce",
         hatch="//",
         linewidth=0.9,
-        label=r"Equiv. Tax Revenue $\mu^* E^*$ (M/yr)",
+        label=r"Equiv. Tax Revenue μ^* E^* (M/yr)",
     )
     ax3.set_xticks(x_pos)
     ax3.set_xticklabels(x_labels)
@@ -1354,7 +1354,7 @@ def plot_zonal_dcopf_congestion_and_tep(
     ax1.set_xticks(y_pos)
     ax1.set_xticklabels(short_l, fontsize=8.0)
     ax1.set_ylim(0.0, float(s_tep.max()) * 1.36)
-    ax1.set_ylabel("Corridor Thermal Rating $F_\\ell$ (MW)")
+    ax1.set_ylabel("Corridor Thermal Rating F_ℓ (MW)")
     ax1.set_title("(b) 380 kV Corridor Expansion & Binding Congestion Hours")
 
     ax1_r = ax1.twinx()

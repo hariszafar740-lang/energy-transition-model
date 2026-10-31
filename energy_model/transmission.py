@@ -2,7 +2,7 @@
 
 Mathematical identities verified by this module
 -----------------------------------------------
-1. **Equivalence of Cycle-Basis KVL (PyPSA) & Nodal Phase-Angle B-Theta / PTDF:**
+1. Equivalence of Cycle-Basis KVL (PyPSA) & Nodal Phase-Angle B-Theta / PTDF:
    For a lossless AC transmission network with node-branch incidence matrix
    ``K in {-1, 0, +1}^{|N| x |L|}``, series per-unit reactances ``x_l > 0``, and
    branch susceptances ``b_l = 1 / x_l`` (``B_diag = diag(b)``):
@@ -11,13 +11,13 @@ Mathematical identities verified by this module
        B_bus * theta_t = (K * B_diag * K^T) * theta_t = g_t - d_t,
        f_t = PTDF * (g_t - d_t),    C^T * X * f_t = 0  (Kirchhoff's Voltage Law).
 
-2. **Nodal LMP Decomposition via PTDF & Thermal Congestion Duals:**
+2. Nodal LMP Decomposition via PTDF & Thermal Congestion Duals:
    With shadow prices ``mu^+_{l,t}, mu^-_{l,t} >= 0`` on thermal line limits
    ``-F_l <= f_{l,t} <= F_l`` and reference-bus energy shadow price ``lambda_{ref,t}``:
 
        lambda_{z,t} = lambda_{ref,t} - sum_{l in L} PTDF_{l,z} * (mu^+_{l,t} - mu^-_{l,t}).
 
-3. **Triple Merchandising Surplus (ISO Congestion Rent) Equivalence:**
+3. Triple Merchandising Surplus (ISO Congestion Rent) Equivalence:
    At every snapshot ``t``, ISO Merchandising Surplus equals price-spread branch
    rent and shadow-price thermal capacity rent identically:
 
@@ -28,13 +28,13 @@ Mathematical identities verified by this module
    even when individual uncongested parallel AC corridors exhibit adverse counter-price
    KVL loop flows ``(lambda_{j,t} - lambda_{i,t}) * f_{l,t} < 0``.
 
-4. **Generator Revenue Adequacy & Joskow-Tirole TEP Cost Recovery (Strong Duality):**
+4. Generator Revenue Adequacy & Joskow-Tirole TEP Cost Recovery (Strong Duality):
    Across all greenfield generation regimes, ``sum_{z,t} w_t * lambda_{z,t} * g_{z,t}``
    recovers 100% of annualised generation CapEx + Fuel OpEx. When transmission
    capacities ``F_l`` are co-optimized without binding lower floors, annual congestion
    rent ``sum_t w_t * CR_t`` recovers 100% of optimal transmission CapEx.
 
-5. **Wheatstone-Bridge Braess's Paradox in Passive AC DC-OPF vs HVDC Control:**
+5. Wheatstone-Bridge Braess's Paradox in Passive AC DC-OPF vs HVDC Control:
    Adding a zero-cost, high-capacity passive AC tie-line across a symmetric bridge
    adds a KVL loop constraint that reduces maximum cheap power transfer (``120 -> 82.5 MW``)
    and strictly raises dispatch cost (``4,800 -> 7,800 currency/h``, ``+62.5%``),

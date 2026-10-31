@@ -7,14 +7,14 @@ module turns the complete model family into a *browser-ready, zero-dependency*
 artifact and adds two pieces of quantitative machinery that only make sense once
 every module can be evaluated repeatedly and cheaply:
 
-1. **A reduced-order surrogate of the (WACC, VRE-CapEx) cost surface.**
+1. A reduced-order surrogate of the (WACC, VRE-CapEx) cost surface.
    The exact surface requires one linear program per grid node.  The surrogate
    interpolates the *exact* solved nodes bilinearly, so the page can sweep the
    two financial drivers continuously.  Holdout nodes (never used for
    interpolation) quantify the interpolation error in currency/MWh, so the
    approximation is reported, not assumed.
 
-2. **An explicit mean-CVaR stochastic program with a Rockafellar-Uryasev epigraph.**
+2. An explicit mean-CVaR stochastic program with a Rockafellar-Uryasev epigraph.
    Module 6 dualises a risk-averse capacity-expansion model through PyPSA; this
    module keeps a *fully explicit* LP (variable layout, sparse matrices, duals)
    so that the risk-aversion weight can be swept in a few milliseconds and the
@@ -130,13 +130,13 @@ _SOLVE_TALLY: dict[str, int] = {"lp": 0, "pypsa": 0}
 
 
 def reset_solve_tally() -> None:
-    """Reset the optimisation counters used for provenance reporting."""
+    """Zero the optimisation counters."""
     _SOLVE_TALLY["lp"] = 0
     _SOLVE_TALLY["pypsa"] = 0
 
 
 def solve_tally() -> dict[str, int]:
-    """Return the number of optimisations executed since the last reset."""
+    """Optimisations run since the last reset."""
     return dict(_SOLVE_TALLY)
 
 
@@ -167,17 +167,17 @@ def _repo_root() -> Path:
 
 
 def template_path() -> Path:
-    """Path of the packaged single-file HTML template."""
+    """Where the packaged single-file HTML template sits."""
     return Path(__file__).resolve().parent / "data" / "workbench_template.html"
 
 
 def artifact_path(root: Path | None = None) -> Path:
-    """Path of the rendered, committed workbench page."""
+    """The rendered page CI re-verifies byte for byte."""
     return (root or _repo_root()) / "workbench" / "index.html"
 
 
 def data_path(root: Path | None = None) -> Path:
-    """Path of the committed workbench dataset (JSON)."""
+    """The committed dataset, JSON, the only thing the page trusts."""
     return (root or _repo_root()) / "workbench" / "data" / "etm_workbench_data.json"
 
 
@@ -191,7 +191,7 @@ class RiskScenario(Protocol):
     probability: float
 
     def profiles(self) -> dict[str, np.ndarray]:
-        """Return hourly ``load`` (MW), ``solar_cf`` and ``wind_cf`` (p.u.)."""
+        """Return hourly load (MW), `solar_cf` and `wind_cf` (p.u.)."""
         ...
 
 
@@ -316,14 +316,12 @@ def discrete_cvar(
     probabilities: Sequence[float] | np.ndarray,
     alpha: float,
 ) -> tuple[float, float]:
-    """Return ``(VaR, CVaR)`` of a discrete distribution at confidence level ``alpha``.
+    """(VaR, CVaR) of a discrete distribution at confidence level alpha.
 
-    The worst ``1 - alpha`` probability mass is integrated with exact atom
-    splitting, so a single scenario can be partially counted when the tail
-    boundary falls inside its probability atom (this happens for the 6% ``WY6``
-    atom at ``alpha = 0.95``).  Evaluating the tail directly keeps the reported
-    CVaR well defined even at ``beta = 0``, where the epigraph variable ``eta``
-    carries no objective weight.
+    The worst 1 - alpha of the probability mass is integrated with exact atom splitting, so
+    a scenario can be counted partially when the tail boundary lands inside its atom (that
+    is the 6% WY6 atom at alpha = 0.95). Going at the tail directly keeps CVaR defined at
+    beta = 0, where eta carries no objective weight.
     """
     c = np.asarray(costs, dtype=float)
     p = np.asarray(probabilities, dtype=float)
@@ -355,30 +353,19 @@ def solve_mean_cvar(
     alpha: float = RISK_ALPHA,
     fixed_capacities_mw: dict[str, float] | None = None,
 ) -> RiskKernelSolution:
-    """Solve the explicit two-stage mean-CVaR capacity-expansion LP.
+    """The explicit two-stage mean-CVaR LP, assembled and handed to the solver.
 
-    The risk-averse objective is the Rockafellar-Uryasev convex combination
+    Objective is the Rockafellar-Uryasev convex combination
 
         minimise  (1 - beta) * E[Z] + beta * CVaR_alpha[Z]
 
-    evaluated through its epigraph ``eta + (1 / (1 - alpha)) * E[(Z - eta)+]``,
-    where ``Z`` is the annual cost of one future (capacity CapEx + fuel + VoLL of
-    unserved energy).  ``beta = 0`` is risk-neutral expected cost and ``beta = 1``
-    is the pure worst-tail CVaR objective.
+    through its epigraph eta + (1 / (1 - alpha)) * E[(Z - eta)+]. Z is the annual cost of
+    one future: capacity CapEx, fuel, and the VoLL of the energy it fails to serve.
+    beta = 0 is risk-neutral expected cost, beta = 1 is the pure worst-tail objective.
 
-    Parameters
-    ----------
-    beta:
-        Risk-aversion weight in ``[0, 1]``.
-    regimes:
-        Scenario set; defaults to :data:`DEFAULT_RISK_REGIMES` (probabilities
-        must sum to one).
-    alpha:
-        CVaR confidence level in ``(0, 1)``; ``0.95`` targets the worst 5% tail.
-    fixed_capacities_mw:
-        Optional capacity vector (``{"solar", "wind", "gas", "bess"}``) used to
-        *evaluate* a first-stage plan under the full scenario set, e.g. for the
-        expectation-of-expected-value (EEV) bound.
+    Pass fixed_capacities_mw ({solar, wind, gas, bess}) to evaluate a first-stage plan
+    under the whole scenario set instead of optimising one. That is how the EEV bound is
+    built. alpha defaults to a 0.95 tail; regimes must sum to one.
     """
     if isinstance(beta, bool) or not isinstance(beta, (int, float)):
         raise ValueError("beta must be a real number")
@@ -676,7 +663,7 @@ class BirgeLouveauxBounds:
     expected_value_plan_mw: dict[str, float]
 
     def ordering_ok(self) -> bool:
-        """``WS <= RP <= EEV`` must hold for a consistent stochastic program."""
+        """`WS <= RP <= EEV` must hold for a consistent stochastic program."""
         tol = 1e-6 * max(1.0, abs(self.recourse_per_year))
         return (
             self.wait_and_see_per_year <= self.recourse_per_year + tol
@@ -689,12 +676,10 @@ class BirgeLouveauxBounds:
 def birge_louveaux_bounds(
     regimes: Sequence[RiskScenario] | None = None,
 ) -> BirgeLouveauxBounds:
-    """Compute the classic stochastic-programming bounds for the risk-neutral plan.
+    """The classic stochastic-programming bounds, for the risk-neutral plan.
 
-    * *Wait-and-see* (WS): each future is solved with its own bespoke capacity plan.
-    * *Recourse problem* (RP): one first-stage plan hedged across all futures.
-    * *Expected result of the expected-value problem* (EEV): the plan built for the
-      probability-weighted mean future, then evaluated against every future.
+    WS solves each future on its own. RP hedges one first-stage plan across all of them.
+    EEV takes the plan built for the mean future and grades it against every future.
     """
     scens = validate_risk_regimes(DEFAULT_RISK_REGIMES if regimes is None else regimes)
     ws = 0.0
@@ -768,7 +753,7 @@ class _MeanFuture:
 # Reduced-order surrogate of the (WACC, VRE-CapEx) surface
 # ---------------------------------------------------------------------------
 def _bracket_axis(grid: Sequence[float], value: float) -> tuple[int, int, float]:
-    """Return ``(i0, i1, weight)`` for linear interpolation with edge clamping."""
+    """Return `(i0, i1, weight)` for linear interpolation with edge clamping."""
     axis = np.asarray(grid, dtype=float)
     if axis.size < 2:
         raise ValueError("interpolation axis needs at least two nodes")
@@ -879,7 +864,7 @@ def _column(frame: pd.DataFrame, name: str, length: int) -> np.ndarray:
 
 
 def _collect_silently(fn: Any, *args: Any, **kwargs: Any) -> Any:
-    """Call ``fn`` with solver chatter suppressed (HiGHS writes to stdout)."""
+    """Call fn with solver chatter suppressed (HiGHS writes to stdout)."""
     import contextlib
     import io
     import logging
@@ -1404,7 +1389,7 @@ def build_verification(
 
 
 def _test_inventory(root: Path) -> list[dict[str, Any]]:
-    """Count ``def test_*`` functions per test module (static, no collection)."""
+    """Count `def test_*` functions per test module (static, no collection)."""
     inventory: list[dict[str, Any]] = []
     tests_dir = root / "tests"
     if not tests_dir.is_dir():
@@ -1418,7 +1403,7 @@ def _test_inventory(root: Path) -> list[dict[str, Any]]:
 
 
 def build_dataset(*, include_surrogate: bool = True) -> dict[str, Any]:
-    """Run every module and assemble the ``etm-workbench/1`` dataset."""
+    """Run every module and assemble the `etm-workbench/1` dataset."""
     started = time.time()
     root = _repo_root()
     reset_solve_tally()
@@ -1573,7 +1558,7 @@ def check_workbench(root: Path | None = None) -> list[str]:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Console entry point for ``etm-workbench`` and ``main.py --workbench``."""
+    """Console entry point for `etm-workbench` and `main.py --workbench`."""
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -1683,7 +1668,7 @@ def plot_risk_frontier_and_kernel(
     for _, row in frame.iterrows():
         if row["beta"] in (0.0, 0.35, 1.0):
             ax.annotate(
-                rf"$\beta$={row['beta']:.2f}",
+                rf"\beta={row['beta']:.2f}",
                 (row["expected_cost_per_year"] / 1e6, row["cvar_per_year"] / 1e6),
                 textcoords="offset points",
                 xytext=(8, 4),
@@ -1691,7 +1676,7 @@ def plot_risk_frontier_and_kernel(
                 color="#0f766e",
             )
     ax.set_xlabel("Expected annual cost  E[Z]  (million currency/yr)")
-    ax.set_ylabel("Tail cost  CVaR$_{95\\%}$[Z]  (million currency/yr)")
+    ax.set_ylabel("Tail cost  CVaR_{95%}[Z]  (million currency/yr)")
     ax.set_title("(a) Efficient frontier: expected cost vs tail cost")
     ax.legend(loc="upper right", frameon=False, fontsize=8.6)
 
@@ -1701,8 +1686,8 @@ def plot_risk_frontier_and_kernel(
     mid = sols[0.5].risk_weights
     prior = np.array([r.probability for r in DEFAULT_RISK_REGIMES])
     ceiling = prior / (1.0 - RISK_ALPHA)
-    ax.bar(pos - 0.19, prior, width=0.36, color="#94a3b8", label=r"prior $\pi_\omega$")
-    ax.bar(pos + 0.19, mid, width=0.36, color="#7c3aed", label=r"dual kernel $q^*$ ($\beta$=0.5)")
+    ax.bar(pos - 0.19, prior, width=0.36, color="#94a3b8", label=r"prior π_ω")
+    ax.bar(pos + 0.19, mid, width=0.36, color="#7c3aed", label=r"dual kernel q^* (β=0.5)")
     ax.scatter(
         pos,
         ceiling,
@@ -1710,7 +1695,7 @@ def plot_risk_frontier_and_kernel(
         s=210,
         linewidths=2.0,
         color="#dc2626",
-        label=r"ceiling $\pi_\omega/(1-\alpha)$",
+        label=r"ceiling π_ω/(1-α)",
         zorder=5,
     )
     ax.set_xticks(pos, names, fontsize=6.7)
@@ -1770,7 +1755,7 @@ def plot_risk_frontier_and_kernel(
         markersize=4.2,
         label="System LCOE (right)",
     )
-    ax.set_xlabel(r"Risk-aversion weight $\beta$")
+    ax.set_xlabel(r"Risk-aversion weight β")
     ax.set_ylabel("First-stage capacity (MW)")
     ax2.set_ylabel("System LCOE (currency/MWh)", color="#b91c1c")
     ax.set_title("(d) Hedge composition: the mix rotates from solar to wind as beta rises")

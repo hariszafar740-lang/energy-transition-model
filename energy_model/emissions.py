@@ -2,7 +2,7 @@
 
 Mathematical identities verified by this module
 -----------------------------------------------
-1. **Primary-to-Electric Specific Emissions Accounting:**
+1. Primary-to-Electric Specific Emissions Accounting:
    For generator ``g`` burning fuel carrier ``c(g)`` with primary thermal
    emission factor ``EF_th,c`` (tCO2 / MWh_th) and LHV-to-electric efficiency ``eta_g``
    in ``(0, 1]``, specific electric emissions intensity is
@@ -10,7 +10,7 @@ Mathematical identities verified by this module
        e_g = EF_th,c(g) / eta_g   [tCO2 / MWh_e],
        E_CO2,yr = sum_{g,t} w_t * e_g * p_{g,t} * dt   [tCO2 / yr].
 
-2. **Lagrangian Cap-Tax Duality & Saddle-Point Identity:**
+2. Lagrangian Cap-Tax Duality & Saddle-Point Identity:
    Consider the emissions-capped capacity-expansion LP with annual cap ``E_bar >= 0``
    and KKT shadow carbon price ``mu_CO2* = -dJ_cap*(E_bar)/dE_bar >= 0``:
 
@@ -27,7 +27,7 @@ Mathematical identities verified by this module
    solving the cap LP at ``E_bar`` recovers identical capacities ``K_g*``,
    dispatch ``p_{g,t}*``, and hourly nodal shadow prices ``lambda_t*``.
 
-3. **Net-Zero Boundary Subdifferential Regularisation (E_bar = 0):**
+3. Net-Zero Boundary Subdifferential Regularisation (E_bar = 0):
    In the dual LP ``max_{y, mu >= 0} b^T y - E_bar * mu``, setting ``E_bar = 0``
    assigns zero objective weight to ``mu``, so the subdifferential ``-dJ_cap*(0)``
    is the unbounded half-ray ``[tau_net_zero_min, +inf)``. Evaluating the
@@ -160,16 +160,16 @@ class FuelTechEmissionSpec:
 
     @property
     def specific_emissions_tco2_per_mwh_e(self) -> float:
-        """Electric-output CO2 intensity ``EF_th / eta`` (tCO2 / MWh_e)."""
+        """Electric-output CO2 intensity `EF_th / eta` (tCO2 / MWh_e)."""
         return float(self.primary_co2_t_per_mwh_th) / float(self.efficiency)
 
 
 def make_emissions_week_profiles() -> pd.DataFrame:
-    """Return a deterministic 168 h representative week with a 36 h winter lull.
+    """A deterministic 168 h week with a 36 h winter lull in it.
 
-    Synthetic benchmark chronology designed to exercise all four electricity
-    abatement stages (wind/solar expansion, coal-to-CCGT fuel switching,
-    90%-capture post-combustion Gas CCS, and long-duration green H2 storage).
+    Synthetic on purpose. The lull is what forces all four abatement stages to show up
+    (wind/solar expansion, coal-to-CCGT switching, 90%-capture Gas CCS, long-duration
+    green H2).
     """
     idx = pd.date_range("2026-01-01", periods=168, freq="h")
     h = np.arange(168, dtype=float)
@@ -303,16 +303,11 @@ def analytical_fuel_switching_carbon_price(
     low_emitting: FuelTechEmissionSpec,
     capacity_factor: float | None = None,
 ) -> float:
-    """Compute exact short-run (dispatch) or long-run (greenfield) CO2 switching price.
+    """Short-run (dispatch) or long-run (greenfield) CO2 switching price, exactly.
 
-    Parameters
-    ----------
-    high_emitting, low_emitting:
-        Generator specifications satisfying ``e_high > e_low``.
-    capacity_factor:
-        If ``None``, returns the short-run switching price given by
-        ratio ``(mc_low - mc_high) / (e_high - e_low)``. If provided in ``(0, 1]``,
-        includes annualised capital cost per MWh at ``8760 * capacity_factor``.
+    Needs e_high > e_low. capacity_factor=None gives the dispatch ratio
+    (mc_low - mc_high) / (e_high - e_low); hand it a value in (0, 1] and the annualised
+    capital cost per MWh at 8760 * capacity_factor comes in too.
     """
     delta_e = (
         high_emitting.specific_emissions_tco2_per_mwh_e
@@ -757,12 +752,12 @@ def verify_cap_tax_lagrangian_duality(
     include_storage: bool = True,
     annual_hours: float = ANNUAL_HOURS_PER_YEAR,
 ) -> CapTaxDualityComparison:
-    """Cross-verify Cap-and-Trade vs Pigouvian Carbon Tax Lagrangian equivalence.
+    """Cap-and-trade and a Pigouvian tax have to price carbon the same way. Check that.
 
-    Provide **either** ``co2_cap_tco2_per_year`` (Cap -> Tax direction: solves Cap LP
-    at ``E_bar``, extracts KKT multiplier ``mu_CO2*``, then solves Tax LP at ``tau = mu_CO2*``)
-    **or** ``co2_price_per_tco2`` (Tax -> Cap direction: solves Tax LP at ``tau``,
-    records optimal emissions ``E_bar = E*(tau)``, then solves Cap LP at ``E_bar``).
+    co2_cap_tco2_per_year runs Cap -> Tax: solve the cap LP at E_bar, pull the KKT
+    multiplier mu_CO2*, solve the tax LP at tau = mu_CO2*. co2_price_per_tco2 runs the
+    other way: solve at tau, read E_bar = E*(tau) off the solution, solve the cap LP
+    there.
     """
     if (co2_cap_tco2_per_year is None) == (co2_price_per_tco2 is None):
         raise ValueError("provide exactly one of co2_cap_tco2_per_year or co2_price_per_tco2")

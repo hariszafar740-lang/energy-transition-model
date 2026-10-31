@@ -12,7 +12,7 @@ Units and definitions
 ---------------------
 * Power ``p`` and capacity ``p_nom`` are in MW. Energy is MWh.
 * Every snapshot is one hour (``dt = 1 h``).
-* ``capital_cost`` is a cost per MW of installed capacity **per year**. The
+* ``capital_cost`` is a cost per MW of installed capacity per year. The
   values in ``DEFAULT_TECHNOLOGIES`` are carried over from the original file
   (``main.py``); they are assumed to be annualised and are not verified against a
   cost source. The currency is not specified in the original model.
@@ -121,10 +121,10 @@ def build_network(
     technologies: dict[str, dict] | None = None,
     days_per_year: int = DAYS_PER_YEAR,
 ) -> pypsa.Network:
-    """Create a PyPSA network whose time series come from ``profiles``.
+    """Create a PyPSA network whose time series come from profiles.
 
-    Input ``profiles`` is validated here (see :func:`validate_profiles`) so that
-    callers cannot bypass the time-series integrity checks.
+    Profiles get validated here (see :func:`validate_profiles`), so callers
+    cannot slip past the time-series integrity checks.
     """
     profiles = validate_profiles(profiles)
     if isinstance(days_per_year, bool) or not isinstance(days_per_year, int) or days_per_year < 1:

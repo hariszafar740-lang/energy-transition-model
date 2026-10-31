@@ -497,7 +497,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def cli_entrypoint() -> None:
-    "Console-script entry point registered as ``etm-sim`` in ``pyproject.toml``."
+    "Console-script entry point registered as `etm-sim` in `pyproject.toml`."
     raise SystemExit(main())
 
 

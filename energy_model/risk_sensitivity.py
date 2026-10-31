@@ -2,7 +2,7 @@
 
 Mathematical identities verified by this module
 -----------------------------------------------
-1. **Analytical Capital-Recovery Sensitivity & Hotelling-Shephard Envelope Theorem:**
+1. Analytical Capital-Recovery Sensitivity & Hotelling-Shephard Envelope Theorem:
    For real discount rate ``r in [0, 1]``, lifetime ``N > 0``, and VRE overnight
    CapEx scale factor ``kappa > 0``, optimal greenfield system cost
    ``J*(r, kappa) = min_{K >= 0, p in F(K)} { c_cap(r, kappa)^T K + c_op^T p }``
@@ -11,7 +11,7 @@ Mathematical identities verified by this module
        dJ*(r, kappa) / dr     = sum_g K_g*(r, kappa) * kappa_g * I_{0,g} * dCRF(r, N_g)/dr,
        dJ*(r, kappa) / dkappa = sum_{g in VRE} K_g*(r, kappa) * I_{0,g} * CRF(r, N_g).
 
-2. **Rockafellar-Uryasev Two-Stage Stochastic Mean-CVaR_alpha Formulation:**
+2. Rockafellar-Uryasev Two-Stage Stochastic Mean-CVaR_alpha Formulation:
    Across meteorological weather regimes ``omega in Omega`` with physical
    probabilities ``pi_omega > 0`` (``sum_omega pi_omega = 1``), first-stage
    capacities ``K`` are committed ex-ante while second-stage dispatch, battery
@@ -21,7 +21,7 @@ Mathematical identities verified by this module
 
        CVaR_alpha(Z) = C_cap(K*) + eta* + (1 / (1 - alpha)) * sum_omega pi_omega * xi_omega*.
 
-3. **Complete-Market Risk-Adjusted Dual Measure & Strong LP Duality:**
+3. Complete-Market Risk-Adjusted Dual Measure & Strong LP Duality:
    With KKT dual multipliers ``rho_omega* >= 0`` on ``Q_omega - eta - xi_omega <= 0``,
    ``sum_omega rho_omega* = beta`` and ``0 <= rho_omega* <= beta * pi_omega / (1 - alpha)``.
    Defining ``q_omega* = (1 - beta) pi_omega + rho_omega*`` yields ``q_omega* >= 0``,
@@ -31,7 +31,7 @@ Mathematical identities verified by this module
        sum_{omega, t} w_yr * dt * lambda_{omega, t}^* * p_{g,omega,t}^*
          - sum_omega q_omega* * OPEX_{g,omega}^* <= c_cap,g * K_g*   (= if K_g* > 0).
 
-4. **Birge-Louveaux Stochastic Value Chain (WS <= RP <= EEV):**
+4. Birge-Louveaux Stochastic Value Chain (WS <= RP <= EEV):
    Wait-and-See ``WS``, Recourse Problem ``RP``, and out-of-sample Mean-Weather
    ``EEV`` satisfy ``EVPI = RP - WS >= 0`` and ``VSS = EEV - RP >= 0``.
 """
@@ -122,7 +122,7 @@ def _validate_unit_interval(
 
 
 def crf_wacc_derivative(wacc: float, lifetime_years: float) -> float:
-    """Return exact partial derivative ``dCRF(wacc, lifetime_years) / dwacc``."""
+    """Return exact partial derivative `dCRF(wacc, lifetime_years) / dwacc`."""
     r = _validate_unit_interval(wacc, "wacc", allow_zero=True, allow_one=True)
     n = _validate_positive_float(lifetime_years, "lifetime_years")
     if r < 1e-5:
@@ -142,7 +142,7 @@ def build_scaled_wacc_technologies(
     thermal_capex_scale: float = 1.0,
     financial_specs: dict[str, TechnologyFinancialSpec] | None = None,
 ) -> dict[str, dict]:
-    """Build PyPSA technology specs scaled by real ``wacc`` and VRE overnight CapEx."""
+    """Build PyPSA technology specs scaled by real wacc and VRE overnight CapEx."""
     r = _validate_unit_interval(wacc, "wacc", allow_zero=True, allow_one=True)
     k_vre = _validate_positive_float(vre_capex_scale, "vre_capex_scale")
     k_thm = _validate_positive_float(thermal_capex_scale, "thermal_capex_scale")
@@ -167,7 +167,7 @@ def build_scaled_wacc_technologies(
 
 @dataclass(frozen=True)
 class SensitivitySurfaceResult:
-    """2D ``WACC x VRE_CapEx`` sensitivity surface and substitution-dividend matrices."""
+    """2D `WACC x VRE_CapEx` sensitivity surface and substitution-dividend matrices."""
 
     wacc_grid: tuple[float, ...]
     vre_capex_scale_grid: tuple[float, ...]
@@ -212,7 +212,7 @@ def sweep_wacc_capex_surface(
     days_per_year: int = DAYS_PER_YEAR,
     solver_name: str = DEFAULT_SOLVER_NAME,
 ) -> SensitivitySurfaceResult:
-    """Sweep ``(WACC, VRE_CapEx_scale)`` and quantify LCOE, VRE share & substitution dividend."""
+    """Sweep `(WACC, VRE_CapEx_scale)` and quantify LCOE, VRE share & substitution dividend."""
     prof = load_profiles(DEFAULT_PROFILE_PATH) if profiles is None else profiles
     validate_profiles(prof)
     if days_per_year <= 0:
@@ -396,7 +396,7 @@ def verify_envelope_and_concavity_theorems(
 
 @dataclass(frozen=True)
 class WeatherRegimeSpec:
-    """Meteorological weather-year archetype with physical probability ``pi_omega``."""
+    """Meteorological weather-year archetype with physical probability `pi_omega`."""
 
     name: str
     probability: float
@@ -426,7 +426,7 @@ def generate_multiyear_weather_profiles(
     *,
     weather_specs: Sequence[WeatherRegimeSpec] | None = None,
 ) -> dict[str, tuple[float, pd.DataFrame]]:
-    """Generate ``{name: (probability, DataFrame)}`` across meteorological archetypes."""
+    """Generate `{name: (probability, DataFrame)}` across meteorological archetypes."""
     base = load_profiles(DEFAULT_PROFILE_PATH) if base_profiles is None else base_profiles
     validate_profiles(base)
     specs = default_weather_year_specs() if weather_specs is None else tuple(weather_specs)
@@ -467,7 +467,7 @@ def compute_discrete_cvar(
     probabilities: Sequence[float] | np.ndarray,
     alpha: float = DEFAULT_CVAR_CONFIDENCE,
 ) -> tuple[float, float]:
-    """Compute exact discrete ``(VaR_alpha, CVaR_alpha)`` with boundary atom splitting."""
+    """Compute exact discrete `(VaR_alpha, CVaR_alpha)` with boundary atom splitting."""
     conf = _validate_unit_interval(alpha, "alpha", allow_zero=False, allow_one=False)
     z = np.asarray(losses, dtype=float)
     p = np.asarray(probabilities, dtype=float)
@@ -522,7 +522,7 @@ class StochasticCVaRResult:
 
 @dataclass(frozen=True)
 class StochasticValueMetrics:
-    """Birge-Louveaux stochastic programming value chain (``WS <= RP <= EEV``)."""
+    """Birge-Louveaux stochastic programming value chain (`WS <= RP <= EEV`)."""
 
     alpha: float
     hedged_beta: float
@@ -541,7 +541,7 @@ class StochasticValueMetrics:
 
 @dataclass(frozen=True)
 class StochasticCVaRLinprogCrossCheck:
-    """Independent sparse ``scipy.optimize.linprog`` cross-check of Two-Stage CVaR LP."""
+    """Independent sparse `scipy.optimize.linprog` cross-check of Two-Stage CVaR LP."""
 
     alpha: float
     risk_aversion_beta: float
@@ -630,7 +630,7 @@ def run_stochastic_cvar_scenario(
     days_per_year: int = DAYS_PER_YEAR,
     solver_name: str = DEFAULT_SOLVER_NAME,
 ) -> StochasticCVaRResult:
-    """Solve Two-Stage Stochastic ``Mean-CVaR_alpha`` capacity expansion via PyPSA + linopy."""
+    """Solve Two-Stage Stochastic `Mean-CVaR_alpha` capacity expansion via PyPSA + linopy."""
     (
         scen_names,
         probs,
@@ -951,7 +951,7 @@ def evaluate_stochastic_value_metrics(
     days_per_year: int = DAYS_PER_YEAR,
     solver_name: str = DEFAULT_SOLVER_NAME,
 ) -> StochasticValueMetrics:
-    """Evaluate Birge-Louveaux ``WS <= RP <= EEV``, ``EVPI``, and ``VSS`` metrics."""
+    """Evaluate Birge-Louveaux `WS <= RP <= EEV`, EVPI, and VSS metrics."""
     ens = generate_multiyear_weather_profiles() if weather_ensemble is None else weather_ensemble
     b_hedged = _validate_unit_interval(hedged_beta, "hedged_beta", allow_zero=False, allow_one=True)
 
@@ -1044,7 +1044,7 @@ def sweep_cvar_risk_frontier(
     days_per_year: int = DAYS_PER_YEAR,
     solver_name: str = DEFAULT_SOLVER_NAME,
 ) -> pd.DataFrame:
-    """Trace the Pareto-efficient ``Mean-CVaR_alpha`` frontier across ``beta in [0, 1]``."""
+    """Trace the Pareto-efficient `Mean-CVaR_alpha` frontier across `beta in [0, 1]`."""
     ens = generate_multiyear_weather_profiles() if weather_ensemble is None else weather_ensemble
     beta_vals = tuple(_validate_unit_interval(b, "betas") for b in betas)
     if not beta_vals:
@@ -1095,7 +1095,7 @@ def solve_stochastic_cvar_linprog_crosscheck(
     voll_per_mwh: float = DEFAULT_VOLL_PER_MWH,
     days_per_year: int = DAYS_PER_YEAR,
 ) -> StochasticCVaRLinprogCrossCheck:
-    """Solve Two-Stage ``Mean-CVaR_alpha`` via standalone sparse ``scipy.optimize.linprog``."""
+    """Solve Two-Stage `Mean-CVaR_alpha` via standalone sparse `scipy.optimize.linprog`."""
     (
         scen_names,
         probs,
@@ -1355,7 +1355,7 @@ def format_sensitivity_report(
     surface: SensitivitySurfaceResult,
     env_check: EnvelopeConcavityVerification | None = None,
 ) -> str:
-    """Format 2D ``WACC x VRE_CapEx`` LCOE surface & Envelope verification report."""
+    """Format 2D `WACC x VRE_CapEx` LCOE surface & Envelope verification report."""
     cols = list(surface.lcoe_surface_df.columns)
     hdr = "  WACC \\ VRE_Scale " + "".join(f"{float(c):>9.2f}x" for c in cols)
     lines = [

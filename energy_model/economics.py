@@ -2,23 +2,23 @@
 
 Mathematical identities verified by this module
 -----------------------------------------------
-1. **Capital Recovery Factor (CRF) & Present-Value Exactness:**
+1. Capital Recovery Factor (CRF) & Present-Value Exactness:
    For real discount rate ``r >= 0`` and economic lifetime ``N > 0`` years,
 
-       CRF(r, N) = r * (1 + r)**N / ((1 + r)**N - 1)   for r > 0,
+       CRF(r, N) = r * (1 + r)N / ((1 + r)N - 1)   for r > 0,
        CRF(0, N) = 1 / N.
 
    For integer ``N``, the present value of ``N`` equal end-of-year payments
    of ``CRF(r, N) * I_0`` discounted at ``r`` equals ``I_0`` identically.
 
-2. **LP Strong Duality (System Cost == Nodal Shadow-Price Demand Payment):**
+2. LP Strong Duality (System Cost == Nodal Shadow-Price Demand Payment):
    For a linear capacity-expansion problem with extendable capacities starting at
    zero and hourly power balance ``sum_g p_{g,t} = d_t`` (dual ``w_t * lambda_t``),
 
        C_total,yr = sum_t w_t * lambda_t * d_t * dt,
        System_LCOE = C_total,yr / E_demand,yr = lambda_load_weighted.
 
-3. **Boiteux-Turvey-Stoft Zero-Profit & Brown-Hirth Market-Value Equilibrium:**
+3. Boiteux-Turvey-Stoft Zero-Profit & Brown-Hirth Market-Value Equilibrium:
    By KKT complementary slackness, every technology built with ``p_nom,g* > 0``
    earns exact zero economic profit at the hourly nodal shadow prices:
 
@@ -59,7 +59,7 @@ def _validate_finite_float(value: float, name: str) -> float:
 
 
 def capital_recovery_factor(wacc: float, lifetime_years: float) -> float:
-    """Return the exact Capital Recovery Factor ``CRF(wacc, lifetime_years)`` (1/yr)."""
+    """Capital Recovery Factor, exact, in 1/yr."""
     r = _validate_finite_float(wacc, "wacc")
     n = _validate_finite_float(lifetime_years, "lifetime_years")
     if r < 0.0 or r > 1.0:
@@ -124,7 +124,7 @@ def build_wacc_technologies(
     wacc: float,
     financial_specs: dict[str, TechnologyFinancialSpec] | None = None,
 ) -> dict[str, dict]:
-    """Construct a PyPSA technology dictionary annualized at discount rate ``wacc``."""
+    """Construct a PyPSA technology dictionary annualized at discount rate wacc."""
     specs = default_financial_specs() if financial_specs is None else financial_specs
     if not specs:
         raise ValueError("financial_specs must not be empty")
@@ -269,7 +269,7 @@ def solve_primal_dual_linprog_crosscheck(
     technologies: dict[str, dict] | None = None,
     days_per_year: int = DAYS_PER_YEAR,
 ) -> PrimalDualCrossCheck:
-    """Solve the exact primal/dual LP via ``scipy.optimize.linprog`` and compare to PyPSA."""
+    """Solve the exact primal/dual LP via `scipy.optimize.linprog` and compare to PyPSA."""
     prof = load_profiles(DEFAULT_PROFILE_PATH) if profiles is None else validate_profiles(profiles)
     techs = DEFAULT_TECHNOLOGIES if technologies is None else technologies
 
@@ -348,7 +348,7 @@ def sweep_wacc_lcoe_and_mix(
     wacc_values: Sequence[float] = DEFAULT_WACC_SWEEP,
     days_per_year: int = DAYS_PER_YEAR,
 ) -> pd.DataFrame:
-    """Sweep real discount rate ``WACC`` and record optimal capacities, VRE share & System LCOE."""
+    """Sweep real discount rate WACC and record optimal capacities, VRE share & System LCOE."""
     if not wacc_values:
         raise ValueError("wacc_values must contain at least one discount rate")
     prof = load_profiles(DEFAULT_PROFILE_PATH) if profiles is None else validate_profiles(profiles)

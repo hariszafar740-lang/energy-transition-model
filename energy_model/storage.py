@@ -10,7 +10,7 @@ scaling weight ``w = hours_per_year / (T * dt)``:
        sum_g p_{g,t} + p_{bess,dis,t} - p_{bess,ch,t}
                      + p_{h2,dis,t}^{elec} - p_{h2,ch,t}^{elec} = d_t
 
-2. **Coupled Short-Duration Battery Storage (PyPSA ``StorageUnit``: ``Li_Ion_BESS``):**
+2. Coupled Short-Duration Battery Storage (PyPSA ``StorageUnit``: ``Li_Ion_BESS``):
    Power rating ``P_bess`` (MW) and energy reservoir ``E_bess = max_hours * P_bess``
    (MWh) scale at fixed duration ``max_hours`` with cyclic State-of-Charge (SoC):
 
@@ -19,7 +19,7 @@ scaling weight ``w = hours_per_year / (T * dt)``:
                     - (1 / eta_dis) * p_{bess,dis,t} * dt,
        0 <= e_{bess,t} <= max_hours * P_bess.
 
-3. **Decoupled Long-Duration Power-to-X Storage (PyPSA ``Bus`` + ``Store`` + ``Link``s):**
+3. Decoupled Long-Duration Power-to-X Storage (PyPSA ``Bus`` + ``Store`` + ``Link``s):
    Independent power capacities ``P_el`` (MW_e), ``P_fc_elec`` (MW_e) and underground
    hydrogen cavern energy capacity ``E_h2`` (MWh_H2) satisfy cyclic H2 balance:
 
@@ -28,7 +28,7 @@ scaling weight ``w = hours_per_year / (T * dt)``:
                   - (1 / eta_fc) * p_{h2,dis,t}^{elec} * dt,
        0 <= e_{h2,t} <= E_h2.
 
-4. **KKT Intertemporal Arbitrage & Zero-Profit Equilibrium:**
+4. KKT Intertemporal Arbitrage & Zero-Profit Equilibrium:
    Every extendable storage asset built at positive capacity earns exact zero net
    economic profit from nodal price arbitrage across the chronological cycle:
 
@@ -213,12 +213,11 @@ def generate_dunkelflaute_profiles(
     lull_duration_hours: int = 48,
     start_timestamp: str = "2026-01-01 00:00:00",
 ) -> pd.DataFrame:
-    """Generate a deterministic synthetic multi-day chronological Dunkelflaute profile.
+    """Synthetic multi-day Dunkelflaute chronology, no randomness in it.
 
-    Outside the ``[lull_start_hour, lull_start_hour + lull_duration_hours)`` window,
-    wind averages ``~0.35`` and clear-sky solar peaks at ``0.85``. Inside the cold
-    anticyclonic lull, wind collapses toward ``0.035``, overcast solar peaks
-    at ``0.08``, and space-heating demand adds ``+24 MW``.
+    Outside [lull_start_hour, lull_start_hour + lull_duration_hours) wind averages ~0.35
+    and clear-sky solar tops out at 0.85. Inside the cold anticyclonic lull wind falls to
+    0.035, overcast solar to 0.08, and space heating adds +24 MW of demand.
     """
     if isinstance(n_days, bool) or not isinstance(n_days, int) or n_days < 1:
         raise ValueError("n_days must be a positive integer")

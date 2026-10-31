@@ -28,7 +28,7 @@ SNAPSHOT_HOURS = 1.0  # every snapshot in a profile represents one hour
 def validate_profiles(profiles: pd.DataFrame) -> pd.DataFrame:
     """Validate a profile table and return a sorted copy of it.
 
-    Raises ``ValueError`` describing the first problem found.
+    Raises ValueError describing the first problem found.
     """
     if not isinstance(profiles, pd.DataFrame):
         raise ValueError("profiles must be a pandas DataFrame")

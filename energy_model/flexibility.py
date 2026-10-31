@@ -2,7 +2,7 @@
 
 Mathematical identities verified by this module
 -----------------------------------------------
-1. **Thermal Operational Envelope (Must-Run & Intertemporal Ramp Limits):**
+1. Thermal Operational Envelope (Must-Run & Intertemporal Ramp Limits):
    For dispatchable thermal unit ``g`` with installed capacity ``K_g``, minimum
    stable loading ``p_min_pu in [0, 1]``, and upward/downward hourly ramp rates
    ``r_up, r_dn in (0, 1]`` (p.u. of ``K_g`` per hour):
@@ -10,7 +10,7 @@ Mathematical identities verified by this module
        p_min_pu * K_g <= p_{g,t} <= K_g,
        -r_dn * K_g <= p_{g,t} - p_{g,t-1} <= r_up * K_g.
 
-2. **Co-Optimized Upward Spinning Operating Reserves & BESS SoC Coupling:**
+2. Co-Optimized Upward Spinning Operating Reserves & BESS SoC Coupling:
    Each reserve-eligible thermal unit ``g`` provides upward spinning reserve
    ``r_{g,t} >= 0`` bounded by online headroom and sub-hourly ramp deliverability:
 
@@ -27,7 +27,7 @@ Mathematical identities verified by this module
        sum_g r_{g,t} + r_{bess,t} >= alpha_load * L_t + alpha_vre * sum_{v in VRE} p_{v,t}
        (with KKT reserve shadow price mu_res,t >= 0 [currency / MW-h]).
 
-3. **Co-Optimized Energy + Reserve Revenue Adequacy (Strong LP Duality):**
+3. Co-Optimized Energy + Reserve Revenue Adequacy (Strong LP Duality):
    In any greenfield capacity-expansion LP with homogeneous operational, ramping,
    must-run, and cyclic storage constraints, Strong LP Duality equates total
    annualised capital + fuel cost to nodal energy revenue plus exogenous load-reserve
@@ -36,7 +36,7 @@ Mathematical identities verified by this module
        C_total* = sum_t w_t * L_t * (lambda_t + alpha_load * mu_res,t) * dt,
        System_LCOE = LoadWeighted_LMP + alpha_load * LoadWeighted_Reserve_Price.
 
-4. **Intertemporal Ramp-Induced Negative Nodal LMP Theorem (Zero Subsidies):**
+4. Intertemporal Ramp-Induced Negative Nodal LMP Theorem (Zero Subsidies):
    Even when every generator has strictly non-negative fuel cost (``c_g >= 0``),
    binding downward and upward ramp limits across a deep net-load trough force
    inflexible baseload to hold output at ``t_0`` so it can displace high-cost
@@ -167,11 +167,12 @@ class SpinningReservePolicy:
 
 
 def make_duck_curve_profiles(days: int = 2) -> pd.DataFrame:
-    """Return a deterministic chronological multi-day high-solar Duck-Curve profile.
+    """Chronological multi-day high-solar Duck-Curve profile, deterministic.
 
-    Day 1 models a clear spring day (peak solar CF ~0.94, deep midday net-load belly,
-    steep 16:00-19:00 sunset ramp); Day 2 models a partly cloudy afternoon with higher
-    evening demand and reduced afternoon wind, stressing spinning reserves and ramping.
+    Day 1 is a clear spring day: solar CF peaks near 0.94, the midday net-load belly is
+    deep, the 16:00-19:00 sunset ramp is steep. Day 2 is a partly cloudy afternoon with
+    higher evening demand and less wind, which is what puts pressure on reserves and on
+    ramping.
     """
     if isinstance(days, bool) or not isinstance(days, int) or days < 1 or days > 14:
         raise ValueError("days must be an integer between 1 and 14")
@@ -915,14 +916,13 @@ class RampNegativeLMPProof:
 
 
 def verify_ramp_induced_negative_lmp() -> RampNegativeLMPProof:
-    """Prove negative nodal LMP arises purely from thermal ramp limits with all c_g >= 0.
+    """Negative nodal LMP out of thermal ramp limits alone, all c_g >= 0.
 
-    Constructs a 6-hour brownfield Duck-Belly dispatch with strictly non-negative
-    marginal costs (``Baseload_Coal = +18 /MWh``, ``OCGT_Peaker = +76 /MWh``,
-    ``Solar_PV = 0 /MWh``) and open-boundary ramping ``+-25%/h`` on ``130 MW`` coal.
-    At snapshot ``t = 2`` (``55 MW`` midday trough), coal is simultaneously ramp-down
-    bound from ``t = 0, 1`` and ramp-up bound into ``t = 3, 4``, telescoping five
-    multi-period marginal fuel substitutions into exact ``lambda_2 = -138.0 /MWh < 0``.
+    Six hours of brownfield Duck-Belly dispatch, marginal costs strictly non-negative
+    (Baseload_Coal +18 /MWh, OCGT_Peaker +76 /MWh, Solar_PV 0 /MWh), coal open-boundary
+    ramping at +-25%/h on 130 MW. At t = 2, the 55 MW midday trough, coal is ramp-down
+    bound from t = 0, 1 and ramp-up bound into t = 3, 4 at once. Five multi-period fuel
+    substitutions telescope and lambda_2 lands at exactly -138.0 /MWh.
     """
     idx = pd.date_range("2026-04-01", periods=6, freq="h")
     prof = pd.DataFrame(
