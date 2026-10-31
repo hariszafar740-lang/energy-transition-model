@@ -26,7 +26,7 @@ If a figure here ever stops matching the code, that is a bug in my README, and I
 | Check | This model | Independent reference | Residual | Reproduce with |
 |:--- |:--- |:--- |:---: |:--- |
 | LP strong duality | system LCOE = demand-weighted LMP = 28.0555 /MWh | KKT dual of the same LP | 7.45e-09 /yr | `test_kkt_strong_duality_and_zero_profit_equilibrium` |
-| Nodal LMP | hourly λ_t and capacities from PyPSA/linopy | standalone sparse `scipy.optimize.linprog` (HiGHS) primal + dual | rel. objective `< 1e-10` | `test_primal_dual_crosscheck_matches_independent_scipy_linprog` |
+| Nodal LMP | hourly λ(t) and capacities from PyPSA/linopy | standalone sparse `scipy.optimize.linprog` (HiGHS) primal + dual | rel. objective `< 1e-10` | `test_primal_dual_crosscheck_matches_independent_scipy_linprog` |
 | CO₂ cap ↔ tax | `J*_tax(μ*) = J*_cap(Ē) + μ*Ē` | Lagrangian saddle point | rel. gap `< 1e-12` | `test_tax_to_cap_primal_and_saddle_point_equivalence` |
 | Meshed DC-OPF | congestion rents from PyPSA PTDF flows | cycle-KVL / B-θ OPF on the same network | rel. objective `< 1e-11` | `test_scipy_btheta_matches_pypsa_cycle_kvl_to_machine_precision` |
 | Mean-CVaR plan | risk-averse objective, CVaR, first-stage capacities | independent 1,357-variable matrix LP | rel. CVaR `< 1e-11` | `test_scipy_matrix_matches_pypsa_stochastic_cvar_to_machine_precision` |
@@ -44,7 +44,7 @@ No data download, no API key, nothing to configure:
 ~~~bash
 git clone --depth 1 https://github.com/hariszafar740-lang/energy-transition-model.git
 cd energy-transition-model
-python3 -m venv.venv &&.venv/bin/pip install -e.
+python3 -m venv .venv && .venv/bin/pip install -e .
 .venv/bin/etm-sim --duality-report
 ~~~
 
@@ -57,7 +57,8 @@ Max built zero-profit residual: 4.6566e-10
 
 That is the solver's price of energy for a representative day, the demand-weighted dual price, and the gap between them, the identity asserted in the first row of the table above. Add `--dunkelflaute-report` for the 168 h storage study, `--macc-report` for the CO₂ abatement curve, `--cvar-report` for the risk-averse plan.
 
-Full suite: `.venv/bin/pip install -e ".[dev]" &&.venv/bin/pytest -v`, 285 tests, usually several minutes on a laptop.
+Full suite: `
+.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest -v`, 285 tests, usually several minutes on a laptop.
 
 ## Deep dive
 
@@ -83,18 +84,18 @@ This repository serves as the practical engineering implementation for the offic
 * Single-bus LP baseline (`energy_model/model.py`): Representative-day capacity expansion (`Regional_Grid`, `System_Demand`, `Solar_PV`, `Wind_Turbine`, `Gas_Peaker`) with strict hourly time-series validation (`energy_model/profiles.py`).
 * Discounted cash-flow & KKT nodal price duality (`energy_model/economics.py`).
  * Exact Capital Recovery Factor CRF(r, N) annualisation across real discount rates (WACC, r from 0 to 1).
- * Extraction of hourly KKT power-balance dual multipliers λ_t (`LMP`), verification of LP Strong Duality (system LCOE = load-weighted λ = 28.0555 /MWh).
+ * Extraction of hourly KKT power-balance dual multipliers λ(t) (`LMP`), verification of LP Strong Duality (system LCOE = load-weighted λ = 28.0555 /MWh).
  * Boiteux-Turvey-Stoft Zero-Profit Equilibrium, and Brown-Hirth Market-Value Parity (LCOE_g = MV_g).
 * Multi-duration storage & `Dunkelflaute` chronological adequacy (`energy_model/storage.py`).
- * Short-duration power-coupled battery (`Li_Ion_BESS` via PyPSA `StorageUnit`): 4 h duration, η_ch = η_dis = 95 % (η_RTE = 90.25 %).
+ * Short-duration power-coupled battery (`Li_Ion_BESS` via PyPSA `StorageUnit`): 4 h duration, η(ch) = η(dis) = 95 % (η(RTE) = 90.25 %).
  * Cyclic State-of-Charge (`SoC`), optimal for daily midday-solar-to-evening shifting (278.7 eq. cycles/yr).
  * Long-duration decoupled Power-to-X hydrogen (`Green_H2` via PyPSA `Bus` + `Store` + `Link`s).
- * The three components are sized independently: `H2_Electrolyzer` (η_el = 68 %), `H2_Cavern` (350 currency/MWh_H2/yr, cyclic `SoC`), `H2_Turbine` (η_fc = 50 %, η_RTE = 34.0 %).
+ * The three components are sized independently: `H2_Electrolyzer` (η(el) = 68 %), `H2_Cavern` (350 currency/MWh_H2/yr, cyclic `SoC`), `H2_Turbine` (η(fc) = 50 %, η(RTE) = 34.0 %).
  * Together they bridge multi-day `Dunkelflaute` wind/solar lulls (52.1 eq. cycles/yr).
  * Independent matrix LP cross-checks: Both `economics.py` and `storage.py` construct standalone `scipy.optimize.linprog(..., method="highs")` primal + dual matrices confirming `< 1e-11` agreement with PyPSA/linopy across capacities.
  * Objective values, and nodal shadow prices.
 * CO2 cap–tax Lagrangian duality & MACC (`energy_model/emissions.py`): Partial-equilibrium multi-fuel emissions accounting, annual `CO2` caps.
-* Pigouvian taxes, and the saddle-point identity J_tax(μ) = J_cap(Ē) + μ·Ē to 2.2e-08 currency/yr.
+* Pigouvian taxes, and the saddle-point identity J(tax)(μ) = J(cap)(Ē) + μ·Ē to 2.2e-08 currency/yr.
 * Operational flexibility (`energy_model/flexibility.py`): Intertemporal ramp envelopes, must-run floors, co-optimised upward spinning reserves.
 * And a proof that binding ramps can produce strictly negative nodal prices with non-negative fuel costs (-138.00 currency/MWh).
 * Meshed transmission (`energy_model/transmission.py`): 4-zone / 5-corridor `DC-OPF` with `PTDF`/`KVL` equivalence.
@@ -144,18 +145,18 @@ e[H2,t] = (1 − σ[H2]) e[H2,(t−1) mod T] + η[el] p[H2,ch,t] Δt − (1/η[f
 
 ## CO2 cap-tax duality and the abatement curve
 
-Module 3 (`energy_model/emissions.py`) extends the single-bus capacity-expansion engine with primary-to-electric multi-fuel emissions accounting (e_g = EF_th,c(g) / η_g) and PyPSA `GlobalConstraint` annual CO₂ caps (Ē_CO2).
+Module 3 (`energy_model/emissions.py`) extends the single-bus capacity-expansion engine with primary-to-electric multi-fuel emissions accounting (e(g) = EF_th,c(g) / η(g)) and PyPSA `GlobalConstraint` annual CO₂ caps (Ē_CO2).
 Pigouvian carbon taxes (τ) come with an independent sparse `scipy.optimize.linprog` (`HiGHS`) primal/dual cross-check:
 
-1. Lagrangian cap-tax saddle-point equivalence. Relaxing Σ w_t e_g p_g,t Δt ≤ Ē with KKT shadow carbon price μ_CO2 = −∂J_cap(Ē)/∂Ē ≥ 0 yields an exact Pigouvian carbon-tax objective. It holds at every point on the convex Pareto frontier:
-J_tax(μ_CO2) = J_cap(Ē) + μ_CO2 · Ē verified numerically to relative saddle-point residual ≤ 1.6e-15.
-2. Net-Zero Boundary Subdifferential Regularisation (Ē = 0): Because the dual objective max bᵀy − Ēμ assigns zero weight to μ at Ē = 0, the subdifferential −∂J_cap(0) is the half-ray [τ_min_net-zero, +∞). Evaluating the right-hand limit lim ε↓0⁺ μ(ε) uniquely extracts the minimum Net-Zero carbon price (418.25 currency / tCO₂).
+1. Lagrangian cap-tax saddle-point equivalence. Relaxing Σ w(t) e(g) p(g),t Δt ≤ Ē with KKT shadow carbon price μ(CO2) = −dJ_cap(Ē)/dĒ ≥ 0 yields an exact Pigouvian carbon-tax objective. It holds at every point on the convex Pareto frontier:
+J(tax)(μ(CO2)) = J(cap)(Ē) + μ(CO2) · Ē verified numerically to relative saddle-point residual ≤ 1.6e-15.
+2. Net-Zero Boundary Subdifferential Regularisation (Ē = 0): Because the dual objective max bᵀy − Ēμ assigns zero weight to μ at Ē = 0, the subdifferential −dJ_cap(0) is the half-ray [τ(min)_net-zero, +∞). Evaluating the right-hand limit lim ε↓0⁺ μ(ε) uniquely extracts the minimum Net-Zero carbon price (418.25 currency / tCO₂).
 
 ![CO2 Pareto Frontier, MACC & Fuel Switching](results/co2_pareto_frontier_and_macc.png)
 
 ### Multi-fuel decarbonization milestones (168 h representative week, annualised)
 
-| Abatement Target | Realised CO₂ (`tCO2/yr`) | Shadow Price μ_CO2 (`/tCO2`) | Average Cost (`/tCO2`) | Resource `LCOE` (`/MWh`) | Dominant Portfolio Regime |
+| Abatement Target | Realised CO₂ (`tCO2/yr`) | Shadow Price μ(CO2) (`/tCO2`) | Average Cost (`/tCO2`) | Resource `LCOE` (`/MWh`) | Dominant Portfolio Regime |
 |:---: |:---: |:---: |:---: |:---: |:--- |
 | 0% (BAU) | 1,206,958 | 0.00 | 0.00 | 24.34 | `Coal_Steam` (181.8 MW) + `CCGT_Gas` (7.5 MW) |
 | 45% Cap | 663,827 | 6.99 | 6.15 | 26.69 | Stage I: `Wind_Turbine` (220.0 MW) + `OCGT` |
@@ -164,7 +165,6 @@ J_tax(μ_CO2) = J_cap(Ē) + μ_CO2 · Ē verified numerically to relative saddle
 | 100% Net-Zero | 0 | 418.25 | 15.89 | 37.81 | Stage IV: `Solar` + `Wind` + `Green H2` (`3,851.9 MWh_H2`) |
 
 ```bash
-~~~
 # Run multi-fuel CO2 Pareto frontier & MACC report + 4-panel figure
 .venv/bin/python main.py --macc-report --save-macc-plot results/co2_pareto_frontier_and_macc.png
 
@@ -172,19 +172,17 @@ J_tax(μ_CO2) = J_cap(Ē) + μ_CO2 · Ē verified numerically to relative saddle
 .venv/bin/python main.py --co2-price 50 --co2-cap 20000
 ```
 
-~~~
 ## Ramp-rate envelopes, must-run floors and spinning reserves
 
-Module 4 (`energy_model/flexibility.py`) introduces intertemporal thermal ramp-rate envelopes (−r_dn,g K_g ≤ p_g,t − p_g,t−1 ≤ r_up,g K_g) and minimum stable `must-run` loading (p_g,t ≥ p_min,pu,g K_g).
-It also adds co-optimized upward spinning operating reserves (R_req,t = α_load L_t + α_vre P_VRE,t) coupled to battery state-of-charge (`SoC`) sustainment.
+Module 4 (`energy_model/flexibility.py`) introduces intertemporal thermal ramp-rate envelopes (−r(dn),g K(g) ≤ p(g),t − p(g),t−1 ≤ r(up),g K(g)) and minimum stable `must-run` loading (p(g),t ≥ p(min),pu,g K(g)).
+It also adds co-optimized upward spinning operating reserves (R(req),t = α_load L(t) + α_vre P(VRE),t) coupled to battery state-of-charge (`SoC`) sustainment.
 And a direct sparse `scipy.optimize.linprog` (`HiGHS`) primal/dual cross-check:
 
 1. Co-optimized energy and ancillary-services revenue adequacy (strong LP duality). Across all greenfield regimes with homogeneous operational, ramping, must-run and cyclic `SoC` constraints, total annualised capital + fuel cost equals nodal energy market revenue plus exogenous load-reserve market revenue to machine precision (≤ 7.5e-09):
 LCOE_sys = λ̄[load-wtd] + α[load] · μ̄[res, load-wtd]
-2. Intertemporal ramp-induced negative nodal `LMP` theorem (zero subsidies). Even when every generator has strictly non-negative fuel cost (c_g ≥ 0), binding downward and upward ramp limits across a deep midday net-load trough telescope multi-period fuel substitutions into an exact negative nodal shadow price. At min c_g = 0 that price is λ_t0 = −138.00 currency/MWh.
+2. Intertemporal ramp-induced negative nodal `LMP` theorem (zero subsidies). Even when every generator has strictly non-negative fuel cost (c(g) ≥ 0), binding downward and upward ramp limits across a deep midday net-load trough telescope multi-period fuel substitutions into an exact negative nodal shadow price. At min c(g) = 0 that price is λ(t0) = −138.00 currency/MWh.
 
 ![Duck-Curve Ramping, Must-Run Floors & Spinning Reserves](results/duck_curve_ramping_and_reserves.png)
-
 ### Duck-curve flexibility regimes over 48 h (annualised)
 
 | Regime | System `LCOE` (`/MWh`) | Peak `LMP` (`/MWh`) | Peak Reserve Price (`/MW-h`) | `VRE` Capacity (`MW`) | `OCGT` Peaker (`MW`) | `LiIon_BESS` (`MWh`) | Strong Duality Gap |
@@ -195,7 +193,6 @@ LCOE_sys = λ̄[load-wtd] + α[load] · μ̄[res, load-wtd]
 | 4_Flexible_BESS_CoOptimized | 32.96 | 122.87 | 46.52 | 188.92 | 5.87 | 254.3 | 7.45e-09 |
 
 ```bash
-~~~
 # Run 48 h Duck-Curve flexibility & spinning-reserve comparison + 4-panel figure
 .venv/bin/python main.py --flexibility-report --save-flexibility-plot results/duck_curve_ramping_and_reserves.png
 
@@ -203,19 +200,17 @@ LCOE_sys = λ̄[load-wtd] + α[load] · μ̄[res, load-wtd]
 .venv/bin/python main.py --ramp-limit 0.35 --must-run 0.25 --reserve-margin 0.08
 ```
 
-~~~
 ## 4-zone DC-OPF, loop flows and transmission expansion
 
 Module 5 (`energy_model/transmission.py`) models a 4-zone.
 5-corridor 380 kV meshed AC transmission grid (`North_Wind`, `West_Solar`, `South_Hub`, `East_Metro`) with two fundamental Kirchhoff Voltage Law cycles and analytical `PTDF` matrices.
 It reports ISO Merchandising Surplus (congestion rent) and co-optimized Transmission Expansion Planning (`AC-TEP`), and carries an independent sparse `scipy.optimize.linprog` (`HiGHS`) nodal phase-angle Bθ cross-check:
 
-1. Cycle-basis `KVL` vs. nodal voltage-angle Bθ / `PTDF` duality. Passive AC flows satisfy f_ℓ,t = b_ℓ(θ_i,t − θ_j,t) = [Φ(g_t − d_t)]_ℓ, and nodal `LMP` decomposition λ_t = λ_ref,t·1 − Φᵀ(μ⁺_t − μ⁻_t) holds to ≤ 1.5e-13.
-2. Triple merchandising surplus and Joskow–Tirole cost recovery. ISO congestion rent satisfies Σ λ_z,t(d_z,t − g_z,t) = Σ over each corridor of (λ_j,t − λ_i,t)·f_ℓ,t = Σ F_ℓ(μ⁺_ℓ,t + μ⁻_ℓ,t) ≥ 0 at every hour. It recovers 100.00% of optimal `AC-TEP` annualised line `CapEx` (7,088,134 currency/yr, gap 0.00e+00).
+1. Cycle-basis `KVL` vs. nodal voltage-angle Bθ / `PTDF` duality. Passive AC flows satisfy f_ℓ,t = b_ℓ(θ_i,t − θ_j,t) = [Φ(g(t) − d(t))]_ℓ, and nodal `LMP` decomposition λ(t) = λ(ref),t·1 − Φᵀ(μ⁺_t − μ⁻_t) holds to ≤ 1.5e-13.
+2. Triple merchandising surplus and Joskow–Tirole cost recovery. ISO congestion rent satisfies Σ λ(z),t(d(z),t − g(z),t) = Σ over each corridor of (λ(j),t − λ(i),t)·f_ℓ,t = Σ F_ℓ(μ⁺_ℓ,t + μ⁻_ℓ,t) ≥ 0 at every hour. It recovers 100.00% of optimal `AC-TEP` annualised line `CapEx` (7,088,134 currency/yr, gap 0.00e+00).
 3. Wheatstone-bridge Braess's paradox in passive AC `DC-OPF`. Adding a zero-cost 500 MW passive AC bridge across a symmetric congested network reduces cheap power transfer (`120.0 -> 82.5 MW`) and raises dispatch cost by **`+62.50%`** (`4,800 -> 7,800` currency/h) via `KVL` loop binding. A controllable `HVDC` link, by contrast, unlocks 160.0 MW and cuts cost by -66.67% (1,600 currency/h).
 
 ![4-Zone Meshed DC-OPF, Congestion Rent & Co-Optimized TEP](results/zonal_dcopf_congestion_and_tep.png)
-
 ### 4-zone 380 kV transmission and `AC-TEP` regimes (48 h, annualised)
 
 | Regime | System `LCOE` (`/MWh`) | Mean `LMP` Spread (`/MWh`) | `North_Wind` (`MW`) | `East_OCGT` (`MW`) | Total Grid (`MW`) | Congestion Rent (`/yr`) |
@@ -226,25 +221,23 @@ It reports ISO Merchandising Surplus (congestion rent) and co-optimized Transmis
 | 4_CoOptimized_AC_TEP | 21.59 | 2.70 | 835.53 | 7.98 | 737.1 | 7,088,134 |
 
 ```bash
-~~~
 # Run 4-zone DC-OPF, HVDC & co-optimized AC-TEP comparison + 4-panel figure
 .venv/bin/python main.py --transmission-report --save-transmission-plot results/zonal_dcopf_congestion_and_tep.png
 
 # Evaluate co-optimized 4-zone AC transmission expansion or corridor scaling
-.venv/bin/python main.py --cooptimize-tep.venv/bin/python main.py --grid-scale 1.5
+.venv/bin/python main.py --cooptimize-tep
+.venv/bin/python main.py --grid-scale 1.5
 ```
 
-~~~
 ## WACC and CapEx sensitivity surface, and weather CVaR_95 adequacy
 
 Module 6 (`energy_model/risk_sensitivity.py` + `energy_model/cli.py`) unifies parametric 2D financing/learning-curve sensitivity analysis with two-stage multi-weather-year Rockafellar-Uryasev `CVaR_95` stochastic resource adequacy and ships the packaged `etm-sim` console entry point:
 
-1. Hotelling-Shephard envelope theorem and global cost concavity. Across real discount rates r from 1 % to 15 % and VRE overnight `CapEx` multipliers κ from 0.55× to 1.75×, optimal greenfield cost J(r, κ) is globally concave in annualised capital costs. Midpoint concavity surplus is `+5.82M` currency/yr and the portfolio substitution dividend reaches **`+22.02%`** against a frozen reference mix. The cost also satisfies exact analytical partial derivatives ∂J/∂r = Σ K_g κ_g I_0,g CRF′(r, N_g) to ≤ 5.4e-10.
-2. Rockafellar-Uryasev two-stage stochastic `Mean-CVaR_95` and risk-adjusted complete-market duality. Across an 8-regime meteorological ensemble (`WY1_Windy_Equinox` → `WY8_Severe_Dunkelflaute`, V_VoLL = 1,800 /MWh), KKT epigraph multipliers ρ_ω induce an exact risk-adjusted probability measure q_ω = (1 − β)π_ω + ρ_ω. That measure sums to Σ q_ω = 1 and amplifies tail `Dunkelflaute` weights by **7.65x** at β = 0.35. Under it, strong LP duality and 4-technology zero-profit revenue adequacy hold to ≤ 1.5e-8, cross-checked against an independent sparse `scipy.optimize.linprog` (`HiGHS`) matrix to ≤ 1.5e-15.
+1. Hotelling-Shephard envelope theorem and global cost concavity. Across real discount rates r from 1 % to 15 % and VRE overnight `CapEx` multipliers κ from 0.55× to 1.75×, optimal greenfield cost J(r, κ) is globally concave in annualised capital costs. Midpoint concavity surplus is `+5.82M` currency/yr and the portfolio substitution dividend reaches **`+22.02%`** against a frozen reference mix. The cost also satisfies exact analytical partial derivatives dJ/dr = Σ K(g) κ_g I(0),g CRF′(r, N(g)) to ≤ 5.4e-10.
+2. Rockafellar-Uryasev two-stage stochastic `Mean-CVaR_95` and risk-adjusted complete-market duality. Across an 8-regime meteorological ensemble (`WY1_Windy_Equinox` → `WY8_Severe_Dunkelflaute`, V(VoLL) = 1,800 /MWh), KKT epigraph multipliers ρ_ω induce an exact risk-adjusted probability measure q_ω = (1 − β)π_ω + ρ_ω. That measure sums to Σ q_ω = 1 and amplifies tail `Dunkelflaute` weights by **7.65x** at β = 0.35. Under it, strong LP duality and 4-technology zero-profit revenue adequacy hold to ≤ 1.5e-8, cross-checked against an independent sparse `scipy.optimize.linprog` (`HiGHS`) matrix to ≤ 1.5e-15.
 3. Birge-Louveaux Stochastic Value Sandwich & Tail Blackout Elimination: Deterministic mean-weather planning suffers **194,479.6 MWh/yr** out-of-sample `EENS` (`EEV = 385.13M` /yr vs. `RP = 49.37M` /yr, `VSS = 335.76M` /yr; `WS = 39.21M` /yr, `EVPI = 10.16M` /yr). Risk-neutral `RP` (β = 0) leaves 29.3 MWh/yr residual Stoft scarcity shedding in `WY8`, whereas modest `CVaR_95` hedging (β = 0.15) eliminates 100% of load shedding (0.0 MWh/yr) for `+0.09%` expected `LCOE` (`36.39 -> 36.42` /MWh).
 
 ![2D WACC x CapEx Sensitivity Surface & Weather CVaR_95 Adequacy](results/wacc_capex_surface_and_cvar_adequacy.png)
-
 ### Multi-year weather `Mean-CVaR_95` risk frontier (VoLL = 1,800 /MWh)
 
 | Risk Weight β | Expected Cost `E[Z]` (`/yr`) | Tail `CVaR_95` (`/yr`) | `E[LCOE]` (`/MWh`) | `EENS` (`MWh/yr`) | `Solar_PV` (`MW`) | `Wind` (`MW`) | `Li_Ion_BESS` (`MW`) | `Gas_Peaker` (`MW`) |
@@ -256,7 +249,6 @@ Module 6 (`energy_model/risk_sensitivity.py` + `energy_model/cli.py`) unifies pa
 | 1.00 (`CVaR`) | 83,937,794 | 113,396,667 | 61.87 | 0.0 | 491.7 | 0.0 | 0.0 | 273.0 |
 
 ```bash
-~~~
 # Run packaged etm-sim CLI: 2D WACC x CapEx surface + CVaR_95 frontier + 4-panel figure
 .venv/bin/etm-sim --sensitivity-report --cvar-report \
 --save-risk-plot results/wacc_capex_surface_and_cvar_adequacy.png
@@ -265,7 +257,6 @@ Module 6 (`energy_model/risk_sensitivity.py` + `energy_model/cli.py`) unifies pa
 .venv/bin/etm-sim --wacc 0.04 --vre-capex-scale 0.75 --cvar-beta 0.35 --json-summary /tmp/etm_summary.json
 ```
 
-~~~
 ## Interactive Energy-Transition Workbench
 Module 7 turns the model family into an artifact you can open: a single ~170 kB HTML file with no CDN.
 No web fonts, no `<script src>`, no `fetch()`, and no build step required to read it.
@@ -273,7 +264,6 @@ Open `workbench/index.html` from a local clone (or the live Pages deployment) an
 Reserves, meshed grid and risk) is driven by numbers that were produced by solving the linear programs in this repository.
 
 [▶ Open the live workbench](https://hariszafar740-lang.github.io/energy-transition-model/workbench/) · `workbench/index.html` · `workbench/data/etm_workbench_data.json`
-
 ### Build → render → verify contract
 
 ```
@@ -392,23 +382,22 @@ Interpolation never masquerades as a solve.
 ### Reproduce the workbench
 
 ```bash
-python -m venv.venv
+python -m venv .venv
 .venv/bin/python -m pip install --upgrade pip "setuptools>=77.0" wheel build
 .venv/bin/python -m pip install --no-build-isolation -e ".[dev]"
 
-~~~
 # Re-solve every module (149 optimisations) and re-render the single-file page
 .venv/bin/etm-workbench build
 
 # Cheap re-render from the committed dataset, and the drift gate used by CI
-.venv/bin/etm-workbench render.venv/bin/etm-workbench check
+.venv/bin/etm-workbench render
+.venv/bin/etm-workbench check
 
 # Static 4-panel figure for this section
 .venv/bin/python -c "from energy_model.workbench import plot_risk_frontier_and_kernel; \
 plot_risk_frontier_and_kernel('results/risk_frontier_and_cvar_kernel.png')"
 ```
 
-~~~
 ### Limits of the workbench (read before citing)
 
 * The `CVaR` panel is an independent explicit-LP re-derivation on its own declared 8-regime scenario set (own demand shape, own VRE availability, own `VoLL`).
@@ -420,7 +409,6 @@ plot_risk_frontier_and_kernel('results/risk_frontier_and_cvar_kernel.png')"
 * It is not a fitted model and carries no extrapolation guarantee outside the plotted grid (sliders clamp at the edges).
 * In practice the binding limit is the input data, not the solver: synthetic profiles and illustrative costs set the ceiling on what any number here can mean.
 * `DC` power flow, lossless corridors, continuous investment, no unit commitment; see the shared boundaries in *Inputs, Assumptions & Provenance*.
-
 ## Inputs, Assumptions & Provenance
 
 * Shipped 24 h baseline (`energy_model/data/profiles_synthetic_24h.csv`) and 168 h `Dunkelflaute` sequence (`generate_dunkelflaute_profiles`) are deterministic synthetic benchmarks designed to verify time-series constraints.
@@ -436,21 +424,22 @@ plot_risk_frontier_and_kernel('results/risk_frontier_and_cvar_kernel.png')"
 ## Quickstart & Verification
 
 ```bash
-python -m venv.venv
+python -m venv .venv
 .venv/bin/python -m pip install --upgrade pip "setuptools>=77.0" wheel build
 .venv/bin/python -m pip install --no-build-isolation -e ".[dev]"
 
-~~~
 # Representative-day baseline + KKT LMP duality + 168 h Dunkelflaute multi-duration storage
 .venv/bin/python main.py --duality-report --dunkelflaute-report --save-plot results/baseline_dispatch_and_lmp_duality.png --save-storage-plot results/multiduration_storage_dunkelflaute_dispatch.png
 
 # Lint, formatting check, artifact freshness gate, and full pytest suite
-.venv/bin/ruff check..venv/bin/ruff format --check..venv/bin/etm-workbench check.venv/bin/pytest -v
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+.venv/bin/etm-workbench check
+.venv/bin/pytest -v
 ```
 
 > **Workbench in one line:** `etm-workbench build` re-solves all six model families and rewrites `workbench/index.html`; `etm-workbench check` proves the committed page still matches the committed dataset. The published copy lives at <https://hariszafar740-lang.github.io/energy-transition-model/workbench/>.
 
-~~~
 ## License
 
 Released under the [MIT License](LICENSE).
