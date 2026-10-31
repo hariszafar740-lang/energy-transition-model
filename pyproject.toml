@@ -8,6 +8,7 @@ version = "1.0.0"
 description = "Open-source capacity-expansion, storage, CO2 MACC, ramping, meshed DC-OPF/TEP & mean-CVaR risk model with an offline interactive workbench (PyPSA + HiGHS)"
 readme = "README.md"
 license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 authors = [
     { name = "Haris Zafar" },
