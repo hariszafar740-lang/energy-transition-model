@@ -3,6 +3,7 @@
 [![CI](https://github.com/hariszafar740-lang/energy-transition-model/actions/workflows/ci.yml/badge.svg)](https://github.com/hariszafar740-lang/energy-transition-model/actions/workflows/ci.yml)
 [![Pages](https://github.com/hariszafar740-lang/energy-transition-model/actions/workflows/deploy_pages.yml/badge.svg)](https://hariszafar740-lang.github.io/energy-transition-model/workbench/)
 ![Python 3.11 | 3.12 | 3.13](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776ab?logo=python&logoColor=white)
+[![PyPI](https://img.shields.io/pypi/v/energy-transition-model?color=blue)](https://pypi.org/project/energy-transition-model/)
 [![Tests: 285](https://img.shields.io/badge/tests-285%20passing-2ea043)](#quickstart--verification)
 [![Offline workbench](https://img.shields.io/badge/workbench-offline%20%C2%B7%20zero%20requests-0e7490)](https://hariszafar740-lang.github.io/energy-transition-model/workbench/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)

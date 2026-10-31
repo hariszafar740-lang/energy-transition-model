@@ -22,13 +22,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Build sdist and wheel
-        run: |
+      - run: |
           python -m pip install --upgrade pip build twine
           python -m build
           python -m twine check dist/*
-      - name: Install the wheel and call the CLI
-        run: |
+      - run: |
           python -m venv /tmp/pkgtest
           /tmp/pkgtest/bin/pip install dist/*.whl
           /tmp/pkgtest/bin/etm-sim --help > /dev/null
@@ -46,12 +44,21 @@ jobs:
       url: https://pypi.org/p/energy-transition-model
     permissions:
       id-token: write
+    env:
+      PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: dist-3.12
           path: dist
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - name: upload with the repository token
+        if: env.PYPI_TOKEN != ''
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ env.PYPI_TOKEN }}
+          skip-existing: true
+      - name: upload with trusted publishing
+        if: env.PYPI_TOKEN == ''
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
-          print-hash: true
