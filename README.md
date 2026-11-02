@@ -4,9 +4,14 @@
 [![Pages](https://github.com/hariszafar740-lang/energy-transition-model/actions/workflows/deploy_pages.yml/badge.svg)](https://hariszafar740-lang.github.io/energy-transition-model/workbench/)
 ![Python 3.11 | 3.12 | 3.13](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776ab?logo=python&logoColor=white)
 [![PyPI](https://img.shields.io/pypi/v/energy-transition-model?color=blue)](https://pypi.org/project/energy-transition-model/)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hariszafar740-lang/energy-transition-model/blob/main/notebooks/quickstart.ipynb)
 [![Tests: 285](https://img.shields.io/badge/tests-285%20passing-2ea043)](#quickstart--verification)
 [![Offline workbench](https://img.shields.io/badge/workbench-offline%20%C2%B7%20zero%20requests-0e7490)](https://hariszafar740-lang.github.io/energy-transition-model/workbench/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+![Four operational flexibility regimes replayed from the committed workbench dataset: net load, BESS discharge, spinning-reserve requirement and nodal price](docs/demo.gif)
+
+I render that clip from `workbench/data/etm_workbench_data.json`, so it cannot drift from the solved numbers; `python3 docs/make_demo_gif.py` rebuilds it in about 80 s.
 
 **Capacity expansion, multi-duration storage and CO₂ pricing for a 100 % renewable grid, built with PyPSA and HiGHS, with every headline number cross-checked against a solver that shares no code with it.**
 
@@ -40,6 +45,8 @@ Every figure further down is asserted against the code that produces it: `tests/
 Four commands.
 The first one downloads PyPSA, HiGHS, SciPy and Matplotlib and builds the package.
 After that the full duality report below runs in about 10 s on a laptop.
+If you would rather not install anything, the same two commands run in the [Colab notebook](https://colab.research.google.com/github/hariszafar740-lang/energy-transition-model/blob/main/notebooks/quickstart.ipynb).
+
 No data download, no API key, nothing to configure:
 
 ~~~bash
@@ -258,7 +265,7 @@ Module 6 (`energy_model/risk_sensitivity.py` + `energy_model/cli.py`) unifies pa
 .venv/bin/etm-sim --wacc 0.04 --vre-capex-scale 0.75 --cvar-beta 0.35 --json-summary /tmp/etm_summary.json
 ```
 
-## Interactive Energy-Transition Workbench
+## Interactive Energy-Transition Workbench (v1.0.0)
 Module 7 turns the model family into an artifact you can open: a single ~170 kB HTML file with no CDN.
 No web fonts, no `<script src>`, no `fetch()`, and no build step required to read it.
 Open `workbench/index.html` from a local clone (or the live Pages deployment) and every panel (dispatch, storage, carbon.
