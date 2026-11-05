@@ -18,6 +18,7 @@ Usage
 
 Requires matplotlib (``pip install matplotlib``), nothing else.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -90,9 +91,18 @@ def draw(out, fps, per_regime, hold):
 
     fig = plt.figure(figsize=(8.0, 4.5), dpi=120)
     fig.patch.set_facecolor("white")
-    gs = fig.add_gridspec(2, 2, width_ratios=[2.35, 1.0], height_ratios=[2.05, 1.0],
-                          wspace=0.27, hspace=0.42,
-                          left=0.075, right=0.977, top=0.775, bottom=0.105)
+    gs = fig.add_gridspec(
+        2,
+        2,
+        width_ratios=[2.35, 1.0],
+        height_ratios=[2.05, 1.0],
+        wspace=0.27,
+        hspace=0.42,
+        left=0.075,
+        right=0.977,
+        top=0.775,
+        bottom=0.105,
+    )
     ax = fig.add_subplot(gs[0, 0])
     ax2 = fig.add_subplot(gs[1, 0], sharex=ax)
     ax3 = fig.add_subplot(gs[:, 1])
@@ -114,36 +124,64 @@ def draw(out, fps, per_regime, hold):
     ax2.set_ylabel("LMP  /MWh", color=LMP, fontsize=7.4, labelpad=2)
     ax2.set_xlabel("hour of the representative day", color=MUTED, fontsize=7.4, labelpad=2)
 
-    res_fill = ax.fill_between(hours, [0] * len(hours), [0] * len(hours),
-                               color=RES, alpha=0.14, linewidth=0)
-    bess_fill = ax.fill_between(hours, [0] * len(hours), [0] * len(hours),
-                                color=BESS, alpha=0.34, linewidth=0)
-    load_line, = ax.plot([], [], color=LOAD, linewidth=1.6, zorder=4)
-    res_line, = ax.plot([], [], color=RES, linewidth=0.9, linestyle=(0, (4, 2.4)), zorder=3)
-    lmp_line, = ax2.plot([], [], color=LMP, linewidth=1.3, zorder=3)
-    sweep = [ax.axvline(0, color=INK, linewidth=0.9, alpha=0.5, zorder=6),
-             ax2.axvline(0, color=INK, linewidth=0.9, alpha=0.5, zorder=6)]
+    res_fill = ax.fill_between(
+        hours, [0] * len(hours), [0] * len(hours), color=RES, alpha=0.14, linewidth=0
+    )
+    bess_fill = ax.fill_between(
+        hours, [0] * len(hours), [0] * len(hours), color=BESS, alpha=0.34, linewidth=0
+    )
+    (load_line,) = ax.plot([], [], color=LOAD, linewidth=1.6, zorder=4)
+    (res_line,) = ax.plot([], [], color=RES, linewidth=0.9, linestyle=(0, (4, 2.4)), zorder=3)
+    (lmp_line,) = ax2.plot([], [], color=LMP, linewidth=1.3, zorder=3)
+    sweep = [
+        ax.axvline(0, color=INK, linewidth=0.9, alpha=0.5, zorder=6),
+        ax2.axvline(0, color=INK, linewidth=0.9, alpha=0.5, zorder=6),
+    ]
 
-    handles = [plt.Rectangle((0, 0), 1, 1, color=LOAD),
-               plt.Rectangle((0, 0), 1, 1, color=BESS, alpha=0.55),
-               plt.Rectangle((0, 0), 1, 1, color=RES, alpha=0.35),
-               plt.Rectangle((0, 0), 1, 1, color=LMP)]
-    ax.legend(handles, ["net load (MW)", "BESS discharge", "reserve requirement", "LMP"],
-              loc="upper left", bbox_to_anchor=(-0.005, 1.005), ncol=2, frameon=False,
-              fontsize=6.5, handlelength=1.0, columnspacing=0.9, labelcolor=MUTED,
-              borderpad=0.15, labelspacing=0.35)
+    handles = [
+        plt.Rectangle((0, 0), 1, 1, color=LOAD),
+        plt.Rectangle((0, 0), 1, 1, color=BESS, alpha=0.55),
+        plt.Rectangle((0, 0), 1, 1, color=RES, alpha=0.35),
+        plt.Rectangle((0, 0), 1, 1, color=LMP),
+    ]
+    ax.legend(
+        handles,
+        ["net load (MW)", "BESS discharge", "reserve requirement", "LMP"],
+        loc="upper left",
+        bbox_to_anchor=(-0.005, 1.005),
+        ncol=2,
+        frameon=False,
+        fontsize=6.5,
+        handlelength=1.0,
+        columnspacing=0.9,
+        labelcolor=MUTED,
+        borderpad=0.15,
+        labelspacing=0.35,
+    )
 
-    fig.text(0.075, 0.945, "Energy Transition Model", fontsize=13.0, color=INK,
-             fontweight="bold", va="top")
+    fig.text(
+        0.075,
+        0.945,
+        "Energy Transition Model",
+        fontsize=13.0,
+        color=INK,
+        fontweight="bold",
+        va="top",
+    )
     fig.text(0.075, 0.895, "", fontsize=8.4, color=MUTED, va="top")
     sub = fig.text(0.075, 0.895, "", fontsize=8.4, color=MUTED, va="top")
     chip = fig.text(0.977, 0.945, "", fontsize=8.0, color=INK, va="top", ha="right")
     chip2 = fig.text(0.977, 0.902, "", fontsize=7.4, color=MUTED, va="top", ha="right")
-    fig.text(0.977, 0.028,
-             "flexibility regimes solved with PyPSA + HiGHS   ·   "
-             "%d solves   ·   workbench/data/etm_workbench_data.json"
-             % data["meta"]["n_solves"],
-             fontsize=6.2, color=MUTED, ha="right")
+    solves = data["meta"]["n_solves"]
+    fig.text(
+        0.977,
+        0.028,
+        f"flexibility regimes solved with PyPSA + HiGHS   ·   {solves} solves   ·   "
+        "workbench/data/etm_workbench_data.json",
+        fontsize=6.2,
+        color=MUTED,
+        ha="right",
+    )
 
     names = []
     for r in rows:
@@ -156,13 +194,14 @@ def draw(out, fps, per_regime, hold):
     ax3.grid(False)
     for side in ("left", "bottom"):
         ax3.spines[side].set_visible(False)
-    ax3.set_title("system LCOE by regime\n/MWh, axis starts at %.0f" % lo,
-                  fontsize=7.6, color=MUTED, pad=8)
+    ax3.set_title(
+        f"system LCOE by regime\n/MWh, axis starts at {lo:.0f}", fontsize=7.6, color=MUTED, pad=8
+    )
     bars, dots, labels_txt = [], [], []
-    for i, (y, v) in enumerate(zip(ys, bar_values)):
+    for y in ys:
         b = ax3.barh(y, 0.0, height=0.34, color="#c9d3da")
         bars.append(b)
-        d, = ax3.plot([], [], "o", markersize=5.2, color=MUTED)
+        (d,) = ax3.plot([], [], "o", markersize=5.2, color=MUTED)
         dots.append(d)
         labels_txt.append(ax3.text(0.02, y, "", fontsize=7.2, color=MUTED, va="center"))
     ax3.set_xlim(0, 1.45)
@@ -187,24 +226,28 @@ def draw(out, fps, per_regime, hold):
         load_line.set_data(hours[:upto], r["net_load"][:upto])
         lmp_line.set_data(hours[:upto], r["lmp"][:upto])
         res_line.set_data(hours[:upto], r["reserve"][:upto])
-        bess_fill.set_data(hours, [0] * len(hours),
-                           [b if h < upto else 0 for h, b in enumerate(r["bess"])])
-        res_fill.set_data(hours, [0] * len(hours),
-                          [q if h < upto else 0 for h, q in enumerate(r["reserve"])])
+        bess_fill.set_data(
+            hours, [0] * len(hours), [b if h < upto else 0 for h, b in enumerate(r["bess"])]
+        )
+        res_fill.set_data(
+            hours, [0] * len(hours), [q if h < upto else 0 for h, q in enumerate(r["reserve"])]
+        )
         for s in sweep:
             s.set_xdata([pos, pos])
 
-        sub.set_text("regime %d of %d  ·  %s" % (regime_i + 1, n, r["label"]))
+        sub.set_text(f"regime {regime_i + 1} of {n}  ·  {r['label']}")
         bits = []
         if r["lcoe"] is not None:
-            bits.append("LCOE %.2f /MWh" % r["lcoe"])
+            bits.append(f"LCOE {r['lcoe']:.2f} /MWh")
         if r["max_lmp"] is not None:
-            bits.append("peak LMP %.1f" % r["max_lmp"])
+            bits.append(f"peak LMP {r['max_lmp']:.1f}")
         chip.set_text("   ·   ".join(bits))
         if r["curtail"] is not None:
-            chip2.set_text("curtailment %.2f %% of available VRE" % r["curtail"])
+            chip2.set_text(f"curtailment {r['curtail']:.2f} % of available VRE")
 
-        for i, (bar, dot, txt, v) in enumerate(zip(bars, dots, labels_txt, bar_values)):
+        for i, (bar, dot, txt, v) in enumerate(
+            zip(bars, dots, labels_txt, bar_values, strict=True)
+        ):
             active = i == regime_i
             left = place(v)
             bar[0].set_y(ys[i] - 0.17)
@@ -217,14 +260,15 @@ def draw(out, fps, per_regime, hold):
             dot.set_color(BESS if active else MUTED)
             dot.set_markersize(5.6 if active else 3.8)
             txt.set_position((left + 0.035, ys[i]))
-            txt.set_text("%.2f" % v)
+            txt.set_text(f"{v:.2f}")
             txt.set_color(INK if active else MUTED)
             txt.set_fontweight("bold" if active else "normal")
         return load_line, lmp_line, res_line
 
     writer = PillowWriter(fps=fps)
-    anim = matplotlib.animation.FuncAnimation(fig, frame, frames=total,
-                                             interval=1000.0 / fps, blit=False, repeat=False)
+    anim = matplotlib.animation.FuncAnimation(
+        fig, frame, frames=total, interval=1000.0 / fps, blit=False, repeat=False
+    )
     out.parent.mkdir(parents=True, exist_ok=True)
     anim.save(str(out), writer=writer)
     plt.close(fig)
@@ -240,8 +284,12 @@ def main():
     args = ap.parse_args()
     out = Path(args.out)
     frames = draw(out, args.fps, args.seconds_per_regime, args.hold)
-    print("wrote %s  ·  %d frames  ·  %.1f s at %d fps  ·  %.2f MB"
-          % (out, frames, frames / float(args.fps), args.fps, out.stat().st_size / 1048576.0))
+    size_mb = out.stat().st_size / 1048576.0
+    seconds = frames / float(args.fps)
+    print(
+        f"wrote {out}  ·  {frames} frames  ·  {seconds:.1f} s at {args.fps} fps  ·  "
+        f"{size_mb:.2f} MB"
+    )
 
 
 if __name__ == "__main__":

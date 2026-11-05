@@ -586,10 +586,7 @@ def plot_co2_pareto_frontier_and_macc(
     c75 = float(c_res_m[idx_75])
     mu75 = float(macc["marginal_abatement_cost_per_tco2"].iloc[idx_75])
     ax0.annotate(
-        (
-            f"75% Abatement\n$E^*$ = {e75:.0f} ktCO$_2$/yr\n"
-            f"-∂ J^*/∂ Ē = {mu75:.2f} /tCO$_2$"
-        ),
+        (f"75% Abatement\n$E^*$ = {e75:.0f} ktCO$_2$/yr\n-∂ J^*/∂ Ē = {mu75:.2f} /tCO$_2$"),
         xy=(e75, c75),
         xytext=(55.0, 35.0),
         fontsize=7.9,

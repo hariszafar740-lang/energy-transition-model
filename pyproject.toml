@@ -61,7 +61,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
-    "ruff>=0.6",
+    "ruff==0.17.3",
     "build>=1.2",
 ]
 
@@ -80,7 +80,7 @@ Changelog = "https://github.com/hariszafar740-lang/energy-transition-model/relea
 packages = ["energy_model", "energy_model.data"]
 
 [tool.setuptools.package-data]
-energy_model = ["data/*.csv", "py.typed"]
+energy_model = ["data/*.csv", "data/*.html", "py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

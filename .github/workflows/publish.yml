@@ -57,8 +57,8 @@ jobs:
         with:
           password: ${{ env.PYPI_TOKEN }}
           skip-existing: true
-      - name: upload with trusted publishing
+      - name: no token, so the build is kept but nothing is uploaded
         if: env.PYPI_TOKEN == ''
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          skip-existing: true
+        run: |
+          echo "::notice::PYPI_API_TOKEN is not configured for this repository."
+          echo "::notice::The wheel and the sdist were built and smoke tested; nothing was uploaded."

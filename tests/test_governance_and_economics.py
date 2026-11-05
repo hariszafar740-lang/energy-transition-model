@@ -91,6 +91,7 @@ class TestGovernanceAndPackaging:
                 names = set(zf.namelist())
             assert "energy_model/py.typed" in names
             assert "energy_model/data/profiles_synthetic_24h.csv" in names
+            assert "energy_model/data/workbench_template.html" in names
             assert not any(n.startswith("tests/") for n in names)
         finally:
             shutil.rmtree(REPO_ROOT / "build", ignore_errors=True)
