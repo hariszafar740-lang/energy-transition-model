@@ -27,6 +27,18 @@ Offline · [Quickstart](#quickstart--verification) · [Validation](#validation-s
 I would rather ship a narrower model I can verify than a broader one I cannot.
 If a figure here ever stops matching the code, that is a bug in my README, and I want the issue.
 
+## Install
+
+```bash
+pip install energy-transition-model
+```
+
+Then `etm-sim --help`.
+
+The headline number below is re-checked against the published wheel on every
+release by [energy-systems-benchmarks](https://github.com/hariszafar740-lang/energy-systems-benchmarks), and what that check does not cover
+is written up in [the engineering note](https://github.com/hariszafar740-lang/hariszafar740-lang/blob/main/notes/five-packages.md).
+
 ## Validation: six independent cross-checks, not claims
 
 | Check | This model | Independent reference | Residual | Reproduce with |
